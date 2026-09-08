@@ -11,7 +11,7 @@ void main() {
   test('evt-001 ima sve podatke i tri učesnika', () async {
     final event = await service.loadEvent('evt-001');
 
-    expect(event.title, 'Rođendan - Mia (7 godina)');
+    expect(event.title, '7 Mia');
     expect(event.organizerPhone, '+381641234567');
     expect(event.hasCoordinates, isTrue);
     expect(event.participants, hasLength(3));

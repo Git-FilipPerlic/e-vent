@@ -9,8 +9,6 @@ import '../widgets/common/error_retry.dart';
 import '../widgets/home/event_address.dart';
 import '../widgets/home/departure_time.dart';
 import '../widgets/home/data_readiness.dart';
-import '../widgets/home/event_date.dart';
-import '../widgets/home/event_duration.dart';
 import '../widgets/home/event_reminder.dart';
 import '../widgets/home/event_status_banner.dart';
 import '../widgets/home/event_title.dart';
@@ -27,7 +25,7 @@ import '../widgets/home/vehicle_picker.dart';
 /// gotove podatke kroz konstruktor.
 ///
 /// Elementi se dodaju redom po spisku iz `CLAUDE.md`:
-/// datum i sat (HOME-005) → naziv (HOME-001) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → ugovoreno trajanje → polazak (HOME-007) → vozilo → učesnici (HOME-012) → status tima (HOME-013) → spremnost (HOME-011) →
+/// naziv sa datumom, satom i trajanjem (HOME-001/005) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → polazak (HOME-007) → vozilo → učesnici (HOME-012) → status tima (HOME-013) → spremnost (HOME-011) →
 /// status događaja (HOME-018) → podsetnik (HOME-019) → scenario (HOME-025).
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -156,19 +154,17 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         children: [
-          // Datum i sat stoje iznad naziva — sitno, da se uhvate pogledom.
-          EventDate(date: _event?.eventDate),
-          EventTitle(title: _event?.title),
+          EventTitle(
+            title: _event?.title,
+            date: _event?.eventDate,
+            durationMinutes: _event?.durationMinutes,
+          ),
           OrganizerName(name: _event?.organizerName),
           OrganizerPhone(phone: _event?.organizerPhone),
           EventAddress(
             address: _event?.address,
             latitude: _event?.latitude,
             longitude: _event?.longitude,
-          ),
-          EventDuration(
-            minutes: _event?.durationMinutes,
-            start: _event?.eventDate,
           ),
           DepartureTime(
             departure: _event?.departureTime,

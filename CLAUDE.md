@@ -92,12 +92,12 @@ Ne treba ga ponovo dogovarati — radi se odozgo nadole, jedan po jedan element.
 
 | # | Element | Šta radi | ID |
 |---|---|---|---|
-| 1 | Naziv događaja | ime slavljenika / naziv događaja, krupno, read-only | HOME-001 |
+| 1 | Kartica događaja | dva reda: `Događaj  12. septembar  16:00` / `7 Mia  2h` | HOME-001/005 |
 | 2 | Organizator | ime roditelja/organizatora + dugme za kopiranje | HOME-002 |
 | 3 | Telefon organizatora | **ikonice** u jednom redu: pozovi, SMS, kopiraj | HOME-004 |
 | 4 | Adresa | grad malim slovima uz naslov + tekst adrese + mini mapa + "Navigacija" | HOME-003 |
-| 5 | Datum i sat | sitan red **na vrhu, iznad naziva**: `12. septembar` + `16:00`, bez godine | HOME-005 |
-| 6 | Ugovoreno trajanje | koliko je dogovoreno da nastup traje + izračunat kraj | zamena za HOME-006 |
+
+
 | 7 | Vreme polaska | planirano vreme kretanja na događaj | HOME-007 |
 | 8 | Vozilo | izbor vozila iz liste + dodavanje novog vozila | zamena za HOME-008/009/010 |
 | 9 | Učesnici | spisak ekipe sa ulogama (glavni, vozač, pomoćni) | HOME-012 |
@@ -202,6 +202,24 @@ popunjavanje tabele koja se posle deli timu.
 
 UI uvek proverava **dozvolu**, nikada naziv uloge direktno — tako backend kasnije
 može da doda nove uloge bez menjanja ekrana.
+
+### Kako se piše naziv događaja
+
+Naziv je kratak i bez odrednica koje se podrazumevaju:
+
+| Umesto | Piše se |
+|---|---|
+| `Rođendan - Mia (7 godina)` | `7 Mia` |
+
+- Reč **"rođendan" se ne piše** — iz imena slavljenika i broja se već vidi
+  o čemu je reč.
+- **Arapski broj ispred imena uvek znači godine slavljenika**, pa odrednica
+  "godina" otpada.
+- **Trajanje se prepoznaje po slovu `h`** (`2h`, `1h30`, `45min`) — to je
+  jedini broj u tom redu koji nosi oznaku, pa se ne meša sa godinama ni sa
+  satom početka.
+- `Event.title` u bazi već sadrži gotov naziv u ovom obliku; aplikacija ga
+  ne sklapa i ne prevodi.
 
 ### Vreme na Home tabu (odluka od 8. septembra 2026)
 

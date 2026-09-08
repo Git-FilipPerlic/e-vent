@@ -23,7 +23,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Rođendan - Mia (7 godina)'), findsOneWidget);
+    expect(find.text('7 Mia'), findsOneWidget);
   });
 
   testWidgets('Prebacivanje na Lager tab', (WidgetTester tester) async {

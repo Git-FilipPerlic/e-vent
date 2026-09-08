@@ -30,4 +30,15 @@ abstract final class AppDate {
 
   /// Sat i minut u 24-časovnom obliku: `14:30`
   static String time(DateTime value) => DateFormat.Hm(locale).format(value);
+
+  /// Trajanje u najkraćem obliku: `2h`, `1h30`, `45min`.
+  ///
+  /// Slovo `h` je jedina oznaka koja treba — po njemu se broj trajanja
+  /// razlikuje od ostalih brojeva u redu (godine slavljenika, sat početka).
+  static String shortDuration(int minutes) {
+    if (minutes < 60) return '${minutes}min';
+    final hours = minutes ~/ 60;
+    final rest = minutes % 60;
+    return rest == 0 ? '${hours}h' : '${hours}h$rest';
+  }
 }

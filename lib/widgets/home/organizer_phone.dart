@@ -98,8 +98,6 @@ class OrganizerPhone extends StatelessWidget {
               _PhoneAction(
                 icon: Icons.call_rounded,
                 label: 'Pozovi',
-                // Poziv je glavna radnja — jedina ikonica na punoj podlozi.
-                isPrimary: true,
                 onPressed: () => _open(
                   context,
                   Uri(scheme: 'tel', path: dialable),
@@ -130,7 +128,6 @@ class _PhoneAction extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onPressed,
-    this.isPrimary = false,
   });
 
   final IconData icon;
@@ -140,7 +137,6 @@ class _PhoneAction extends StatelessWidget {
   final String label;
 
   final VoidCallback onPressed;
-  final bool isPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -152,12 +148,8 @@ class _PhoneAction extends StatelessWidget {
         icon: Icon(icon),
         iconSize: 22,
         tooltip: label,
-        style: isPrimary
-            ? IconButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: AppColors.background,
-              )
-            : IconButton.styleFrom(foregroundColor: AppColors.accent),
+        // Bez podloge — sve tri akcije su čiste ikonice u boji `accent`.
+        style: IconButton.styleFrom(foregroundColor: AppColors.accent),
       ),
     );
   }

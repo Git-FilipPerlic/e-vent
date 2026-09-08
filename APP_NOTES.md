@@ -381,6 +381,29 @@ Ispravke posle prve provere na telefonu (snimci ekrana sa uređaja).
 
 ---
 
+## 8. septembar 2026 — sve u kartici događaja, ikonice bez podloge
+
+- **Kartica događaja sada nosi sve u dva reda:**
+  `Događaj  12. septembar  16:00` gore, `7 Mia  2h` dole.
+  Datum je beo i naglašen, sat i trajanje u boji `accent`.
+- **Zasebne kartice za datum i za trajanje su obrisane**
+  (`event_date.dart`, `event_duration.dart` i njihovi testovi).
+- **Nova konvencija za naziv rođendana: `7 Mia`.** Reč "rođendan" se ne piše
+  jer se događaj vidi iz imena slavljenika, a arapski broj ispred imena već
+  znači godine — pa i odrednica "godina" otpada. Test događaj `evt-001` je
+  prebačen na taj oblik.
+- **Trajanje se prepoznaje po slovu `h`** (`AppDate.shortDuration`):
+  `2h`, `1h30`, `45min`. Nema odrednice "ugovoreno trajanje".
+- **Ikonica poziva je izgubila zeleni krug** — sve tri akcije (poziv, SMS,
+  kopiranje) su sada čiste ikonice u boji `accent`.
+- Datum ide kroz `FittedBox` — pri uvećanom sistemskom fontu se sekao na
+  "12. septem…".
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 74/74 prolaze;
+  provereno na telefonu (SM-A346B).
+- Sledeće: sledeći set feature-a (Lager tab)
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **OpenStreetMap pločice za mini mapu.** Koristi se javni server

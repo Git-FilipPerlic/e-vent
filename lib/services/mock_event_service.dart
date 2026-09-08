@@ -85,7 +85,9 @@ class MockEventService implements EventService {
 const Map<String, Map<String, dynamic>> _events = {
   'evt-001': {
     'id': 'evt-001',
-    'title': 'Rođendan - Mia (7 godina)',
+    // Broj ispred imena je broj godina slavljenika — reč "rođendan"
+    // i odrednica "godina" se podrazumevaju i ne pišu se.
+    'title': '7 Mia',
     'scenario': ['Doček gostiju', 'Igre za decu', 'Završni plesni program'],
     'organizerName': 'Jovana Petrović',
     'organizerPhone': '+381641234567',
