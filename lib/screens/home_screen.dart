@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../models/event.dart';
 import '../models/vehicle.dart';
+import '../models/weather.dart';
 import '../services/event_service.dart';
 import '../services/mock_event_service.dart';
+import '../services/weather_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
 import '../widgets/home/event_address.dart';
@@ -11,6 +13,7 @@ import '../widgets/home/departure_time.dart';
 import '../widgets/home/data_readiness.dart';
 import '../widgets/home/event_reminder.dart';
 import '../widgets/home/event_status_banner.dart';
+import '../widgets/home/event_weather.dart';
 import '../widgets/home/event_title.dart';
 import '../widgets/home/organizer_name.dart';
 import '../widgets/home/organizer_phone.dart';
@@ -39,12 +42,19 @@ class _HomeScreenState extends State<HomeScreen> {
   /// menja se samo ova linija — nijedan widget se ne dira.
   final EventService _service = MockEventService();
 
+  /// Prognoza dolazi sa Open-Meteo servisa — besplatan, bez API ključa.
+  final WeatherService _weather = OpenMeteoWeatherService();
+
   /// Za sada se uvek učitava isti test događaj, kao u ranijoj verziji
   /// aplikacije. Kasnije će ga birati prijavljeni korisnik.
   static const String _eventId = 'evt-001';
 
   Event? _event;
   List<Vehicle> _vehicles = const [];
+
+  EventForecast? _forecast;
+  bool _isForecastLoading = false;
+  String? _forecastError;
 
   /// Tačke scenarija koje je korisnik sam dodao. Za sada žive samo dok traje
   /// ekran — trajno čuvanje ide uz bazu.
@@ -72,16 +82,62 @@ class _HomeScreenState extends State<HomeScreen> {
         _service.loadVehicles(),
       ]);
       if (!mounted) return;
+      final event = results[0] as Event;
       setState(() {
-        _event = results[0] as Event;
+        _event = event;
         _vehicles = results[1] as List<Vehicle>;
         _isLoading = false;
       });
+      // Prognoza se učitava odvojeno: ekran se ne čeka zbog mreže, a ako
+      // prognoza pukne, ostatak podataka i dalje stoji.
+      _loadForecast(event);
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _errorMessage = 'Podaci o događaju nisu učitani.';
         _isLoading = false;
+      });
+    }
+  }
+
+  /// Prognoza za sate u kojima nastup traje.
+  ///
+  /// Bez koordinata ili bez datuma nema šta da se traži — kartica tada sama
+  /// kaže da prognoze nema.
+  Future<void> _loadForecast(Event event) async {
+    final start = event.eventDate;
+    if (!event.hasCoordinates || start == null) {
+      setState(() {
+        _forecast = null;
+        _forecastError = 'Bez adrese i datuma nema prognoze.';
+        _isForecastLoading = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isForecastLoading = true;
+      _forecastError = null;
+    });
+
+    try {
+      final forecast = await _weather.forRange(
+        latitude: event.latitude!,
+        longitude: event.longitude!,
+        start: start,
+        end: event.endsAt ?? start,
+      );
+      if (!mounted) return;
+      setState(() {
+        _forecast = forecast;
+        _isForecastLoading = false;
+      });
+    } on WeatherUnavailableException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _forecast = null;
+        _forecastError = 'Prognoza nije dostupna (${e.reason}).';
+        _isForecastLoading = false;
       });
     }
   }
@@ -165,6 +221,12 @@ class _HomeScreenState extends State<HomeScreen> {
             address: _event?.address,
             latitude: _event?.latitude,
             longitude: _event?.longitude,
+          ),
+          EventWeather(
+            weather: _forecast,
+            isLoading: _isForecastLoading,
+            errorMessage: _forecastError,
+            onRetry: _event == null ? null : () => _loadForecast(_event!),
           ),
           DepartureTime(
             departure: _event?.departureTime,

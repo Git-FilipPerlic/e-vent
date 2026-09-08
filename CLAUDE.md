@@ -380,6 +380,10 @@ direktno — zato zamena mock servisa Firebase servisom kasnije ne dira UI.
   MVP fazi. Ekran drži stanje, servis vraća podatke. Ako se kasnije pokaže da je
   potrebno deljeno stanje između tabova, prelazi se na Riverpod — ali tek tada i
   kao svesna odluka, ne usput.
+- **Vremenska prognoza: Open-Meteo.** Besplatan, bez API ključa i bez
+  registracije, daje prognozu po satu. Prikazuje se vreme **za sate u kojima
+  nastup traje**, ne opšta dnevna prognoza — poenta je da organizator unapred
+  zna da mu kiša pada na pola programa.
 - **Mape: `flutter_map`** (OpenStreetMap). Ne traži Google Maps API ključ ni
   naplatu, a za mini pregled adrese na Home tabu je sasvim dovoljan. Otvaranje
   prave navigacije ide preko `url_launcher` u aplikaciju koju korisnik već ima na
@@ -442,6 +446,7 @@ za proveru praznih stanja) mogu da posluže kao seed za Firestore.
 | Audio (Muzika tab) | planirano `expo-av` | `just_audio` ili `audioplayers` |
 | Bluetooth (LED tab) | planirano `react-native-ble-plx` | `flutter_blue_plus` |
 | Dozvole (Bluetooth, fajlovi) | Expo permissions | `permission_handler` |
+| Vremenska prognoza | — | `http` + Open-Meteo (bez ključa) |
 
 ---
 

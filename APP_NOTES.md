@@ -421,12 +421,37 @@ Ispravke posle prve provere na telefonu (snimci ekrana sa uređaja).
 
 ---
 
+## 8. septembar 2026 — vremenska prognoza za sate nastupa
+
+- Dodat paket `http` (^1.6.0) — jedini novi paket za ovu funkciju.
+- **Izvor: Open-Meteo.** Besplatan, **bez API ključa i bez registracije**,
+  isti duh kao izbor OpenStreetMap-a za mape. Daje prognozu po satu, pa se
+  kaže "Kiša oko 17:00 (80%)", a ne samo "biće kiše danas".
+- `lib/models/weather.dart` — WMO šifre (0..99) svedene na šest stanja koja
+  nešto znače na terenu: vedro, delimično oblačno, oblačno, kiša, sneg,
+  grmljavina. Nepoznata šifra pada na "oblačno", nikad ne puca.
+- `lib/services/weather_service.dart` — interfejs + Open-Meteo implementacija.
+  Uzimaju se **samo sati koje nastup pokriva** (16:00–18:00 → 16, 17 i 18;
+  poslednji zato što se u tom satu pakuje oprema).
+- `lib/widgets/home/event_weather.dart` — ikonica, temperatura i stanje; ako
+  se u toku nastupa očekuju padavine, ispod ide žuto upozorenje sa satom.
+- `lib/screens/home_screen.dart` — prognoza se učitava **odvojeno** od podataka
+  o događaju: ekran se ne čeka zbog mreže, a ako prognoza pukne, ostatak
+  podataka i dalje stoji. Greška nudi "Pokušaj ponovo".
+- Prognoza ide oko 16 dana unapred; za dalji datum servis vrati grešku, a
+  kartica to kaže umesto da prikaže prazno.
+- `test/weather_test.dart` — 9 testova, sa lažnim HTTP klijentom
+  (`MockClient` iz `package:http/testing.dart`, bez novog paketa).
+- Dve greške uhvaćene testovima: nepoznata WMO šifra je padala u "grmljavinu"
+  (granica je sad 95..99), a sat pre početka je ulazio u opseg nastupa.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 83/83 prolaze;
+  provereno na telefonu sa pravim podacima (25°, Oblačno za Novi Sad).
+- Sledeće: Lager tab
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
-- **Vremenska prognoza na Home tabu (predlog korisnika).** Ikonica sa
-  temperaturom i stanjem (sunčano / kiša / ...) za mesto i vreme događaja —
-  da organizator unapred zna hoće li mu kiša pasti na pola programa. Traži
-  izbor izvora podataka i jedan paket za mrežu; čeka odluku korisnika.
 - **Saobraćaj na ruti do događaja (predlog korisnika).** Povezati lokaciju
   korisnika i lokaciju događaja, pa na toj ruti izdvojiti zatvorene
   saobraćajnice, udese i veća kašnjenja. Traži izvor podataka o saobraćaju
