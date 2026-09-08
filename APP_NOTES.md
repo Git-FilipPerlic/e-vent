@@ -282,6 +282,29 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — logotip tima u headeru (kraj Home taba)
+
+- Urađeno:
+  - Dodati paketi `image_picker` (^1.2.3) i `shared_preferences` (^2.5.5).
+  - `lib/services/auth_service.dart` — `Permission` enum (`editTeamLogo`,
+    `editVehicle`, `editEvent`) i `MockAuthService`. UI proverava **dozvolu**,
+    nikad naziv uloge. Mock zasad pušta sve, da bi funkcije mogle da se probaju
+    pre nego što login postoji; kad stigne pravi login, menja se jedna linija.
+  - `lib/services/team_logo_service.dart` — pamti putanju do logotipa preko
+    `shared_preferences`; sama slika ostaje gde ju je `image_picker` ostavio.
+  - `lib/widgets/common/app_header.dart` — logotip u headeru, plus dugmad za
+    promenu i uklanjanje, ali **samo uz dozvolu** (promena logotipa je
+    funkcija managementa, po dogovoru od 8. septembra). Neispravna ili
+    obrisana slika ne obori header — vraća se ime aplikacije.
+  - `lib/app.dart` — učitavanje i čuvanje logotipa, biranje slike iz galerije
+    (ograničeno na 512x512, jer logo stoji na 32 dp visine). Odustajanje od
+    izbora ne javlja ništa; greška javlja poruku.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 76/76 prolaze
+- **Time je Home tab završen** po spisku iz `CLAUDE.md`.
+- Sledeće: sledeći set feature-a (Lager tab)
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **OpenStreetMap pločice za mini mapu.** Koristi se javni server
