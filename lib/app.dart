@@ -11,6 +11,7 @@ import 'services/auth_service.dart';
 import 'services/team_logo_service.dart';
 import 'theme/app_theme.dart';
 import 'widgets/common/app_header.dart';
+import 'widgets/common/top_tab_bar.dart';
 
 /// Koren aplikacije: tema i navigacija sa 4 taba.
 class EventApp extends StatelessWidget {
@@ -28,7 +29,7 @@ class EventApp extends StatelessWidget {
   }
 }
 
-/// Donja navigacija sa 4 taba i zajednički header iznad njih.
+/// Header sa logotipom, ispod njega tabovi, pa sadržaj.
 /// Stanje je običan [setState] — bez Riverpod-a/Provider-a u MVP fazi.
 class RootNavigation extends StatefulWidget {
   const RootNavigation({super.key});
@@ -57,27 +58,11 @@ class _RootNavigationState extends State<RootNavigation> {
     LagerScreen(),
   ];
 
-  static const List<NavigationDestination> _destinations = [
-    NavigationDestination(
-      icon: Icon(Icons.home_outlined),
-      selectedIcon: Icon(Icons.home),
-      label: 'Home',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.music_note_outlined),
-      selectedIcon: Icon(Icons.music_note),
-      label: 'Muzika',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.lightbulb_outline),
-      selectedIcon: Icon(Icons.lightbulb),
-      label: 'LED',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.checklist_outlined),
-      selectedIcon: Icon(Icons.checklist),
-      label: 'Lager',
-    ),
+  static const List<TopTab> _destinations = [
+    TopTab(label: 'Home', icon: Icons.home_rounded),
+    TopTab(label: 'Muzika', icon: Icons.music_note_rounded),
+    TopTab(label: 'LED', icon: Icons.lightbulb_rounded),
+    TopTab(label: 'Lager', icon: Icons.checklist_rounded),
   ];
 
   @override
@@ -99,10 +84,10 @@ class _RootNavigationState extends State<RootNavigation> {
     try {
       final picked = await _picker.pickImage(
         source: ImageSource.gallery,
-        // Logotip stoji na 32 dp visine — velika slika bi samo trošila
+        // Logotip stoji na 52 dp visine — veća slika bi samo trošila
         // memoriju i vreme učitavanja.
-        maxWidth: 512,
-        maxHeight: 512,
+        maxWidth: 1024,
+        maxHeight: 1024,
       );
       // Korisnik je odustao — ništa se ne menja i ništa se ne javlja.
       if (picked == null) return;
@@ -113,9 +98,7 @@ class _RootNavigationState extends State<RootNavigation> {
     } catch (_) {
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Logotip nije učitan.')),
-        );
+        ..showSnackBar(const SnackBar(content: Text('Logotip nije učitan.')));
     }
   }
 
@@ -136,16 +119,36 @@ class _RootNavigationState extends State<RootNavigation> {
     final canEditLogo = _auth.can(Permission.editTeamLogo);
 
     return Scaffold(
-      appBar: AppHeader(
-        logo: path != null ? FileImage(File(path)) : null,
-        onEditLogo: canEditLogo ? _pickLogo : null,
-        onRemoveLogo: canEditLogo && path != null ? _removeLogo : null,
-      ),
-      body: IndexedStack(index: _currentIndex, children: _tabs),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: _onTabSelected,
-        destinations: _destinations,
+      body: Column(
+        children: [
+          // Header i tabovi ne smeju pod statusnu traku telefona.
+          SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                AppHeader(
+                  logo: path != null ? FileImage(File(path)) : null,
+                  onEditLogo: canEditLogo ? _pickLogo : null,
+                  onRemoveLogo: canEditLogo && path != null
+                      ? _removeLogo
+                      : null,
+                ),
+                TopTabBar(
+                  tabs: _destinations,
+                  currentIndex: _currentIndex,
+                  onSelected: _onTabSelected,
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            // Sadržaj ne sme da upadne pod sistemsku traku sa gestovima.
+            child: SafeArea(
+              top: false,
+              child: IndexedStack(index: _currentIndex, children: _tabs),
+            ),
+          ),
+        ],
       ),
     );
   }

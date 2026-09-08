@@ -305,6 +305,36 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — tabovi gore, header, dugmad telefona, sat početka
+
+Ispravke posle prve provere na telefonu (snimci ekrana sa uređaja).
+
+- **Tabovi prebačeni gore**, ispod headera (`lib/widgets/common/top_tab_bar.dart`).
+  Izabrani tab je izdignut, sa zakošenom ivicom i sjajem u boji `accent`;
+  neizabrani su utisnuti. Zakošenje ide kroz dva sloja, jer Flutter ne
+  dozvoljava zaobljen okvir sa različitim bojama stranica
+  ("A borderRadius can only be given on borders with uniform colors").
+  Naziv taba ide kroz `FittedBox`, da se ne lomi kad je sistemski font uvećan.
+- **Header:** logotip je bio stisnut na 32 dp i zalepljen uz statusnu traku,
+  jer je `Container` imao fiksnu visinu, a `SafeArea` mu je iznutra jeo prostor.
+  Sada je traka visoka 72 dp, logotip 52 dp, sa zaobljenim uglovima —
+  fotografija bez zaobljenja izgleda kao nalepnica.
+- **Dugmad telefona:** "Pozovi" i "SMS" su se lomili na "Poz / ovi" i "SM / S"
+  jer je sistemski font uvećan a dugmad su bila u istom redu. Sada idu jedno
+  ispod drugog, preko cele širine ("Pozovi", "Pošalji SMS") — tekst se ne lomi,
+  a meta za prst je veća.
+- **Sat početka (0–23) na kartici datuma:** traka časova ispod datuma, sa
+  osenčenim satom u koji je tezga zakazana, i krupnim `16:00` u boji `accent`.
+  Traka se pri otvaranju sama pomeri na izabrani sat.
+  **To je za sada "lutkica" (filler)** — dodir menja prikaz, ali se izmena još
+  ne upisuje nigde; upis ide uz admin konzolu i bazu.
+- Sadržaj je upadao pod sistemsku traku sa gestovima — dodat `SafeArea`.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 76/76 prolaze;
+  provereno na telefonu (SM-A346B) snimcima ekrana.
+- Sledeće: sledeći set feature-a (Lager tab)
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **OpenStreetMap pločice za mini mapu.** Koristi se javni server
@@ -316,8 +346,6 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
   niz stavki ispod nje. Pravi spisak daje korisnik.
 - Prikazno ime aplikacije na telefonu je i dalje `event_app` — treba ga
   promeniti na "e-vent" u `AndroidManifest.xml` i `Info.plist`.
-- Donja navigacija koristi `NavigationBar` (Material 3), a u `CLAUDE.md` piše
-  `BottomNavigationBar` — potvrditi jedno ili drugo.
 - `flutter run` visi na "Installing ..." zbog Secure Foldera na telefonu
   (profili `0` i `150`), pa za sada nema hot reload-a. Zaobilazi se ručnim
   `flutter build apk --debug` + `adb install --user 0` + `am start --user 0`.

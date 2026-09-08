@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:event_app/app.dart';
+import 'package:event_app/widgets/common/top_tab_bar.dart';
 import 'package:event_app/utils/date_format.dart';
 
 void main() {
@@ -15,7 +16,7 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(const EventApp());
 
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(TopTabBar), findsOneWidget);
 
     // Dok podaci stižu, na Home stoji indikator učitavanja.
     expect(find.byType(CircularProgressIndicator), findsOneWidget);

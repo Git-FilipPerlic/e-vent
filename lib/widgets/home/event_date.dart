@@ -3,57 +3,217 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/date_format.dart';
 
-/// HOME-005 — datum događaja, ispisan na srpskom (`12. septembar 2026.`).
+/// HOME-005 — datum događaja, ispisan na srpskom (`12. septembar 2026.`),
+/// sa satom u koji je tezga zakazana.
 ///
-/// Widget je "glup": prima gotov datum kroz konstruktor.
-class EventDate extends StatelessWidget {
-  const EventDate({super.key, required this.date});
+/// Ispod datuma stoji traka od **0 do 23 časa**; osenčen je čas u koji
+/// događaj počinje, pa se sa jednog pogleda vidi da li je tezga popodne
+/// ili kasno uveče.
+///
+/// **Traka je za sada "lutkica" (filler):** dodir menja prikaz na ekranu, ali
+/// se izmena još ne upisuje nigde — upis ide tek uz admin konzolu i bazu.
+class EventDate extends StatefulWidget {
+  const EventDate({super.key, required this.date, this.onHourSelected});
 
-  /// Datum događaja. Može da bude `null` — tada se prikazuje objašnjenje.
+  /// Datum i vreme događaja. Može da bude `null`.
   final DateTime? date;
+
+  /// Javlja izabrani čas nadređenom ekranu, kad za to dođe vreme.
+  /// Dok je `null`, izbor ostaje samo na ekranu.
+  final ValueChanged<int>? onHourSelected;
+
+  /// Sati u danu: 0..23.
+  static const int hoursInDay = 24;
+
+  @override
+  State<EventDate> createState() => _EventDateState();
+}
+
+class _EventDateState extends State<EventDate> {
+  /// Širina jednog polja u traci, plus razmak — koristi se i za računanje
+  /// gde traku treba pomeriti da bi izabrani čas bio na sredini.
+  static const double _slotWidth = 52;
+  static const double _slotGap = AppSpacing.xs;
+
+  late final ScrollController _strip = ScrollController();
+  int? _hour;
+
+  @override
+  void initState() {
+    super.initState();
+    _hour = widget.date?.hour;
+    // Traka se otvara tako da izabrani čas bude u vidnom polju,
+    // a ne da korisnik traži gde je 20h.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHour());
+  }
+
+  @override
+  void didUpdateWidget(covariant EventDate oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Kad stignu novi podaci o događaju, traka prati novi sat.
+    if (widget.date?.hour != oldWidget.date?.hour) {
+      setState(() => _hour = widget.date?.hour);
+      _scrollToHour();
+    }
+  }
+
+  @override
+  void dispose() {
+    _strip.dispose();
+    super.dispose();
+  }
+
+  void _scrollToHour() {
+    final hour = _hour;
+    if (hour == null || !_strip.hasClients) return;
+
+    final viewport = _strip.position.viewportDimension;
+    final target =
+        hour * (_slotWidth + _slotGap) - (viewport / 2) + (_slotWidth / 2);
+    _strip.jumpTo(target.clamp(0.0, _strip.position.maxScrollExtent));
+  }
+
+  void _selectHour(int hour) {
+    setState(() => _hour = hour);
+    widget.onHourSelected?.call(hour);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final value = date;
+    final value = widget.date;
+    final hour = _hour;
 
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(
-              Icons.event_rounded,
-              color: AppColors.textSecondary,
-              size: 20,
+            Row(
+              children: [
+                const Icon(
+                  Icons.event_rounded,
+                  color: AppColors.textSecondary,
+                  size: 20,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Datum događaja',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        value != null ? AppDate.long(value) : 'Datum nije unet',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: value != null
+                              ? AppColors.textPrimary
+                              : AppColors.textSecondary,
+                          fontWeight: value != null
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (hour != null)
+                  Text(
+                    '${hour.toString().padLeft(2, '0')}:00',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: AppColors.accent,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+              ],
             ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Datum događaja',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    value != null ? AppDate.long(value) : 'Datum nije unet',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: value != null
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
-                      fontWeight:
-                          value != null ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                ],
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Sat početka',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: AppColors.textSecondary,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              height: kMinTouchTarget,
+              child: ListView.separated(
+                controller: _strip,
+                scrollDirection: Axis.horizontal,
+                itemCount: EventDate.hoursInDay,
+                separatorBuilder: (_, _) => const SizedBox(width: _slotGap),
+                itemBuilder: (context, index) => _HourSlot(
+                  hour: index,
+                  isSelected: index == hour,
+                  width: _slotWidth,
+                  onTap: () => _selectHour(index),
+                ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Jedan čas u traci. Izabrani je izdignut i u boji `accent`.
+class _HourSlot extends StatelessWidget {
+  const _HourSlot({
+    required this.hour,
+    required this.isSelected,
+    required this.width,
+    required this.onTap,
+  });
+
+  final int hour;
+  final bool isSelected;
+  final double width;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SizedBox(
+      width: width,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppSpacing.sm),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: isSelected
+                    ? const [AppColors.surfaceAlt, AppColors.surface]
+                    : const [AppColors.backgroundBottom, AppColors.surface],
+              ),
+              border: Border.all(
+                color: isSelected ? AppColors.accent : AppColors.border,
+                width: isSelected ? 1.5 : 1,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              hour.toString().padLeft(2, '0'),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: isSelected ? AppColors.accent : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ),
         ),
       ),
     );

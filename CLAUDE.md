@@ -69,7 +69,7 @@ celini.
 
 ## Šta aplikacija radi (nezavisno od tehnologije)
 
-Četiri taba u donjoj navigaciji:
+Četiri taba u **gornjoj** navigaciji, odmah ispod headera:
 
 1. **Home** — priprema i polazak na događaj: naziv slavljenika, organizator i
    telefon, adresa sa mapom i navigacijom, datum, sat uživo, vreme polaska,
@@ -203,6 +203,25 @@ popunjavanje tabele koja se posle deli timu.
 UI uvek proverava **dozvolu**, nikada naziv uloge direktno — tako backend kasnije
 može da doda nove uloge bez menjanja ekrana.
 
+### Navigacija (odluka od 8. septembra 2026)
+
+Tabovi stoje **gore, odmah ispod headera** — ne dole. Odluka je korisnikova:
+telefon se često koristi u držaču u vozilu i na sastanku, gde se prilazi
+kažiprstom odozgo, a ne palcem odozdo.
+
+Tabovi su izvedeni kao dugmad sa **zakošenom ivicom (bevel)**: izabrani je
+izdignut, sa svetlom ivicom gore i senkom ispod, i u boji `accent`; neizabrani
+su utisnuti u podlogu i mirni. Cilj je da se **sa ispružene ruke**, u vožnji
+ili tokom programa, na prvi pogled vidi šta je izabrano.
+
+Izvedba: zakošenje se pravi od dva sloja (spoljni tanak okvir sa gradijentom
+svetlo→tamno, unutrašnji je lice dugmeta). Flutter ne dozvoljava zaobljen okvir
+sa različitim bojama stranica, pa je ovo jedini način da bevel i zaobljeni
+uglovi idu zajedno.
+
+Prevlačenje između tabova se **ne koristi** — sadržaj stoji u `IndexedStack`,
+da bi prevlačenje ostalo slobodno za prsten na Muzici.
+
 ### Pravila dizajna
 
 - **Aplikacija je samo tamna** (čuva noćni vid i bateriju na večernjim nastupima)
@@ -295,7 +314,7 @@ Ostala pravila:
 ```
 lib/
   main.dart              - runApp + inicijalizacija (kasnije Firebase.initializeApp)
-  app.dart               - MaterialApp, tema, root sa BottomNavigationBar (4 taba)
+  app.dart               - MaterialApp, tema, root sa headerom i tabovima gore (4 taba)
   theme/
     app_theme.dart       - tamna ColorScheme, gradijenti, spacing, minTouchTarget = 48
   models/

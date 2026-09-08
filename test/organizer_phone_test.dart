@@ -35,7 +35,7 @@ void main() {
     expect(find.text('Telefon organizatora'), findsOneWidget);
     expect(find.text('+381641234567'), findsOneWidget);
     expect(find.text('Pozovi'), findsOneWidget);
-    expect(find.text('SMS'), findsOneWidget);
+    expect(find.text('Pošalji SMS'), findsOneWidget);
     expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
   });
 
@@ -45,7 +45,7 @@ void main() {
 
     expect(find.text('Telefon nije unet'), findsOneWidget);
     expect(find.text('Pozovi'), findsNothing);
-    expect(find.text('SMS'), findsNothing);
+    expect(find.text('Pošalji SMS'), findsNothing);
     expect(find.byIcon(Icons.copy_rounded), findsNothing);
   });
 
@@ -75,7 +75,7 @@ void main() {
       _wrap(const OrganizerPhone(phone: '(021) 555 111')),
     );
 
-    await tester.tap(find.text('SMS'));
+    await tester.tap(find.text('Pošalji SMS'));
     await tester.pump();
 
     expect(launched, ['sms:021555111']);

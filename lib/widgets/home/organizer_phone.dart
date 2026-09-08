@@ -6,6 +6,10 @@ import '../common/copy_button.dart';
 
 /// HOME-004 — telefon organizatora sa tri akcije: pozovi, SMS, kopiraj.
 ///
+/// Dugmad idu jedno **ispod** drugog, preko cele širine. Kad je sistemski
+/// font uvećan (a mnogi ga uvećaju), tekst u uskim dugmadima se lomi na
+/// "Poz / ovi" — puna širina to ne dozvoljava, a i meta za prst je veća.
+///
 /// Widget je "glup": prima gotov broj kroz konstruktor. Pozivanje i SMS nisu
 /// podaci nego radnje nad telefonom, pa ih widget pokreće sam preko
 /// `url_launcher` — ni ovde se ne dira servis ni baza.
@@ -46,53 +50,64 @@ class OrganizerPhone extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Telefon organizatora',
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: AppColors.textSecondary,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              hasPhone ? value : 'Telefon nije unet',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: hasPhone
-                    ? AppColors.textPrimary
-                    : AppColors.textSecondary,
-                fontWeight: hasPhone ? FontWeight.w600 : FontWeight.w400,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Telefon organizatora',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        hasPhone ? value : 'Telefon nije unet',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: hasPhone
+                              ? AppColors.textPrimary
+                              : AppColors.textSecondary,
+                          fontWeight: hasPhone
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Kopiranje je sitna radnja — ostaje ikonica uz sam broj.
+                if (hasPhone) CopyButton(value: value, label: 'Telefon'),
+              ],
             ),
             if (hasPhone) ...[
               const SizedBox(height: AppSpacing.md),
-              Row(
-                children: [
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () => _open(
-                        context,
-                        Uri(scheme: 'tel', path: dialable),
-                        'Pozivanje nije moguće na ovom uređaju.',
-                      ),
-                      icon: const Icon(Icons.call_rounded, size: 20),
-                      label: const Text('Pozovi'),
-                    ),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => _open(
+                    context,
+                    Uri(scheme: 'tel', path: dialable),
+                    'Pozivanje nije moguće na ovom uređaju.',
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _open(
-                        context,
-                        Uri(scheme: 'sms', path: dialable),
-                        'Slanje poruke nije moguće na ovom uređaju.',
-                      ),
-                      icon: const Icon(Icons.sms_rounded, size: 20),
-                      label: const Text('SMS'),
-                    ),
+                  icon: const Icon(Icons.call_rounded),
+                  label: const Text('Pozovi'),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _open(
+                    context,
+                    Uri(scheme: 'sms', path: dialable),
+                    'Slanje poruke nije moguće na ovom uređaju.',
                   ),
-                  const SizedBox(width: AppSpacing.xs),
-                  CopyButton(value: value, label: 'Telefon'),
-                ],
+                  icon: const Icon(Icons.sms_rounded),
+                  label: const Text('Pošalji SMS'),
+                ),
               ),
             ],
           ],
