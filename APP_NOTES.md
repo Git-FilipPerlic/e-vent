@@ -195,6 +195,24 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — HOME-006 (sat uživo) i HOME-007 (vreme polaska)
+
+- Urađeno:
+  - `lib/widgets/home/live_clock.dart` — HOME-006. Vreme `14:30:07`, osvežava
+    se svake sekunde. Otkucaj se poravnava sa punom sekundom, da prikaz ne
+    preskače. **Bez animacije** — po pravilu iz `CLAUDE.md` sat ne treperi.
+    Brojke su iste širine (`tabularFigures`), da se tekst ne pomera. Tajmer se
+    gasi u `dispose()`. Sat se čita kroz `now` parametar (u aplikaciji
+    `DateTime.now`), jer se u testu pravo vreme ne može ubrzati.
+  - `lib/widgets/home/departure_time.dart` — HOME-007. Vreme polaska i, ako
+    postoji, procenjeno trajanje puta ("Put traje oko 45 min").
+  - `test/live_clock_test.dart` (3 testa) i `test/departure_time_test.dart`
+    (4 testa) — uključujući proveru da tajmer ne ostane da radi posle gašenja.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 38/38 prolaze
+- Sledeće: vozilo (izbor iz liste + dodavanje novog)
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **OpenStreetMap pločice za mini mapu.** Koristi se javni server
