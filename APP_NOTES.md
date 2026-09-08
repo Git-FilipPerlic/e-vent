@@ -477,6 +477,20 @@ Ispravke posle prve provere na telefonu (snimci ekrana sa uređaja).
 
 ---
 
+## 8. septembar 2026 — grad velikim slovom, trajanje uz ime
+
+- **Grad se piše velikim početnim slovom** — "Novi Sad", ne "novi sad".
+  Imena mesta se tako pišu; sitan font je stvar kartice, a ne pravopisa.
+- **Adresa više ne ponavlja grad.** Grad stoji u redu iznad, pa ulica sada
+  piše samo "Bulevar Oslobođenja 45" (`EventAddress.streetFrom`).
+  Adresa bez zareza ostaje kakva jeste.
+- **Trajanje je uz samo ime**, odvojeno kosom crtom i u bledosivoj boji:
+  `7 Mia / 2h`. Ranije je stajalo u svom redu ispod.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 94/94 prolaze;
+  provereno na telefonu.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Logotip tima nestaje posle reinstalacije aplikacije.** `image_picker`

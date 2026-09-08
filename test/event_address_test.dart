@@ -35,7 +35,7 @@ void main() {
     );
 
     expect(find.text('Adresa'), findsOneWidget);
-    expect(find.text('Kisačka 78, Novi Sad'), findsOneWidget);
+    expect(find.text('Kisačka 78'), findsOneWidget);
     expect(find.text('Navigacija'), findsOneWidget);
     expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
   });
@@ -109,14 +109,23 @@ void main() {
     );
   });
 
-  test('grad se izvlači iz adrese i piše malim slovima', () {
+  test('grad se izvlači iz adrese, sa velikim početnim slovom', () {
     expect(
       EventAddress.cityFrom('Bulevar Oslobođenja 45, Novi Sad'),
-      'novi sad',
+      'Novi Sad',
     );
     // Adresa bez zareza nema izdvojen grad.
     expect(EventAddress.cityFrom('Kisačka 78'), isNull);
     expect(EventAddress.cityFrom('Kisačka 78,   '), isNull);
+  });
+
+  test('ulica se piše bez grada, jer grad stoji u redu iznad', () {
+    expect(
+      EventAddress.streetFrom('Bulevar Oslobođenja 45, Novi Sad'),
+      'Bulevar Oslobođenja 45',
+    );
+    // Bez zareza nema šta da se skida.
+    expect(EventAddress.streetFrom('Kisačka 78'), 'Kisačka 78');
   });
 
   testWidgets('grad stoji sitno uz naslov kartice',
@@ -125,6 +134,8 @@ void main() {
       _wrap(const EventAddress(address: 'Bulevar Oslobođenja 45, Novi Sad')),
     );
 
-    expect(find.text('novi sad'), findsOneWidget);
+    expect(find.text('Novi Sad'), findsOneWidget);
+    // Grad se ne ponavlja u redu sa ulicom.
+    expect(find.text('Bulevar Oslobođenja 45'), findsOneWidget);
   });
 }

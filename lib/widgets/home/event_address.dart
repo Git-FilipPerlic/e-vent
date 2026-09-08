@@ -29,15 +29,28 @@ class EventAddress extends StatelessWidget {
   final double? longitude;
 
   /// Grad iz adrese — sve posle poslednjeg zareza
-  /// ("Bulevar Oslobođenja 45, Novi Sad" → "novi sad").
+  /// ("Bulevar Oslobođenja 45, Novi Sad" → "Novi Sad").
   ///
-  /// Piše se **malim slovima**, sitno, uz naslov kartice: to je podatak koji
-  /// se hvata pogledom ("gde se putuje"), pa ne sme da se otima od same adrese.
+  /// Piše se sitno uz naslov kartice: to je podatak koji se hvata pogledom
+  /// ("gde se putuje"). **Velikim početnim slovom**, kako se imena mesta i
+  /// pišu — velikim slovom se piše ime, ne stil kartice.
   static String? cityFrom(String address) {
     final parts = address.split(',');
     if (parts.length < 2) return null;
     final city = parts.last.trim();
-    return city.isEmpty ? null : city.toLowerCase();
+    return city.isEmpty ? null : city;
+  }
+
+  /// Adresa bez grada ("Bulevar Oslobođenja 45, Novi Sad" →
+  /// "Bulevar Oslobođenja 45").
+  ///
+  /// Grad već stoji u redu iznad, pa bi ga ulica samo ponovila.
+  /// Adresa bez zareza ostaje kakva jeste.
+  static String streetFrom(String address) {
+    final parts = address.split(',');
+    if (parts.length < 2) return address.trim();
+    final street = parts.sublist(0, parts.length - 1).join(',').trim();
+    return street.isEmpty ? address.trim() : street;
   }
 
   bool get _hasCoordinates => latitude != null && longitude != null;
@@ -115,7 +128,7 @@ class EventAddress extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    hasAddress ? value : 'Adresa nije uneta',
+                    hasAddress ? streetFrom(value) : 'Adresa nije uneta',
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: hasAddress
                           ? AppColors.textPrimary

@@ -10,15 +10,15 @@ import '../../utils/date_format.dart';
 ///
 /// ```
 /// Događaj      12. septembar   16:00
-/// 7 Mia
-/// 2h
+/// 7 Mia / 2h
 /// ```
 ///
 /// - **Naziv nema reč "rođendan"** — arapski broj ispred imena već znači
 ///   koliko slavljenik puni godina, pa i reč "godina" otpada.
 /// - **Trajanje se prepoznaje po slovu `h`** — to je jedina oznaka koja treba
-///   da bi se taj broj razlikovao od godina i od sata početka. Stoji ispod
-///   imena, sitno i mirno: podatak koji se pogleda jednom, pa zaboravi.
+///   da bi se taj broj razlikovao od godina i od sata početka. Stoji odmah uz
+///   ime, odvojeno kosom crtom i u bledosivoj boji: podatak koji se pogleda
+///   jednom, pa zaboravi.
 /// - Datum je beo i naglašen, sat u boji `accent` — to su brojke iz kojih
 ///   izvođač u glavi računa ostalo.
 ///
@@ -98,8 +98,20 @@ class EventTitle extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text(
-              hasTitle ? title!.trim() : 'Naziv događaja nije unet',
+            Text.rich(
+              TextSpan(
+                text: hasTitle ? title!.trim() : 'Naziv događaja nije unet',
+                children: [
+                  if (minutes != null)
+                    TextSpan(
+                      text: ' / ${AppDate.shortDuration(minutes)}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                ],
+              ),
               style: theme.textTheme.headlineSmall?.copyWith(
                 color: hasTitle
                     ? AppColors.textPrimary
@@ -108,14 +120,6 @@ class EventTitle extends StatelessWidget {
                 height: 1.2,
               ),
             ),
-            if (minutes != null)
-              Text(
-                AppDate.shortDuration(minutes),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
           ],
         ),
       ),

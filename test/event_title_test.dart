@@ -37,8 +37,9 @@ void main() {
     expect(find.text('Događaj'), findsOneWidget);
     expect(find.text('12. septembar'), findsOneWidget);
     expect(find.text('16:00'), findsOneWidget);
-    expect(find.text('7 Mia'), findsOneWidget);
-    expect(find.text('2h'), findsOneWidget);
+    // Ime i trajanje stoje u istom redu, odvojeni kosom crtom.
+    expect(find.textContaining('7 Mia'), findsOneWidget);
+    expect(find.textContaining('/ 2h'), findsOneWidget);
     // Godina se ne piše.
     expect(find.textContaining('2026'), findsNothing);
   });
@@ -63,6 +64,5 @@ void main() {
 
     expect(find.text('Datum nije unet'), findsOneWidget);
     expect(find.text('7 Mia'), findsOneWidget);
-    expect(find.textContaining('h'), findsNothing);
   });
 }

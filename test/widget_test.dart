@@ -23,7 +23,8 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('7 Mia'), findsOneWidget);
+    // Ime i trajanje su u istom redu: "7 Mia / 2h".
+    expect(find.textContaining('7 Mia'), findsOneWidget);
   });
 
   testWidgets('Prebacivanje na Lager tab', (WidgetTester tester) async {
