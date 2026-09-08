@@ -213,6 +213,28 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — vozilo (zamena za HOME-008/009/010)
+
+- Urađeno:
+  - `lib/widgets/home/vehicle_picker.dart` — kartica sa izabranim vozilom;
+    dodir otvara listu odozdo, gde se bira vozilo ili se kroz "Dodaj vozilo"
+    unese novo. Ima `canEdit` zastavicu (bez dozvole se vidi samo naziv) —
+    spremno za trenutak kad stigne login i uloga `glavni`.
+  - `EventService.setEventVehicle(eventId, vehicleId)` — nova metoda u
+    interfejsu; mock je pamti u memoriji, jer su test događaji `const`.
+  - `Event.withVehicle(...)` — kopija događaja sa drugim vozilom (model je
+    nepromenljiv).
+  - `lib/screens/home_screen.dart` — događaj i spisak vozila se učitavaju
+    uporedo (`Future.wait`). Izbor vozila se odmah vidi na ekranu, a upis ide
+    u pozadini; ako upis pukne, stanje se vraća i javi se porukom, da ekran
+    ne laže. Novo vozilo odmah postaje izabrano.
+  - `test/vehicle_picker_test.dart` — 8 testova (izbor, prazan spisak, prazan
+    naziv, nepoznat id vozila, zabrana izmene).
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 46/46 prolaze
+- Sledeće: HOME-012 — učesnici sa ulogama
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **OpenStreetMap pločice za mini mapu.** Koristi se javni server

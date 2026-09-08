@@ -26,12 +26,21 @@ class MockEventService implements EventService {
 
   int _nextVehicleNumber = 3;
 
+  /// Izabrano vozilo po događaju. Test događaji su nepromenljivi (`const`),
+  /// pa se izbor pamti sa strane — dok ne dođe prava baza.
+  final Map<String, String> _selectedVehicles = {};
+
   @override
   Future<Event> loadEvent(String eventId) async {
     await Future<void>.delayed(_delay);
 
     final map = _events[eventId];
     if (map == null) throw EventNotFoundException(eventId);
+
+    final chosenVehicle = _selectedVehicles[eventId];
+    if (chosenVehicle != null) {
+      return Event.fromMap({...map, 'vehicleId': chosenVehicle});
+    }
 
     return Event.fromMap(map);
   }
@@ -53,6 +62,14 @@ class MockEventService implements EventService {
     _nextVehicleNumber++;
     _vehicles.add(vehicle);
     return vehicle;
+  }
+
+  @override
+  Future<void> setEventVehicle(String eventId, String vehicleId) async {
+    await Future<void>.delayed(_delay);
+
+    if (!_events.containsKey(eventId)) throw EventNotFoundException(eventId);
+    _selectedVehicles[eventId] = vehicleId;
   }
 
   @override

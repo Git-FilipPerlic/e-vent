@@ -17,6 +17,10 @@ abstract interface class EventService {
   /// Dodaje novo vozilo i vraća ga sa dodeljenim `id`-jem.
   Future<Vehicle> addVehicle(String name);
 
+  /// Pamti koje je vozilo izabrano za dati događaj.
+  /// Baca [EventNotFoundException] ako događaja nema.
+  Future<void> setEventVehicle(String eventId, String vehicleId);
+
   /// Prazan šablon checkliste opreme, po sekcijama.
   Future<List<ChecklistSection>> loadChecklistTemplate();
 }

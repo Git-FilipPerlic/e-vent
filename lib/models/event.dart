@@ -70,6 +70,26 @@ class Event {
   final String? vehicleId;
   final List<Participant> participants;
 
+  /// Ista podaci o događaju, samo sa drugim vozilom. Model je nepromenljiv,
+  /// pa se pri izboru vozila pravi kopija.
+  Event withVehicle(String? newVehicleId) {
+    return Event(
+      id: id,
+      title: title,
+      scenario: scenario,
+      organizerName: organizerName,
+      organizerPhone: organizerPhone,
+      address: address,
+      latitude: latitude,
+      longitude: longitude,
+      eventDate: eventDate,
+      departureTime: departureTime,
+      travelDurationMinutes: travelDurationMinutes,
+      vehicleId: newVehicleId,
+      participants: participants,
+    );
+  }
+
   /// Ima li dovoljno podataka da se nacrta mapa i pokrene navigacija.
   bool get hasCoordinates => latitude != null && longitude != null;
 

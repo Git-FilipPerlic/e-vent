@@ -170,6 +170,31 @@ izvođač jednim pogledom zna šta ga čeka — dolazi li tih uvod ili udar.
 Nije započet. Pre prvog feature-a treba potvrditi koji hardver/protokol se
 koristi i šta se dešava kada Bluetooth nije dostupan.
 
+### Admin konzola i login (dogovoreno 8. septembra 2026)
+
+Aplikacija ima **dva lica istog Home ekrana**:
+
+| | Ko vidi | Šta može |
+|---|---|---|
+| Home (obično) | svi članovi tima | čita podatke o događaju koji mu je dodeljen |
+| Admin konzola | samo posle **logina**, uloga `glavni` | isti raspored, ali sa poljima za unos |
+
+**Admin konzola nije poseban ekran sa svojim rasporedom** — to je isti Home
+meni, samo što se do njega stiže prijavom i u njemu su polja popunjiva.
+Uz to ima dugme **"Create and share (assign team)"**: `glavni` popuni tabelu
+događaja i podeli je ostalim članovima tima. Član tima koji nije u
+managementu tada dobije taj događaj kao svoj zadatak (assignment) u aplikaciji.
+
+Iz toga slede dva pravila:
+
+- **Isti widgeti služe oba lica.** Kartice na Home tabu se ne prave dvaput;
+  posle logina dobijaju polja za unos, bez logina su samo za čitanje.
+- **Menjanje logotipa u headeru traži login** — to je funkcija managementa,
+  ne obična podešavanja.
+
+Login ekran izgleda kao Home ekran; razlika je samo u tome što on ima
+popunjavanje tabele koja se posle deli timu.
+
 ### Uloge i dozvole
 
 - `glavni` — vodi ekipu; sme da menja logo tima, bira vozilo, upravlja checklistom
