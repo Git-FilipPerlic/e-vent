@@ -6,6 +6,7 @@ import '../services/mock_event_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
 import '../widgets/home/event_address.dart';
+import '../widgets/home/event_date.dart';
 import '../widgets/home/event_title.dart';
 import '../widgets/home/organizer_name.dart';
 import '../widgets/home/organizer_phone.dart';
@@ -16,7 +17,7 @@ import '../widgets/home/organizer_phone.dart';
 /// gotove podatke kroz konstruktor.
 ///
 /// Elementi se dodaju redom po spisku iz `CLAUDE.md`:
-/// naziv (HOME-001) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → datum → sat →
+/// naziv (HOME-001) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → datum (HOME-005) → sat →
 /// polazak → vozilo → učesnici → status → podsetnik → scenario.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -94,6 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
           latitude: _event?.latitude,
           longitude: _event?.longitude,
         ),
+        EventDate(date: _event?.eventDate),
       ],
     );
   }

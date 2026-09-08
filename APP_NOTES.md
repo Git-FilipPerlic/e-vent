@@ -170,6 +170,31 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — zajednički header, HOME-005 (datum)
+
+- Urađeno:
+  - `lib/widgets/common/app_header.dart` — **jedan zajednički header iznad
+    tabova**, umesto dosadašnjih `AppBar`-ova sa nazivom taba ("Home",
+    "Muzika"...). Po specifikaciji tu stoji logotip tima, a koji je tab otvoren
+    vidi se u donjoj navigaciji. Dok logotipa nema, piše ime aplikacije.
+  - Dodat paket `intl` (^0.20.3).
+  - `lib/utils/date_format.dart` — ispis datuma i vremena na jednom mestu.
+    Koristi se **`sr_Latn`**, ne `sr` — `sr` je ćirilica ("12. септембар"),
+    a nama treba latinica ("12. septembar 2026.").
+  - `lib/main.dart` — `AppDate.init()` pre `runApp()`; bez učitanih naziva
+    meseci ispis datuma puca.
+  - `lib/widgets/home/event_date.dart` — HOME-005. Bez datuma: "Datum nije unet".
+  - `test/event_date_test.dart` — 3 testa; `test/widget_test.dart` dopunjen
+    `setUpAll` pozivom (test podiže `EventApp` direktno, mimo `main()`).
+- **Odstupanje od strukture iz `CLAUDE.md`:** dodat folder `lib/utils/`, kog
+  nema u spisku. Datum i vreme trebaju na pet mesta na Home tabu (datum, sat,
+  polazak, podsetnik, status), pa ispis stoji na jednom mestu. Lako se premešta
+  ako ne odgovara.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 31/31 prolaze
+- Sledeće: HOME-006 — sat uživo
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **OpenStreetMap pločice za mini mapu.** Koristi se javni server

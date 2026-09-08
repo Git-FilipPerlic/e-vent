@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:event_app/app.dart';
+import 'package:event_app/utils/date_format.dart';
 
 void main() {
+  // U pravoj aplikaciji ovo radi `main()`; test podiže `EventApp` direktno,
+  // pa nazive meseci mora da učita sam.
+  setUpAll(() => AppDate.init());
+
   testWidgets('Prikazuje 4 taba i naziv događaja na Home',
       (WidgetTester tester) async {
     await tester.pumpWidget(const EventApp());
