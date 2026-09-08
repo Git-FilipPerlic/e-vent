@@ -235,6 +235,24 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — HOME-012 (učesnici) i HOME-013 (status tima)
+
+- Urađeno:
+  - `lib/widgets/home/participants_list.dart` — spisak ekipe sa ulogama i
+    brojem članova. Svaka uloga ima svoju ikonicu (glavni — zvezdica, vozač —
+    auto, pomoćni — osoba), jer se u mraku nijanse boje ne razaznaju. Prazan
+    spisak: "Ekipa još nije određena"; učesnik bez imena: "Ime nije uneto".
+  - `lib/widgets/home/team_status.dart` — HOME-013. Proverava da li su
+    popunjene obavezne uloge **glavni** i **vozač**; ako nisu, izričito piše
+    koja fali. Zeleno kad je kompletno, žuto kad nešto nedostaje — i uvek uz
+    ikonicu, nikad samo boja.
+  - `test/participants_test.dart` — 8 testova.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 54/54 prolaze
+- Sledeće: HOME-011 (spremnost podataka), HOME-018 (status događaja),
+  HOME-019 (podsetnik)
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **OpenStreetMap pločice za mini mapu.** Koristi se javni server

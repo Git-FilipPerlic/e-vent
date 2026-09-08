@@ -13,6 +13,8 @@ import '../widgets/home/event_title.dart';
 import '../widgets/home/live_clock.dart';
 import '../widgets/home/organizer_name.dart';
 import '../widgets/home/organizer_phone.dart';
+import '../widgets/home/participants_list.dart';
+import '../widgets/home/team_status.dart';
 import '../widgets/home/vehicle_picker.dart';
 
 /// Home tab — priprema i polazak na događaj.
@@ -22,7 +24,7 @@ import '../widgets/home/vehicle_picker.dart';
 ///
 /// Elementi se dodaju redom po spisku iz `CLAUDE.md`:
 /// naziv (HOME-001) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → datum (HOME-005) → sat (HOME-006) →
-/// polazak (HOME-007) → vozilo → učesnici → status → podsetnik → scenario.
+/// polazak (HOME-007) → vozilo → učesnici (HOME-012) → status tima (HOME-013) → podsetnik → scenario.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -135,6 +137,8 @@ class _HomeScreenState extends State<HomeScreen> {
       return ErrorRetry(message: errorMessage, onRetry: _loadEvent);
     }
 
+    final participants = _event?.participants ?? const <Participant>[];
+
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       children: [
@@ -158,6 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
           onSelected: _selectVehicle,
           onAdd: _addVehicle,
         ),
+        ParticipantsList(participants: participants),
+        TeamStatus(participants: participants),
       ],
     );
   }
