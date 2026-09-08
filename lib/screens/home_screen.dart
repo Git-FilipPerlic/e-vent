@@ -6,6 +6,7 @@ import '../services/mock_event_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
 import '../widgets/home/event_title.dart';
+import '../widgets/home/organizer_name.dart';
 
 /// Home tab — priprema i polazak na događaj.
 ///
@@ -13,7 +14,7 @@ import '../widgets/home/event_title.dart';
 /// gotove podatke kroz konstruktor.
 ///
 /// Elementi se dodaju redom po spisku iz `CLAUDE.md`:
-/// naziv (HOME-001) → organizator → telefon → adresa → datum → sat →
+/// naziv (HOME-001) → organizator (HOME-002) → telefon → adresa → datum → sat →
 /// polazak → vozilo → učesnici → status → podsetnik → scenario.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -85,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       children: [
         EventTitle(title: _event?.title),
+        OrganizerName(name: _event?.organizerName),
       ],
     );
   }

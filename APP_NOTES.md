@@ -99,6 +99,26 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — HOME-002, organizator
+
+- Urađeno:
+  - `lib/widgets/common/copy_button.dart` — dugme "kopiraj": prepiše zadati
+    tekst u clipboard (ugrađeni `Clipboard.setData`, bez novog paketa) i javi
+    potvrdu porukom pri dnu ekrana. Poruka je oblika "Kopirano: <naziv>" —
+    namerno neutralna, da ne zavisi od roda reči (telefon je *kopiran*, adresa
+    *kopirana*). Isto dugme će koristiti i HOME-004 (telefon) i adresa.
+  - `lib/widgets/home/organizer_name.dart` — HOME-002. Ime organizatora u redu
+    sa dugmetom za kopiranje desno. Kad imena nema (ili je prazan tekst) piše
+    "Organizator nije unet" i dugmeta nema — nema šta da se kopira.
+  - `lib/screens/home_screen.dart` — kartica dodata ispod naziva događaja.
+  - `test/organizer_name_test.dart` — 4 testa (prikaz, prazno ime, prazan
+    tekst, i sam dodir na kopiranje sa presretnutim clipboard kanalom).
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 15/15 prolaze
+- Sledeće: HOME-004 — telefon organizatora (pozovi, SMS, kopiraj); traži paket
+  `url_launcher`, pa se pre toga pita korisnik
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Prave stavke opreme za Lager checklist.** Sekcije su tačne, ali su stavke
