@@ -80,6 +80,40 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — HOME-001, naziv događaja
+
+- Urađeno:
+  - `lib/widgets/home/event_title.dart` — HOME-001. Krupan, read-only naziv
+    događaja. Kad naziva nema (ili je prazan tekst) piše
+    "Naziv događaja nije unet" u pomoćnoj boji, umesto praznog mesta.
+  - `lib/widgets/common/error_retry.dart` — poruka o grešci sa dugmetom
+    "Pokušaj ponovo" (osnova za HOME-021)
+  - `lib/screens/home_screen.dart` prepisan u `StatefulWidget`: učitava
+    `evt-001` preko `MockEventService`, ima tri stanja — učitavanje,
+    greška sa ponovnim pokušajem, i prikaz podataka. Servis se pravi na
+    jednom mestu u ekranu; kad dođe Firebase, menja se samo ta linija.
+  - `test/event_title_test.dart` — 3 testa; `test/widget_test.dart` dopunjen
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 11/11
+  prolaze; instalirano i pokrenuto na telefonu (SM-A346B)
+- Sledeće: HOME-002 — organizator (ime + dugme za kopiranje)
+
+---
+
+## TODO (skupljati ovde, rešavati kad dođe red)
+
+- **Prave stavke opreme za Lager checklist.** Sekcije su tačne, ali su stavke
+  unutar njih izmišljene kao privremene. Zamisao: izbor jedne sekcije izlistava
+  niz stavki ispod nje. Pravi spisak daje korisnik.
+- Prikazno ime aplikacije na telefonu je i dalje `event_app` — treba ga
+  promeniti na "e-vent" u `AndroidManifest.xml` i `Info.plist`.
+- Donja navigacija koristi `NavigationBar` (Material 3), a u `CLAUDE.md` piše
+  `BottomNavigationBar` — potvrditi jedno ili drugo.
+- `flutter run` visi na "Installing ..." zbog Secure Foldera na telefonu
+  (profili `0` i `150`), pa za sada nema hot reload-a. Zaobilazi se ručnim
+  `flutter build apk --debug` + `adb install --user 0` + `am start --user 0`.
+
+---
+
 ## Šablon za nove beleške
 
 ```
