@@ -335,6 +335,28 @@ Ispravke posle prve provere na telefonu (snimci ekrana sa uređaja).
 
 ---
 
+## 8. septembar 2026 — trajanje umesto sata uživo, sat početka bez lutkice
+
+- **Sat uživo (HOME-006) uklonjen** — `live_clock.dart` i njegov test obrisani.
+  Telefon već pokazuje vreme u statusnoj traci; nema razloga da se ponavlja.
+- **Novo: ugovoreno trajanje** (`lib/widgets/home/event_duration.dart`).
+  Uz trajanje se odmah računa i kraj nastupa ("Od 16:00 do 18:00").
+  Model je dobio polje `durationMinutes` i izvedeno `endsAt`; mock događaji
+  imaju 120 / 90 / 180 minuta.
+- **Sat početka više nije "lutkica".** Traka 0–23 na kartici datuma se na Home
+  tabu samo čita; postaje izmenjiva tek kad joj se prosledi `onHourSelected`,
+  što će raditi admin konzola posle prijave.
+- **Status događaja sada koristi pravo trajanje** za fazu "završeno".
+  Pretpostavka od 4 sata ostaje samo kao rezerva kad trajanje nije uneto —
+  time je otpala ranija otvorena stavka.
+- Spremnost podataka broji i trajanje, pa je sada 9 stavki umesto 8.
+- `test/event_duration_test.dart` (4 testa) i tri nova testa za traku časova
+  (prikaz, dodir bez dozvole ne menja ništa, dodir u admin konzoli menja i javlja).
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 80/80 prolaze
+- Sledeće: sledeći set feature-a (Lager tab)
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **OpenStreetMap pločice za mini mapu.** Koristi se javni server

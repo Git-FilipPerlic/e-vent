@@ -29,6 +29,7 @@ void main() {
         organizerPhone: '+381641234567',
         address: 'Kisačka 78',
         eventDate: _start,
+        durationMinutes: 120,
         departureTime: _departure,
         vehicleId: 'vehicle-001',
         participants: const [
@@ -62,7 +63,7 @@ void main() {
         ),
       );
 
-      expect(find.text('1/8'), findsOneWidget);
+      expect(find.text('1/9'), findsOneWidget);
       expect(find.textContaining('Nedostaje:'), findsOneWidget);
     });
   });

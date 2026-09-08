@@ -23,6 +23,7 @@ class DataReadiness extends StatelessWidget {
       if (event.organizerPhone == null) 'telefon',
       if (event.address == null) 'adresa',
       if (event.eventDate == null) 'datum',
+      if (event.durationMinutes == null) 'trajanje',
       if (event.departureTime == null) 'vreme polaska',
       if (event.vehicleId == null) 'vozilo',
       if (event.participants.isEmpty) 'učesnici',
@@ -30,7 +31,7 @@ class DataReadiness extends StatelessWidget {
   }
 
   /// Ukupan broj podataka koji se prati — imenilac trake napretka.
-  static const int totalChecks = 8;
+  static const int totalChecks = 9;
 
   @override
   Widget build(BuildContext context) {

@@ -95,6 +95,7 @@ const Map<String, Map<String, dynamic>> _events = {
     'eventDate': '2026-09-12T16:00:00',
     'departureTime': '2026-09-12T14:30:00',
     'travelDurationMinutes': 35,
+    'durationMinutes': 120,
     'vehicleId': 'vehicle-001',
     'participants': [
       {'name': 'Filip', 'role': 'glavni'},
@@ -115,6 +116,7 @@ const Map<String, Map<String, dynamic>> _events = {
     'eventDate': '2026-09-19T18:00:00',
     'departureTime': '2026-09-19T16:45:00',
     'travelDurationMinutes': 25,
+    'durationMinutes': 90,
     'vehicleId': 'vehicle-002',
     'participants': [
       {'name': 'Filip', 'role': 'glavni'},
@@ -133,6 +135,7 @@ const Map<String, Map<String, dynamic>> _events = {
     'eventDate': '2026-10-03T20:00:00',
     'departureTime': '2026-10-03T18:30:00',
     'travelDurationMinutes': 40,
+    'durationMinutes': 180,
     'participants': [
       {'name': 'Filip'},
       {'name': 'Ana'},

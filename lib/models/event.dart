@@ -40,6 +40,7 @@ class Event {
     this.eventDate,
     this.departureTime,
     this.travelDurationMinutes,
+    this.durationMinutes,
     this.vehicleId,
     this.participants = const [],
   });
@@ -67,6 +68,18 @@ class Event {
   /// Procenjeno trajanje puta u minutima.
   final int? travelDurationMinutes;
 
+  /// Koliko je **ugovoreno** da nastup traje, u minutima.
+  /// Iz ovoga se računa kad se završava.
+  final int? durationMinutes;
+
+  /// Kad se događaj završava, ako se zna i početak i ugovoreno trajanje.
+  DateTime? get endsAt {
+    final start = eventDate;
+    final minutes = durationMinutes;
+    if (start == null || minutes == null) return null;
+    return start.add(Duration(minutes: minutes));
+  }
+
   final String? vehicleId;
   final List<Participant> participants;
 
@@ -85,6 +98,7 @@ class Event {
       eventDate: eventDate,
       departureTime: departureTime,
       travelDurationMinutes: travelDurationMinutes,
+      durationMinutes: durationMinutes,
       vehicleId: newVehicleId,
       participants: participants,
     );
@@ -143,6 +157,7 @@ class Event {
       eventDate: _parseDate(map['eventDate'] as String?),
       departureTime: _parseDate(map['departureTime'] as String?),
       travelDurationMinutes: (map['travelDurationMinutes'] as num?)?.toInt(),
+      durationMinutes: (map['durationMinutes'] as num?)?.toInt(),
       vehicleId: _emptyToNull(map['vehicleId'] as String?),
       participants: participants,
     );

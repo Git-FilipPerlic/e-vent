@@ -8,18 +8,20 @@ import '../../utils/date_format.dart';
 ///
 /// Ispod datuma stoji traka od **0 do 23 časa**; osenčen je čas u koji
 /// događaj počinje, pa se sa jednog pogleda vidi da li je tezga popodne
-/// ili kasno uveče.
+/// ili kasno uveče. Sat je podatak od koga izvođač u glavi računa sve
+/// ostalo, pa se prikazuje krupno i tačno.
 ///
-/// **Traka je za sada "lutkica" (filler):** dodir menja prikaz na ekranu, ali
-/// se izmena još ne upisuje nigde — upis ide tek uz admin konzolu i bazu.
+/// Traka je **samo za čitanje** dok se ne prosledi [onHourSelected] — sat
+/// događaja se unosi u admin konzoli, posle prijave, a ne dodirom na Home
+/// ekranu.
 class EventDate extends StatefulWidget {
   const EventDate({super.key, required this.date, this.onHourSelected});
 
   /// Datum i vreme događaja. Može da bude `null`.
   final DateTime? date;
 
-  /// Javlja izabrani čas nadređenom ekranu, kad za to dođe vreme.
-  /// Dok je `null`, izbor ostaje samo na ekranu.
+  /// Kad je prosleđen, traka postaje izmenjiva i izabrani čas se javlja
+  /// nadređenom ekranu (admin konzola). Dok je `null`, traka se samo čita.
   final ValueChanged<int>? onHourSelected;
 
   /// Sati u danu: 0..23.
@@ -73,9 +75,14 @@ class _EventDateState extends State<EventDate> {
     _strip.jumpTo(target.clamp(0.0, _strip.position.maxScrollExtent));
   }
 
-  void _selectHour(int hour) {
-    setState(() => _hour = hour);
-    widget.onHourSelected?.call(hour);
+  /// Bez dozvole se sat ne menja ovde — vraća `null`, pa polje nije dodirno.
+  VoidCallback? _tapHandler(int hour) {
+    final notify = widget.onHourSelected;
+    if (notify == null) return null;
+    return () {
+      setState(() => _hour = hour);
+      notify(hour);
+    };
   }
 
   @override
@@ -154,7 +161,7 @@ class _EventDateState extends State<EventDate> {
                   hour: index,
                   isSelected: index == hour,
                   width: _slotWidth,
-                  onTap: () => _selectHour(index),
+                  onTap: _tapHandler(index),
                 ),
               ),
             ),
@@ -177,7 +184,9 @@ class _HourSlot extends StatelessWidget {
   final int hour;
   final bool isSelected;
   final double width;
-  final VoidCallback onTap;
+
+  /// `null` znači da polje nije dodirno — sat se unosi u admin konzoli.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

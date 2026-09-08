@@ -10,10 +10,10 @@ import '../widgets/home/event_address.dart';
 import '../widgets/home/departure_time.dart';
 import '../widgets/home/data_readiness.dart';
 import '../widgets/home/event_date.dart';
+import '../widgets/home/event_duration.dart';
 import '../widgets/home/event_reminder.dart';
 import '../widgets/home/event_status_banner.dart';
 import '../widgets/home/event_title.dart';
-import '../widgets/home/live_clock.dart';
 import '../widgets/home/organizer_name.dart';
 import '../widgets/home/organizer_phone.dart';
 import '../widgets/home/participants_list.dart';
@@ -27,7 +27,7 @@ import '../widgets/home/vehicle_picker.dart';
 /// gotove podatke kroz konstruktor.
 ///
 /// Elementi se dodaju redom po spisku iz `CLAUDE.md`:
-/// naziv (HOME-001) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → datum (HOME-005) → sat (HOME-006) →
+/// naziv (HOME-001) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → datum i sat početka (HOME-005) → ugovoreno trajanje →
 /// polazak (HOME-007) → vozilo → učesnici (HOME-012) → status tima (HOME-013) → spremnost (HOME-011) →
 /// status događaja (HOME-018) → podsetnik (HOME-019) → scenario (HOME-025).
 class HomeScreen extends StatefulWidget {
@@ -166,7 +166,10 @@ class _HomeScreenState extends State<HomeScreen> {
             longitude: _event?.longitude,
           ),
           EventDate(date: _event?.eventDate),
-          const LiveClock(),
+          EventDuration(
+            minutes: _event?.durationMinutes,
+            start: _event?.eventDate,
+          ),
           DepartureTime(
             departure: _event?.departureTime,
             travelMinutes: _event?.travelDurationMinutes,
@@ -183,6 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
           EventStatusBanner(
             departure: _event?.departureTime,
             eventStart: _event?.eventDate,
+            eventEnd: _event?.endsAt,
           ),
           EventReminder(
             departure: _event?.departureTime,

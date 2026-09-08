@@ -33,19 +33,22 @@ class EventStatusBanner extends StatefulWidget {
     super.key,
     required this.departure,
     required this.eventStart,
+    this.eventEnd,
     this.now = DateTime.now,
   });
 
   final DateTime? departure;
   final DateTime? eventStart;
 
+  /// Kraj nastupa, izračunat iz ugovorenog trajanja. Kad ga nema, koristi se
+  /// [assumedDuration].
+  final DateTime? eventEnd;
+
   /// Odakle se čita trenutno vreme; u testu se podmetne lažni sat.
   final DateTime Function() now;
 
-  /// Koliko se pretpostavlja da događaj traje. Model nema vreme završetka,
-  /// pa se posle ovoliko sati od početka smatra da je gotovo.
-  ///
-  /// **Pretpostavka, ne dogovorena vrednost** — čeka potvrdu korisnika.
+  /// Koliko se pretpostavlja da događaj traje **kada ugovoreno trajanje nije
+  /// uneto**. Ako trajanje postoji, ova vrednost se ne koristi.
   static const Duration assumedDuration = Duration(hours: 4);
 
   /// Računa fazu iz vremena. Kad nema dovoljno podataka, vraća `null` —
@@ -54,11 +57,13 @@ class EventStatusBanner extends StatefulWidget {
     required DateTime now,
     DateTime? departure,
     DateTime? eventStart,
+    DateTime? eventEnd,
   }) {
     if (eventStart == null && departure == null) return null;
 
     if (eventStart != null) {
-      if (now.isAfter(eventStart.add(assumedDuration))) {
+      final end = eventEnd ?? eventStart.add(assumedDuration);
+      if (now.isAfter(end)) {
         return EventPhase.zavrseno;
       }
       if (!now.isBefore(eventStart)) return EventPhase.uToku;
@@ -118,6 +123,7 @@ class _EventStatusBannerState extends State<EventStatusBanner> {
       now: _now,
       departure: widget.departure,
       eventStart: widget.eventStart,
+      eventEnd: widget.eventEnd,
     );
     final color = _colorFor(phase);
 

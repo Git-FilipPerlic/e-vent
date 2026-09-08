@@ -96,8 +96,8 @@ Ne treba ga ponovo dogovarati — radi se odozgo nadole, jedan po jedan element.
 | 2 | Organizator | ime roditelja/organizatora + dugme za kopiranje | HOME-002 |
 | 3 | Telefon organizatora | dugmad: pozovi, SMS, kopiraj | HOME-004 |
 | 4 | Adresa | tekst adrese + mini mapa + dugme "Navigacija" | HOME-003 |
-| 5 | Datum događaja | datum na srpskom (npr. 12. septembar 2026.) | HOME-005 |
-| 6 | Sat uživo | trenutno vreme, osvežava se svake sekunde | HOME-006 |
+| 5 | Datum i sat početka | datum na srpskom + traka 0–23 sa satom početka | HOME-005 |
+| 6 | Ugovoreno trajanje | koliko je dogovoreno da nastup traje + izračunat kraj | zamena za HOME-006 |
 | 7 | Vreme polaska | planirano vreme kretanja na događaj | HOME-007 |
 | 8 | Vozilo | izbor vozila iz liste + dodavanje novog vozila | zamena za HOME-008/009/010 |
 | 9 | Učesnici | spisak ekipe sa ulogama (glavni, vozač, pomoćni) | HOME-012 |
@@ -202,6 +202,21 @@ popunjavanje tabele koja se posle deli timu.
 
 UI uvek proverava **dozvolu**, nikada naziv uloge direktno — tako backend kasnije
 može da doda nove uloge bez menjanja ekrana.
+
+### Vreme na Home tabu (odluka od 8. septembra 2026)
+
+- **Sat uživo je uklonjen.** Trenutno vreme telefon već pokazuje u statusnoj
+  traci; ponavljati ga u aplikaciji je trošenje prostora.
+- Umesto njega stoji **ugovoreno trajanje** nastupa, uz izračunat kraj
+  ("Od 16:00 do 18:00") — to je podatak koji izvođač inače računa u glavi.
+- **Sat početka je čist podatak, ne dugme.** Traka 0–23 na kartici datuma
+  se na Home tabu samo čita; sat se unosi u admin konzoli, posle prijave.
+  Widget postaje izmenjiv tek kad mu se prosledi `onHourSelected`.
+- Ta brojka je namerno krupna i tačna: iz nje korisnik u glavi izračuna sve
+  ostalo, brže nego bilo koji ekran, a preciznost u ovakvim detaljima je ono
+  po čemu aplikacija deluje pedantno.
+- Ugovoreno trajanje ujedno određuje i kada je status događaja "završeno" —
+  ranija pretpostavka od 4 sata koristi se samo ako trajanje nije uneto.
 
 ### Navigacija (odluka od 8. septembra 2026)
 
@@ -370,6 +385,7 @@ class Event {
   final DateTime? eventDate;    // početak događaja
   final DateTime? departureTime;// vreme polaska
   final int? travelDurationMinutes;
+  final int? durationMinutes;   // ugovoreno trajanje nastupa
   final String? vehicleId;
   final List<Participant> participants;
 }
@@ -468,8 +484,9 @@ emulator iz Android Studija.
    u `lib/app.dart` — tabovi mogu prvo biti prazni ekrani sa naslovom
 3. Napraviti modele (`lib/models/`) i mock servis (`lib/services/mock_event_service.dart`)
    sa istim test podacima kao u RN verziji (evt-001..evt-004)
-4. Preneti Home tab redom: naziv → organizator → telefon → adresa → datum →
-   sat → vreme polaska → vozilo → učesnici → status → podsetnik → scenario
+4. Preneti Home tab redom: naziv → organizator → telefon → adresa → datum i
+   sat početka → trajanje → vreme polaska → vozilo → učesnici → status →
+   podsetnik → scenario
    (isti redosled kao u RN verziji, opis u `ARCHIVE_ReactNative.md`)
 5. Lager tab: checklist po sekcijama
 6. Tek kada Home i Lager rade na mock podacima — povezati Firebase
