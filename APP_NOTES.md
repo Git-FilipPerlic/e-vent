@@ -119,6 +119,31 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — HOME-004, telefon organizatora
+
+- Urađeno:
+  - Dodat paket `url_launcher` (^6.3.2) — prvi paket van startera; stoji u
+    tabeli paketa u `CLAUDE.md`, korisnik potvrdio.
+  - `android/app/src/main/AndroidManifest.xml` — u `<queries>` dodati `tel`
+    (DIAL) i `smsto` (SENDTO). Na Androidu 11+ bez ovoga dugmad "Pozovi" i
+    "SMS" ne rade, jer sistem sakrije telefon i poruke od aplikacije.
+  - `lib/widgets/home/organizer_phone.dart` — HOME-004. Broj + tri akcije:
+    "Pozovi" (puno dugme, glavna radnja), "SMS" (okvirno dugme) i kopiranje
+    (isti `CopyButton` kao kod organizatora). Broj se pre slanja telefonu
+    očisti od razmaka, crtica i zagrada; vodeći `+` ostaje. Ako telefon ne
+    može da otvori poziv/poruku, ide poruka pri dnu ekrana umesto dugmeta
+    koje deluje pokvareno. Bez broja: "Telefon nije unet", bez dugmadi.
+  - `lib/screens/home_screen.dart` — kartica dodata ispod organizatora.
+  - `test/organizer_phone_test.dart` — 6 testova; poziv i SMS se proveravaju
+    presretanjem kanala `plugins.flutter.io/url_launcher`, pa se vidi tačna
+    adresa (`tel:+381641234567`) koja bi otišla telefonu.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 21/21 prolaze.
+  Poziv/SMS na pravom telefonu još nije probano (traži novi build).
+- Sledeće: HOME-003 — adresa (tekst + mini mapa + dugme "Navigacija"); mapa
+  traži paket `flutter_map`, pa se pre toga pita korisnik
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Prave stavke opreme za Lager checklist.** Sekcije su tačne, ali su stavke
