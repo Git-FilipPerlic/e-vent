@@ -46,6 +46,40 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — paleta iz specifikacije, modeli i mock servis
+
+- Urađeno:
+  - `lib/theme/app_theme.dart` prepisan: umesto `ColorScheme.fromSeed` sa
+    narandžastim seed-om, sada stoje **tačne hex vrednosti iz CLAUDE.md**
+    (`AppColors`), gradijenti (`AppGradients`), `kCardRadius = 12`.
+    Light tema je uklonjena — aplikacija je samo tamna, kako je dogovoreno.
+  - `lib/models/event.dart` — `Event`, `Participant`, `ParticipantRole`.
+    Uloga koja nije upisana dodeljuje se po redosledu (1. glavni, 2. vozač,
+    ostali pomoćni); prazan tekst iz baze se tretira kao da podatka nema,
+    a neispravan datum vraća `null` umesto da sruši aplikaciju.
+  - `lib/models/vehicle.dart`, `lib/models/checklist.dart`
+    (`kMaxChecklistItems = 90`)
+  - `lib/services/event_service.dart` — interfejs koji ekrani zovu
+  - `lib/services/mock_event_service.dart` — test podaci evt-001..evt-004
+    (evt-004 je namerno potpuno prazan) + vozila + šablon checkliste
+  - `test/mock_event_service_test.dart` — 6 testova nad mock servisom
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 8/8 prolaze;
+  tema proverena na telefonu (SM-A346B), boje odgovaraju specifikaciji
+- Otvoreni problemi:
+  - **stavke unutar checklist sekcija su izmišljene kao privremene** —
+    treba ih zameniti pravim spiskom opreme
+  - `flutter run` visi na "Installing ..." zbog Secure Foldera na telefonu
+    (dva korisnička profila, `0` i `150`). Zaobilazi se ručno:
+    `flutter build apk --debug` pa
+    `adb install -r -t --user 0 build/app/outputs/flutter-apk/app-debug.apk`
+    pa `adb shell am start --user 0 -n com.eventapp.event_app/.MainActivity`.
+    Zbog toga za sada nema hot reload-a.
+  - i dalje otvoreno od ranije: `NavigationBar` umesto `BottomNavigationBar`,
+    prikazno ime aplikacije na telefonu je još uvek `event_app`
+- Sledeće: HOME-001 — naziv događaja na Home ekranu, iz mock servisa
+
+---
+
 ## Šablon za nove beleške
 
 ```
