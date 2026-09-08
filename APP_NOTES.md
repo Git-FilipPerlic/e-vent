@@ -253,6 +253,35 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — HOME-011, HOME-018, HOME-019, HOME-025, pull-to-refresh
+
+- Urađeno:
+  - `data_readiness.dart` (HOME-011) — traka napretka i spisak onoga što
+    nedostaje, od 8 podataka (naziv, organizator, telefon, adresa, datum,
+    polazak, vozilo, učesnici). Traka se animira 300 ms, po pravilu iz
+    `CLAUDE.md`, da vrednost ne skače.
+  - `event_status_banner.dart` (HOME-018) — faza izvedena iz vremena:
+    planirano → polazak → u toku → završeno. Boja se pretapa 300 ms.
+  - `event_reminder.dart` (HOME-019) — odbrojavanje do polaska, pa do početka
+    događaja. Ispod 30 minuta prelazi u žuto sa punom ikonicom zvonca.
+    **Ne animira se**, po pravilu za sat i odbrojavanje.
+  - `scenario_list.dart` (HOME-025) — tačke programa iz baze (samo čitanje) i
+    tačke koje korisnik sam doda (mogu da se obrišu), numerisane u nizu.
+  - `home_screen.dart` — **pull-to-refresh** preko `RefreshIndicator`, sa
+    `AlwaysScrollableScrollPhysics` da povlačenje radi i na kratkom spisku.
+  - `test/event_status_test.dart` (16 testova) i `test/scenario_list_test.dart`
+    (6 testova).
+- **Pretpostavka koja čeka potvrdu:** model nema vreme završetka događaja, pa
+  se za status "završeno" uzima da događaj traje **4 sata** od početka
+  (`EventStatusBanner.assumedDuration`). Ako je stvarno trajanje drugačije,
+  menja se jedna konstanta.
+- Dodate tačke scenarija za sada žive samo dok traje ekran — trajno čuvanje
+  ide uz bazu.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 76/76 prolaze
+- Sledeće: logotip tima u headeru (traži `image_picker` i `shared_preferences`)
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **OpenStreetMap pločice za mini mapu.** Koristi se javni server

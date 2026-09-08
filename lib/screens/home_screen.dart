@@ -8,12 +8,16 @@ import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
 import '../widgets/home/event_address.dart';
 import '../widgets/home/departure_time.dart';
+import '../widgets/home/data_readiness.dart';
 import '../widgets/home/event_date.dart';
+import '../widgets/home/event_reminder.dart';
+import '../widgets/home/event_status_banner.dart';
 import '../widgets/home/event_title.dart';
 import '../widgets/home/live_clock.dart';
 import '../widgets/home/organizer_name.dart';
 import '../widgets/home/organizer_phone.dart';
 import '../widgets/home/participants_list.dart';
+import '../widgets/home/scenario_list.dart';
 import '../widgets/home/team_status.dart';
 import '../widgets/home/vehicle_picker.dart';
 
@@ -24,7 +28,8 @@ import '../widgets/home/vehicle_picker.dart';
 ///
 /// Elementi se dodaju redom po spisku iz `CLAUDE.md`:
 /// naziv (HOME-001) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → datum (HOME-005) → sat (HOME-006) →
-/// polazak (HOME-007) → vozilo → učesnici (HOME-012) → status tima (HOME-013) → podsetnik → scenario.
+/// polazak (HOME-007) → vozilo → učesnici (HOME-012) → status tima (HOME-013) → spremnost (HOME-011) →
+/// status događaja (HOME-018) → podsetnik (HOME-019) → scenario (HOME-025).
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -43,6 +48,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Event? _event;
   List<Vehicle> _vehicles = const [];
+
+  /// Tačke scenarija koje je korisnik sam dodao. Za sada žive samo dok traje
+  /// ekran — trajno čuvanje ide uz bazu.
+  final List<String> _addedScenario = [];
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -139,32 +148,55 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final participants = _event?.participants ?? const <Participant>[];
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      children: [
-        EventTitle(title: _event?.title),
-        OrganizerName(name: _event?.organizerName),
-        OrganizerPhone(phone: _event?.organizerPhone),
-        EventAddress(
-          address: _event?.address,
-          latitude: _event?.latitude,
-          longitude: _event?.longitude,
-        ),
-        EventDate(date: _event?.eventDate),
-        const LiveClock(),
-        DepartureTime(
-          departure: _event?.departureTime,
-          travelMinutes: _event?.travelDurationMinutes,
-        ),
-        VehiclePicker(
-          vehicles: _vehicles,
-          selectedVehicleId: _event?.vehicleId,
-          onSelected: _selectVehicle,
-          onAdd: _addVehicle,
-        ),
-        ParticipantsList(participants: participants),
-        TeamStatus(participants: participants),
-      ],
+    return RefreshIndicator(
+      onRefresh: _loadEvent,
+      color: AppColors.accent,
+      backgroundColor: AppColors.surface,
+      child: ListView(
+        // `always` da povlačenje nadole radi i kad je spisak kraći od ekrana.
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        children: [
+          EventTitle(title: _event?.title),
+          OrganizerName(name: _event?.organizerName),
+          OrganizerPhone(phone: _event?.organizerPhone),
+          EventAddress(
+            address: _event?.address,
+            latitude: _event?.latitude,
+            longitude: _event?.longitude,
+          ),
+          EventDate(date: _event?.eventDate),
+          const LiveClock(),
+          DepartureTime(
+            departure: _event?.departureTime,
+            travelMinutes: _event?.travelDurationMinutes,
+          ),
+          VehiclePicker(
+            vehicles: _vehicles,
+            selectedVehicleId: _event?.vehicleId,
+            onSelected: _selectVehicle,
+            onAdd: _addVehicle,
+          ),
+          ParticipantsList(participants: participants),
+          TeamStatus(participants: participants),
+          DataReadiness(event: _event),
+          EventStatusBanner(
+            departure: _event?.departureTime,
+            eventStart: _event?.eventDate,
+          ),
+          EventReminder(
+            departure: _event?.departureTime,
+            eventStart: _event?.eventDate,
+          ),
+          ScenarioList(
+            items: _event?.scenario ?? const [],
+            addedItems: _addedScenario,
+            onAdd: (text) => setState(() => _addedScenario.add(text)),
+            onRemoveAdded: (index) =>
+                setState(() => _addedScenario.removeAt(index)),
+          ),
+        ],
+      ),
     );
   }
 }
