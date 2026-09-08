@@ -1,7 +1,14 @@
-# Animator App (Performer App) — Flutter
+# e-vent (ranije Animator App) — Flutter
 
 Mobilna aplikacija za profesionalne animatore/izvođače koji rade na proslavama,
 ceremonijama i događajima (Novi Sad / Srbija). Jedan kod za Android i iOS.
+
+**Nazivi:**
+
+- folder projekta: `D:\All Work\event_app`
+- naziv Dart paketa: `event_app` (bez crtice — Dart ne dozvoljava `-` u nazivu paketa)
+- prikazno ime aplikacije na telefonu: **e-vent** (podešava se u
+  `android/app/src/main/AndroidManifest.xml` i `ios/Runner/Info.plist`)
 
 ## Status projekta (8. septembar 2026)
 
@@ -78,6 +85,91 @@ celini.
 Planirano ukupno 101 feature (HOME-001..025, MUSIC-001..026, LED-001..024,
 LAGER-001..026).
 
+### Home tab — tačan spisak elemenata, odozgo nadole
+
+Ovo je redosled proveren u prethodnoj verziji aplikacije i prenosi se isti.
+Ne treba ga ponovo dogovarati — radi se odozgo nadole, jedan po jedan element.
+
+| # | Element | Šta radi | ID |
+|---|---|---|---|
+| 1 | Naziv događaja | ime slavljenika / naziv događaja, krupno, read-only | HOME-001 |
+| 2 | Organizator | ime roditelja/organizatora + dugme za kopiranje | HOME-002 |
+| 3 | Telefon organizatora | dugmad: pozovi, SMS, kopiraj | HOME-004 |
+| 4 | Adresa | tekst adrese + mini mapa + dugme "Navigacija" | HOME-003 |
+| 5 | Datum događaja | datum na srpskom (npr. 12. septembar 2026.) | HOME-005 |
+| 6 | Sat uživo | trenutno vreme, osvežava se svake sekunde | HOME-006 |
+| 7 | Vreme polaska | planirano vreme kretanja na događaj | HOME-007 |
+| 8 | Vozilo | izbor vozila iz liste + dodavanje novog vozila | zamena za HOME-008/009/010 |
+| 9 | Učesnici | spisak ekipe sa ulogama (glavni, vozač, pomoćni) | HOME-012 |
+| 10 | Status tima | provera da li su popunjene obavezne uloge glavni i vozač | HOME-013 |
+| 11 | Spremnost podataka | šta od podataka o događaju nedostaje | HOME-011 |
+| 12 | Status događaja | izveden iz vremena: planirano / polazak / u toku / završeno | HOME-018 |
+| 13 | Podsetnik | koliko je ostalo do polaska ili početka događaja | HOME-019 |
+| 14 | Scenario | tačke programa; stavke iz baze + korisnik može da doda svoje | HOME-025 |
+
+Uz to na Home ekranu:
+
+- **pull-to-refresh** (povlačenje nadole ponovo učitava podatke o događaju)
+- **greška pri učitavanju**: poruka + dugme "Pokušaj ponovo" umesto praznog ekrana (HOME-021)
+- **header sa logotipom tima** (iznad tabova): logo bira korisnik sa ulogom `glavni`,
+  ostali ga samo vide
+
+### Lager tab
+
+Checklist opreme po sekcijama (Tehnika, Animacija, Specijalni efekti, Vatreni
+rekviziti, Svila, Hoop): sekcije se otvaraju/zatvaraju, stavke se čekiraju,
+korisnik može da doda svoju stavku, traka napretka i limit od 90 stavki.
+
+### Muzika tab
+
+Lista muzičkih fajlova sa izvorom (Folder / Playlista). Izbor fajla **ne**
+pokreće reprodukciju — pokreće se tek u playback meniju sa velikim dugmetom;
+tajmer i opcija "fade in 10 sec".
+
+#### Prsten talasnog oblika (glavni vizuelni element)
+
+Prikaz dokle je stigla reprodukcija ne radi se klasičnom trakom, nego
+**linijom koja obilazi ivicu ekrana**:
+
+- kreće iz **gornjeg levog ugla**, ide desno duž gornje ivice
+- niz **desnu ivicu** nadole
+- duž **donje ivice** nalevo
+- uz **levu ivicu** nagore, nazad u gornji levi ugao
+
+Kraj se poklapa sa početkom, pa korisniku deluje kao krug — pesma se "zatvara".
+
+Linija nije ravna: ona je **talasni oblik pesme** (amplituda), pa se po debljini
+odnosno odstupanju od putanje vidi gde su tiši a gde glasniji delovi. Tako
+izvođač jednim pogledom zna šta ga čeka — dolazi li tih uvod ili udar.
+
+**Ponašanje:**
+
+- pređeni deo linije je u boji `accent`, sa blagim sjajem (`gradientAccent`)
+- nepređeni deo je u `accentDeep` — vidljiv, ali povučen
+- na trenutnoj poziciji stoji mala tačka koja klizi po putanji
+- u sredini ekrana ostaje tekstualno vreme (proteklo i ukupno) — prsten je
+  dopuna, ne zamena za brojku
+- kasnija faza: prevlačenjem po prstenu se premotava pesma
+
+**Podaci i izvedba (bitno za performanse):**
+
+- amplitude se računaju **jednom po pesmi**, pri učitavanju fajla — niz od N
+  vrednosti 0..1, gde je N približno broj tačaka po obimu ekrana
+- niz se kešira uz fajl; nikada se ne računa u toku crtanja
+- crtanje ide kroz `CustomPainter`; putanja (zaobljeni pravougaonik uz ivicu
+  ekrana) se gradi jednom po veličini ekrana, ne po kadru
+- prerisavanje se okida pozicijom reprodukcije preko `Listenable`, bez
+  ponovnog građenja widget stabla; ceo prsten ide u `RepaintBoundary`
+- dok amplitude nisu spremne, crta se ravna linija — nikad prazan ekran
+- paket za izvlačenje talasnog oblika iz audio fajla treba izabrati kad se dođe
+  do ovog feature-a (kandidati: `just_waveform`, `audio_waveforms`) — odluka se
+  donosi sa korisnikom, ne usput
+
+### LED tab
+
+Nije započet. Pre prvog feature-a treba potvrditi koji hardver/protokol se
+koristi i šta se dešava kada Bluetooth nije dostupan.
+
 ### Uloge i dozvole
 
 - `glavni` — vodi ekipu; sme da menja logo tima, bira vozilo, upravlja checklistom
@@ -88,10 +180,88 @@ može da doda nove uloge bez menjanja ekrana.
 
 ### Pravila dizajna
 
-- **Dark mode je podrazumevan** (čuva noćni vid i bateriju na večernjim nastupima)
+- **Aplikacija je samo tamna** (čuva noćni vid i bateriju na večernjim nastupima)
 - Minimalna dodirna meta **48x48 dp** — rad jednom rukom tokom nastupa
 - Visok kontrast, krupan tekst za ključne informacije (naziv, vreme, adresa)
 - Minimalistički UI: na ekranu samo ono što treba u tom trenutku
+
+### Paleta (koristiti tačno ove vrednosti)
+
+Vizuelni pravac: **skoro crno sa hladnim, tamno-tirkiznim prizvukom.** Crna je
+osnova, tirkiz se pojavljuje kao nagoveštaj — u gradijentima, okvirima i sjaju,
+a punom jačinom samo tamo gde nešto može da se dodirne.
+
+Aplikacija je **samo tamna** — svetla tema se ne pravi. Događaji su uveče i
+noću, a jedna tema znači i upola manje posla oko provere izgleda.
+
+| Uloga | Hex | Gde se koristi |
+|---|---|---|
+| `background` | `#0A0C0C` | osnovna pozadina ekrana |
+| `backgroundTop` | `#0E1312` | gornja boja pozadinskog gradijenta |
+| `backgroundBottom` | `#070909` | donja boja pozadinskog gradijenta |
+| `surface` | `#121716` | kartice |
+| `surfaceAlt` | `#182120` | istaknute kartice, polja, aktivni red |
+| `border` | `#1F2A29` | okviri kartica i razdelnici |
+| `textPrimary` | `#ECECEC` | glavni tekst (namerno nije čisto belo) |
+| `textSecondary` | `#8A9A98` | pomoćni tekst, hladno siva sa zelenkastim tonom |
+| `accent` | `#2FA89C` | sve što se dodiruje: dugmad, ikonice, aktivni tab |
+| `accentDeep` | `#14403C` | gradijenti, sjaj, neaktivni deo prstena — **nikad za tekst** |
+| `success` | `#3FA46A` | spremno, završeno |
+| `warning` | `#E0B341` | uskoro, nedostaje podatak |
+| `danger` | `#E5645E` | greška, problem |
+
+**Pravila za boju:**
+
+- Boja uvek nosi značenje, nikad ukras. Tirkiz = interaktivno, zelena = spremno,
+  žuta = pažnja, crvena = problem.
+- Boja nikad ne stoji sama — uvek uz ikonicu ili tekst (u mraku, iz ruke, niko
+  ne razaznaje nijanse).
+- `accentDeep` je isključivo dekorativan. Tekst i ikonice koje nešto znače idu u
+  `accent`, `textPrimary` ili `textSecondary`.
+- Boje se pišu samo u `app_theme.dart`. Nijedan widget nema hex vrednost u sebi.
+
+**Gradijenti** (deo teme, ne improvizacija po widgetima):
+
+- `gradientBackground` — vertikalni, `backgroundTop` → `backgroundBottom`, preko
+  celog ekrana
+- `gradientSurface` — dijagonalni (135°), `#141A19` → `#0C1010`, za istaknute
+  kartice i header
+- `gradientAccent` — `accentDeep` → prozirno, za sjaj oko aktivnih elemenata
+  (npr. veliko dugme za reprodukciju i pređeni deo prstena)
+
+Gradijent ide samo na veće površine. Iza sitnog teksta nikad — tekst mora imati
+ujednačenu podlogu.
+
+### Razmaci i oblici
+
+Razmaci: `xs = 4`, `sm = 8`, `md = 16`, `lg = 24`, `xl = 32`.
+Minimalna dodirna meta: `minTouchTarget = 48`.
+Kartice: zaobljenje 12, okvir 1 px u boji `border`.
+
+### Pokret i animacije — samo neophodno
+
+Pravilo: animira se ono što **nosi informaciju** ili **potvrđuje dodir**. Sve
+ostalo se ne animira. Bez ulaznih animacija kartica, bez klizanja između tabova,
+bez efekata radi efekta.
+
+Dozvoljeno je tačno ovo:
+
+| Šta | Kako | Zašto |
+|---|---|---|
+| Prsten reprodukcije na Muzici | neprekidno, 60 fps | to je sama informacija |
+| Čekiranje stavke (Lager, scenario) | ~120 ms, kvačica | potvrda da je dodir pogodio |
+| Pritisak dugmeta | skala 0.97, ~100 ms | povratna informacija u žurbi |
+| Traka napretka pripreme | širina se animira ~300 ms | inače vrednost skače |
+| Promena statusa događaja | pretapanje boje ~300 ms | naglo prebacivanje zbunjuje |
+
+Ostala pravila:
+
+- trajanje 100–300 ms, `Curves.easeOut`; ništa duže
+- animacija nikad ne odlaže akciju — dešava se uz radnju, ne pre nje
+- **sat i odbrojavanje se ne animiraju** — tekst koji se menja svake sekunde a
+  pritom treperi je iritantan
+- poštovati sistemsko podešavanje za smanjen pokret
+  (`MediaQuery.disableAnimations`) — tada ostaje samo prsten reprodukcije
 
 ---
 
@@ -102,7 +272,7 @@ lib/
   main.dart              - runApp + inicijalizacija (kasnije Firebase.initializeApp)
   app.dart               - MaterialApp, tema, root sa BottomNavigationBar (4 taba)
   theme/
-    app_theme.dart       - dark/light ColorScheme, spacing konstante, minTouchTarget = 48
+    app_theme.dart       - tamna ColorScheme, gradijenti, spacing, minTouchTarget = 48
   models/
     event.dart           - Event, Participant
     vehicle.dart         - Vehicle
@@ -224,7 +394,7 @@ Koraci:
 ## Kako pokrenuti
 
 ```powershell
-cd C:\Users\lefi\AndroidStudioProjects\animator_app
+cd "D:\All Work\event_app"
 flutter pub get
 flutter devices          # spisak povezanih uređaja/emulatora
 flutter run              # pokretanje na izabranom uređaju
