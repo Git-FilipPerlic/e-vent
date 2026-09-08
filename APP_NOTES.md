@@ -357,6 +357,30 @@ Ispravke posle prve provere na telefonu (snimci ekrana sa uređaja).
 
 ---
 
+## 8. septembar 2026 — datum na vrh, telefon u ikonice, grad uz adresu
+
+- **Traka časova 0–23 je uklonjena.** Sat početka je već istaknut u kartici
+  datuma; traka je bila višak.
+- **Datum i sat su prebačeni na sam vrh**, iznad kartice "Događaj", u jedan
+  sitan red: `12. septembar` levo, `16:00` u boji `accent` desno. Font je
+  manji od naziva događaja — taj red se hvata pogledom, ne čita.
+  **Godina se više ne piše** (`AppDate.dayMonth`): posao se planira nedeljama
+  unapred, pa godina samo zauzima mesto.
+- **Telefon: poziv, SMS i kopiranje su sada samo ikonice, u jednom redu uz
+  broj.** Kartica je od tri reda spala na jedan, pa na ekran staje i adresa.
+  Ikonice nemaju natpis, ali imaju tooltip i opis za čitač ekrana; dodirna
+  meta ostaje 48 dp.
+- Naslov kartice je skraćen sa "Telefon organizatora" na **"Telefon"**, a broj
+  ide kroz `FittedBox` — pri uvećanom sistemskom fontu se pre toga lomio na
+  "+381641234 / 567". (Organizator ionako stoji u kartici iznad.)
+- **Grad uz naslov adrese**, malim slovima: "Adresa · novi sad".
+  Izvlači se iz same adrese, sve posle poslednjeg zareza (`EventAddress.cityFrom`).
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 80/80 prolaze;
+  provereno na telefonu (SM-A346B) snimcima ekrana, sa uvećanim sistemskim fontom.
+- Sledeće: sledeći set feature-a (Lager tab)
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **OpenStreetMap pločice za mini mapu.** Koristi se javni server

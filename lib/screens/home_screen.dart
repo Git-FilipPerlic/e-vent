@@ -27,8 +27,7 @@ import '../widgets/home/vehicle_picker.dart';
 /// gotove podatke kroz konstruktor.
 ///
 /// Elementi se dodaju redom po spisku iz `CLAUDE.md`:
-/// naziv (HOME-001) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → datum i sat početka (HOME-005) → ugovoreno trajanje →
-/// polazak (HOME-007) → vozilo → učesnici (HOME-012) → status tima (HOME-013) → spremnost (HOME-011) →
+/// datum i sat (HOME-005) → naziv (HOME-001) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → ugovoreno trajanje → polazak (HOME-007) → vozilo → učesnici (HOME-012) → status tima (HOME-013) → spremnost (HOME-011) →
 /// status događaja (HOME-018) → podsetnik (HOME-019) → scenario (HOME-025).
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -157,6 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         children: [
+          // Datum i sat stoje iznad naziva — sitno, da se uhvate pogledom.
+          EventDate(date: _event?.eventDate),
           EventTitle(title: _event?.title),
           OrganizerName(name: _event?.organizerName),
           OrganizerPhone(phone: _event?.organizerPhone),
@@ -165,7 +166,6 @@ class _HomeScreenState extends State<HomeScreen> {
             latitude: _event?.latitude,
             longitude: _event?.longitude,
           ),
-          EventDate(date: _event?.eventDate),
           EventDuration(
             minutes: _event?.durationMinutes,
             start: _event?.eventDate,

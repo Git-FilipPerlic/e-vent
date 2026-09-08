@@ -17,6 +17,13 @@ abstract final class AppDate {
   static String long(DateTime value) =>
       DateFormat.yMMMMd(locale).format(value);
 
+  /// Dan i mesec, **bez godine**: `12. septembar`.
+  ///
+  /// Godina se ne piše namerno — posao se planira nedeljama unapred, a ne
+  /// godinama, pa godina samo zauzima mesto.
+  static String dayMonth(DateTime value) =>
+      DateFormat('d. MMMM', locale).format(value);
+
   /// Dan u nedelji: `subota`
   static String weekday(DateTime value) =>
       DateFormat.EEEE(locale).format(value);

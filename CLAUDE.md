@@ -94,9 +94,9 @@ Ne treba ga ponovo dogovarati — radi se odozgo nadole, jedan po jedan element.
 |---|---|---|---|
 | 1 | Naziv događaja | ime slavljenika / naziv događaja, krupno, read-only | HOME-001 |
 | 2 | Organizator | ime roditelja/organizatora + dugme za kopiranje | HOME-002 |
-| 3 | Telefon organizatora | dugmad: pozovi, SMS, kopiraj | HOME-004 |
-| 4 | Adresa | tekst adrese + mini mapa + dugme "Navigacija" | HOME-003 |
-| 5 | Datum i sat početka | datum na srpskom + traka 0–23 sa satom početka | HOME-005 |
+| 3 | Telefon organizatora | **ikonice** u jednom redu: pozovi, SMS, kopiraj | HOME-004 |
+| 4 | Adresa | grad malim slovima uz naslov + tekst adrese + mini mapa + "Navigacija" | HOME-003 |
+| 5 | Datum i sat | sitan red **na vrhu, iznad naziva**: `12. septembar` + `16:00`, bez godine | HOME-005 |
 | 6 | Ugovoreno trajanje | koliko je dogovoreno da nastup traje + izračunat kraj | zamena za HOME-006 |
 | 7 | Vreme polaska | planirano vreme kretanja na događaj | HOME-007 |
 | 8 | Vozilo | izbor vozila iz liste + dodavanje novog vozila | zamena za HOME-008/009/010 |
@@ -209,9 +209,10 @@ može da doda nove uloge bez menjanja ekrana.
   traci; ponavljati ga u aplikaciji je trošenje prostora.
 - Umesto njega stoji **ugovoreno trajanje** nastupa, uz izračunat kraj
   ("Od 16:00 do 18:00") — to je podatak koji izvođač inače računa u glavi.
-- **Sat početka je čist podatak, ne dugme.** Traka 0–23 na kartici datuma
-  se na Home tabu samo čita; sat se unosi u admin konzoli, posle prijave.
-  Widget postaje izmenjiv tek kad mu se prosledi `onHourSelected`.
+- **Sat početka je čist podatak, ne dugme.** Nema trake za biranje časa —
+  sat se unosi u admin konzoli, posle prijave. Na Home tabu se samo čita.
+- **Datum i sat stoje na vrhu, iznad naziva događaja**, u jednom sitnom redu,
+  bez godine: posao se planira nedeljama unapred, pa godina samo zauzima mesto.
 - Ta brojka je namerno krupna i tačna: iz nje korisnik u glavi izračuna sve
   ostalo, brže nego bilo koji ekran, a preciznost u ovakvim detaljima je ono
   po čemu aplikacija deluje pedantno.

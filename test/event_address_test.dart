@@ -125,4 +125,23 @@ void main() {
       findsOneWidget,
     );
   });
+
+  test('grad se izvlači iz adrese i piše malim slovima', () {
+    expect(
+      EventAddress.cityFrom('Bulevar Oslobođenja 45, Novi Sad'),
+      'novi sad',
+    );
+    // Adresa bez zareza nema izdvojen grad.
+    expect(EventAddress.cityFrom('Kisačka 78'), isNull);
+    expect(EventAddress.cityFrom('Kisačka 78,   '), isNull);
+  });
+
+  testWidgets('grad stoji sitno uz naslov kartice',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      _wrap(const EventAddress(address: 'Bulevar Oslobođenja 45, Novi Sad')),
+    );
+
+    expect(find.text('novi sad'), findsOneWidget);
+  });
 }

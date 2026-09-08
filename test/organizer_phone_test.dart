@@ -32,10 +32,10 @@ void main() {
   testWidgets('prikazuje broj i sve tri akcije', (WidgetTester tester) async {
     await tester.pumpWidget(_wrap(const OrganizerPhone(phone: '+381641234567')));
 
-    expect(find.text('Telefon organizatora'), findsOneWidget);
+    expect(find.text('Telefon'), findsOneWidget);
     expect(find.text('+381641234567'), findsOneWidget);
-    expect(find.text('Pozovi'), findsOneWidget);
-    expect(find.text('Pošalji SMS'), findsOneWidget);
+    expect(find.byIcon(Icons.call_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.sms_rounded), findsOneWidget);
     expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
   });
 
@@ -44,8 +44,8 @@ void main() {
     await tester.pumpWidget(_wrap(const OrganizerPhone(phone: null)));
 
     expect(find.text('Telefon nije unet'), findsOneWidget);
-    expect(find.text('Pozovi'), findsNothing);
-    expect(find.text('Pošalji SMS'), findsNothing);
+    expect(find.byIcon(Icons.call_rounded), findsNothing);
+    expect(find.byIcon(Icons.sms_rounded), findsNothing);
     expect(find.byIcon(Icons.copy_rounded), findsNothing);
   });
 
@@ -63,7 +63,7 @@ void main() {
       _wrap(const OrganizerPhone(phone: '+381 64 123-4567')),
     );
 
-    await tester.tap(find.text('Pozovi'));
+    await tester.tap(find.byIcon(Icons.call_rounded));
     await tester.pump();
 
     expect(launched, ['tel:+381641234567']);
@@ -75,7 +75,7 @@ void main() {
       _wrap(const OrganizerPhone(phone: '(021) 555 111')),
     );
 
-    await tester.tap(find.text('Pošalji SMS'));
+    await tester.tap(find.byIcon(Icons.sms_rounded));
     await tester.pump();
 
     expect(launched, ['sms:021555111']);
@@ -86,7 +86,7 @@ void main() {
     _captureLaunches(tester, succeeds: false);
     await tester.pumpWidget(_wrap(const OrganizerPhone(phone: '+381641234567')));
 
-    await tester.tap(find.text('Pozovi'));
+    await tester.tap(find.byIcon(Icons.call_rounded));
     // Prvi pump pusti da se odgovor telefona vrati,
     // drugi odigra ulazak poruke pri dnu ekrana.
     await tester.pump();

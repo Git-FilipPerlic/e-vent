@@ -27,6 +27,18 @@ class EventAddress extends StatelessWidget {
   final double? latitude;
   final double? longitude;
 
+  /// Grad iz adrese — sve posle poslednjeg zareza
+  /// ("Bulevar Oslobođenja 45, Novi Sad" → "novi sad").
+  ///
+  /// Piše se **malim slovima**, sitno, uz naslov kartice: to je podatak koji
+  /// se hvata pogledom ("gde se putuje"), pa ne sme da se otima od same adrese.
+  static String? cityFrom(String address) {
+    final parts = address.split(',');
+    if (parts.length < 2) return null;
+    final city = parts.last.trim();
+    return city.isEmpty ? null : city.toLowerCase();
+  }
+
   /// Visina mini mape. Dovoljno da se vidi ulica, a da ne pojede ekran.
   static const double _mapHeight = 160;
 
@@ -73,12 +85,35 @@ class EventAddress extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Adresa',
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: AppColors.textSecondary,
-                letterSpacing: 0.5,
-              ),
+            Row(
+              children: [
+                Text(
+                  'Adresa',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                if (hasAddress && cityFrom(value) != null) ...[
+                  Text(
+                    '  ·  ',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: AppColors.border,
+                    ),
+                  ),
+                  Flexible(
+                    child: Text(
+                      cityFrom(value)!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: AppColors.accent,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: AppSpacing.xs),
             Row(

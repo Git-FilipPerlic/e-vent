@@ -24,8 +24,7 @@ void main() {
   testWidgets('prikazuje datum događaja', (WidgetTester tester) async {
     await tester.pumpWidget(_wrap(EventDate(date: DateTime(2026, 9, 12))));
 
-    expect(find.text('Datum događaja'), findsOneWidget);
-    expect(find.text('12. septembar 2026.'), findsOneWidget);
+    expect(find.text('12. septembar'), findsOneWidget);
   });
 
   testWidgets('kad datuma nema prikazuje objašnjenje',
@@ -35,51 +34,15 @@ void main() {
     expect(find.text('Datum nije unet'), findsOneWidget);
   });
 
-  testWidgets('prikazuje sat početka krupno i osenči ga u traci',
+  testWidgets('datum i sat stoje u jednom redu, bez godine',
       (WidgetTester tester) async {
     await tester.pumpWidget(
       _wrap(EventDate(date: DateTime(2026, 9, 12, 16, 0))),
     );
-    // Traka se sama pomera na izabrani sat tek posle prvog kadra.
-    await tester.pumpAndSettle();
 
+    expect(find.text('12. septembar'), findsOneWidget);
     expect(find.text('16:00'), findsOneWidget);
-    expect(find.text('Sat početka'), findsOneWidget);
-    // Traka ima svih 24 časa, ali su iscrtani samo vidljivi.
-    expect(find.text('16'), findsOneWidget);
-  });
-
-  testWidgets('bez dozvole se sat ne menja dodirom',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(
-      _wrap(EventDate(date: DateTime(2026, 9, 12, 16, 0))),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('15'));
-    await tester.pumpAndSettle();
-
-    // Krupna brojka je i dalje 16:00 — dodir ništa ne menja.
-    expect(find.text('16:00'), findsOneWidget);
-  });
-
-  testWidgets('u admin konzoli dodir menja sat i javlja ga',
-      (WidgetTester tester) async {
-    int? chosen;
-    await tester.pumpWidget(
-      _wrap(
-        EventDate(
-          date: DateTime(2026, 9, 12, 16, 0),
-          onHourSelected: (hour) => chosen = hour,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('15'));
-    await tester.pumpAndSettle();
-
-    expect(chosen, 15);
-    expect(find.text('15:00'), findsOneWidget);
+    // Godina se ne piše.
+    expect(find.textContaining('2026'), findsNothing);
   });
 }
