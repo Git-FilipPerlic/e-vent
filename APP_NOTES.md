@@ -144,8 +144,38 @@ Native verzije je u `ARCHIVE_ReactNative.md`.
 
 ---
 
+## 8. septembar 2026 — HOME-003, adresa sa mini mapom
+
+- Urađeno:
+  - Dodati paketi `flutter_map` (^8.3.2) i `latlong2` (^0.10.1) — OpenStreetMap,
+    bez API ključa i bez naplate, kako je dogovoreno u `CLAUDE.md`.
+  - `lib/widgets/home/event_address.dart` — HOME-003. Tekst adrese sa dugmetom
+    za kopiranje, ispod mini mapa (visina 160, zum 15, markerica u boji
+    `accent`), pa dugme "Navigacija" preko cele širine. Mapa je zaključana —
+    ne pomera se i ne zumira; ona je pregled, a snalaženje ide kroz navigaciju.
+  - Navigacija otvara `https://www.google.com/maps/dir/?api=1&destination=...`
+    u aplikaciji koju korisnik već ima (Google Maps / Waze / pregledač).
+    Sa koordinatama ide na tačnu tačku, bez njih se prosleđuje tekst adrese.
+  - `AndroidManifest.xml`: dodat `<intent>` za `https` VIEW (bez toga dugme
+    "Navigacija" na Androidu 11+ ne radi) i **`INTERNET` dozvola u glavni
+    manifest** — do sada je stajala samo u debug manifestu, pa mini mapa u
+    pravom (release) buildu ne bi imala pločice.
+  - `lib/screens/home_screen.dart` — kartica dodata ispod telefona.
+  - `test/event_address_test.dart` — 7 testova (prikaz, prazna adresa, mapa
+    samo kad ima koordinata, tačna adresa navigacije u oba slučaja, poruka
+    kad telefon ne može da otvori mapu).
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 28/28 prolaze.
+  Mapa i navigacija na pravom telefonu još nisu probane (traži novi build).
+- Sledeće: HOME-005 — datum događaja na srpskom; traži paket `intl`
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
+- **OpenStreetMap pločice za mini mapu.** Koristi se javni server
+  `tile.openstreetmap.org`, koji ima pravila korišćenja (nije za velike
+  količine saobraćaja). Za nekoliko korisnika iz ekipe je sasvim u redu; ako
+  aplikacija ikad izađe šire, prebaciti se na svoj ili plaćeni izvor pločica.
 - **Prave stavke opreme za Lager checklist.** Sekcije su tačne, ali su stavke
   unutar njih izmišljene kao privremene. Zamisao: izbor jedne sekcije izlistava
   niz stavki ispod nje. Pravi spisak daje korisnik.

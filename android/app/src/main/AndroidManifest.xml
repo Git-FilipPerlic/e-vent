@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Mini mapa na Home tabu vuče pločice sa interneta (OpenStreetMap).
+         Dozvola je do sada stajala samo u debug manifestu, pa mapa u pravom
+         (release) buildu ne bi radila. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:label="event_app"
         android:name="${applicationName}"
@@ -47,6 +52,12 @@
         <intent>
             <action android:name="android.intent.action.SENDTO"/>
             <data android:scheme="smsto"/>
+        </intent>
+        <!-- Dugme "Navigacija" otvara mapu preko https adrese, u aplikaciji
+             koju korisnik već ima (Google Maps / Waze / pregledač). -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
         </intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
