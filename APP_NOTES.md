@@ -450,8 +450,42 @@ Ispravke posle prve provere na telefonu (snimci ekrana sa uređaja).
 
 ---
 
+## 8. septembar 2026 — Lager tab i slika preko celog headera
+
+- **Header:** logotip sada ide **preko cele trake**, kao baner (`BoxFit.cover`),
+  a ne kao sličica u uglu. Uz desnu ivicu je blago zatamnjenje da se ikonice
+  vide i na svetloj slici. Kad logotipa nema, podloga je ime aplikacije.
+- **Lager tab je napravljen** (`lib/screens/lager_screen.dart`):
+  - **Dva režima:** *Pakovanje* (pre događaja) i *Raspakivanje* (posle).
+    Svaki režim ima **svoje kvačice** — pakovanje se ne poništava kad se posle
+    raspakuje. To je bio glavni razlog da se ne čuva jedan skup čekiranih.
+  - Sekcije se otvaraju i zatvaraju; na početku su sve zatvorene, da svih šest
+    stane na jedan ekran. Svaka nosi brojač `1/3` i kvačicu kad je gotova.
+  - Stavka se čekira dodirom bilo gde u redu; kvačica se pojavi za ~120 ms.
+  - Korisnik može da doda svoju stavku u bilo koju sekciju i da je obriše —
+    stavke iz šablona se ne brišu.
+  - **Limit od 90 stavki** (`kMaxChecklistItems`): preko toga se dodavanje
+    odbija porukom.
+  - Traka napretka se animira ~300 ms; zelena kad je sve spakovano.
+  - Pull-to-refresh i "Pokušaj ponovo" pri grešci, isto kao na Home tabu.
+  - `lib/widgets/lager/checklist_progress.dart` i `checklist_section_tile.dart`.
+- `test/lager_test.dart` — 9 testova, uključujući proveru da pakovanje i
+  raspakivanje zaista imaju odvojene kvačice.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 93/93 prolaze;
+  provereno na telefonu.
+- Sledeće: **Muzika tab**
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
+- **Logotip tima nestaje posle reinstalacije aplikacije.** `image_picker`
+  ostavlja izabranu sliku u privremenom folderu aplikacije, a taj folder se
+  briše pri reinstalaciji, pa zapamćena putanja više ne postoji. Header to
+  podnosi (vrati se na ime aplikacije), ali sliku treba prekopirati u trajni
+  folder aplikacije — traži paket `path_provider`, pa čeka odluku korisnika.
+- **Prave stavke za Lager checklist.** Sekcije su tačne, stavke unutar njih su
+  i dalje privremene (13 komada). Pravi spisak daje korisnik.
 - **Saobraćaj na ruti do događaja (predlog korisnika).** Povezati lokaciju
   korisnika i lokaciju događaja, pa na toj ruti izdvojiti zatvorene
   saobraćajnice, udese i veća kašnjenja. Traži izvor podataka o saobraćaju

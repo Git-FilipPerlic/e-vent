@@ -33,6 +33,8 @@ void main() {
     await tester.tap(find.text('Lager'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Lager tab'), findsOneWidget);
+    // Lager tab pokazuje checklist opreme, sa režimima pakovanja.
+    expect(find.text('Pakovanje'), findsOneWidget);
+    expect(find.text('Tehnika'), findsOneWidget);
   });
 }

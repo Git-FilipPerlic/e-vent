@@ -120,6 +120,10 @@ Checklist opreme po sekcijama (Tehnika, Animacija, Specijalni efekti, Vatreni
 rekviziti, Svila, Hoop): sekcije se otvaraju/zatvaraju, stavke se čekiraju,
 korisnik može da doda svoju stavku, traka napretka i limit od 90 stavki.
 
+**Dva režima, sa odvojenim kvačicama:** *Pakovanje* pre događaja i
+*Raspakivanje* posle. Odvojeni su namerno — kad se posle događaja proverava
+šta se vratilo, ne sme da se poništi ono što je pre bilo spakovano.
+
 ### Muzika tab
 
 Lista muzičkih fajlova sa izvorom (Folder / Playlista). Izbor fajla **ne**

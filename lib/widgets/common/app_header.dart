@@ -7,6 +7,7 @@ import '../../theme/app_theme.dart';
 /// Po specifikaciji ovde stoji **logotip tima**, ne naziv taba — koji je tab
 /// otvoren već se vidi u tabovima ispod, pa bi naslov gore bio ponavljanje.
 ///
+/// Slika ide **preko cele trake**, kao baner, a ne kao sličica u uglu.
 /// Dok logotipa nema, prikazuje se ime aplikacije. Header nikad nije prazan.
 ///
 /// Widget je "glup": dobija sliku i dozvolu kroz konstruktor, a promenu
@@ -25,91 +26,102 @@ class AppHeader extends StatelessWidget {
   /// ili kad logotipa ionako nema.
   final VoidCallback? onRemoveLogo;
 
-  /// Visina trake sa logotipom, bez statusne trake telefona.
+  /// Visina trake, bez statusne trake telefona.
   static const double height = 72;
-
-  /// Logotip zauzima skoro celu visinu trake — dovoljno da se prepozna
-  /// i fotografija, a ne samo čist znak na providnoj podlozi.
-  static const double _logoHeight = 52;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final canEdit = onEditLogo != null;
+    final image = logo;
 
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: AppGradients.surface,
-        border: Border(bottom: BorderSide(color: AppColors.border)),
-      ),
-      child: SizedBox(
-        height: height,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Row(
-            children: [
-              Expanded(child: _LogoOrName(logo: logo)),
-              if (canEdit && onRemoveLogo != null)
-                IconButton(
-                  onPressed: onRemoveLogo,
-                  icon: const Icon(Icons.hide_image_outlined),
-                  iconSize: 22,
-                  color: AppColors.textSecondary,
-                  tooltip: 'Ukloni logotip',
+    return SizedBox(
+      height: height,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Podloga: slika preko cele trake, ili ime aplikacije kad slike nema.
+          if (image != null)
+            Image(
+              image: image,
+              fit: BoxFit.cover,
+              // Obrisana ili neispravna slika ne sme da obori header.
+              errorBuilder: (context, error, stackTrace) =>
+                  _Wordmark(theme: theme),
+            )
+          else
+            _Wordmark(theme: theme),
+
+          // Zatamnjenje uz desnu ivicu, da se ikonice vide i na svetloj slici.
+          if (image != null && canEdit)
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerRight,
+                  end: Alignment.center,
+                  colors: [AppColors.background, Colors.transparent],
                 ),
-              if (canEdit)
-                IconButton(
-                  onPressed: onEditLogo,
-                  icon: const Icon(Icons.image_outlined),
-                  iconSize: 22,
-                  color: AppColors.accent,
-                  tooltip: 'Promeni logotip tima',
-                ),
-            ],
+              ),
+            ),
+
+          if (canEdit)
+            Align(
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (onRemoveLogo != null)
+                    IconButton(
+                      onPressed: onRemoveLogo,
+                      icon: const Icon(Icons.hide_image_outlined),
+                      iconSize: 22,
+                      color: AppColors.textSecondary,
+                      tooltip: 'Ukloni logotip',
+                    ),
+                  IconButton(
+                    onPressed: onEditLogo,
+                    icon: const Icon(Icons.image_outlined),
+                    iconSize: 22,
+                    color: AppColors.accent,
+                    tooltip: 'Promeni logotip tima',
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                ],
+              ),
+            ),
+
+          // Razdelnik prema tabovima ispod.
+          const Align(
+            alignment: Alignment.bottomCenter,
+            child: Divider(height: 1),
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-/// Logotip ako postoji, inače ime aplikacije.
-class _LogoOrName extends StatelessWidget {
-  const _LogoOrName({required this.logo});
+/// Ime aplikacije — podloga kad logotipa nema.
+class _Wordmark extends StatelessWidget {
+  const _Wordmark({required this.theme});
 
-  final ImageProvider? logo;
+  final ThemeData theme;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final image = logo;
-
-    final Widget wordmark = Text(
-      'e-vent',
-      style:
-          theme.textTheme.headlineSmall?.copyWith(
-            color: AppColors.accent,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.5,
-          ) ??
-          const TextStyle(color: AppColors.accent),
-    );
-
-    if (image == null) {
-      return Align(alignment: Alignment.centerLeft, child: wordmark);
-    }
-
-    return Align(
+    return Container(
+      decoration: const BoxDecoration(gradient: AppGradients.surface),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       alignment: Alignment.centerLeft,
-      child: ClipRRect(
-        // Fotografija bez zaobljenja izgleda kao zalepljena nalepnica.
-        borderRadius: BorderRadius.circular(AppSpacing.sm),
-        child: Image(
-          image: image,
-          height: AppHeader._logoHeight,
-          fit: BoxFit.contain,
-          // Obrisana ili neispravna slika ne sme da obori header.
-          errorBuilder: (context, error, stackTrace) => wordmark,
-        ),
+      child: Text(
+        'e-vent',
+        style:
+            theme.textTheme.headlineSmall?.copyWith(
+              color: AppColors.accent,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
+            ) ??
+            const TextStyle(color: AppColors.accent),
       ),
     );
   }
