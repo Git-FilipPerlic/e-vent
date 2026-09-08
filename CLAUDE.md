@@ -95,7 +95,7 @@ Ne treba ga ponovo dogovarati — radi se odozgo nadole, jedan po jedan element.
 | 1 | Kartica događaja | dva reda: `Događaj  12. septembar  16:00` / `7 Mia  2h` | HOME-001/005 |
 | 2 | Organizator | ime roditelja/organizatora + dugme za kopiranje | HOME-002 |
 | 3 | Telefon organizatora | **ikonice** u jednom redu: pozovi, SMS, kopiraj | HOME-004 |
-| 4 | Adresa | grad malim slovima uz naslov + tekst adrese + mini mapa + "Navigacija" | HOME-003 |
+| 4 | Adresa | grad malim slovima uz naslov + tekst adrese + dugme "Navigacija" (bez mape) | HOME-003 |
 
 
 | 7 | Vreme polaska | planirano vreme kretanja na događaj | HOME-007 |

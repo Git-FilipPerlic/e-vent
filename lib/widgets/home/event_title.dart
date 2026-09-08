@@ -10,15 +10,17 @@ import '../../utils/date_format.dart';
 ///
 /// ```
 /// Događaj      12. septembar   16:00
-/// 7 Mia                           2h
+/// 7 Mia
+/// 2h
 /// ```
 ///
 /// - **Naziv nema reč "rođendan"** — arapski broj ispred imena već znači
 ///   koliko slavljenik puni godina, pa i reč "godina" otpada.
 /// - **Trajanje se prepoznaje po slovu `h`** — to je jedina oznaka koja treba
-///   da bi se taj broj razlikovao od godina i od sata početka.
-/// - Datum je beo i naglašen; sat i trajanje su u boji `accent`, jer su to
-///   brojke sa sata iz kojih izvođač u glavi računa ostalo.
+///   da bi se taj broj razlikovao od godina i od sata početka. Stoji ispod
+///   imena, sitno i mirno: podatak koji se pogleda jednom, pa zaboravi.
+/// - Datum je beo i naglašen, sat u boji `accent` — to su brojke iz kojih
+///   izvođač u glavi računa ostalo.
 ///
 /// Widget je "glup": prima gotove podatke kroz konstruktor.
 class EventTitle extends StatelessWidget {
@@ -81,7 +83,10 @@ class EventTitle extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (when != null)
+                if (when != null) ...[
+                  // Datum se skuplja do pune širine, pa mu treba razmak da se
+                  // ne slepi sa satom u "12. septembar16:00".
+                  const SizedBox(width: AppSpacing.sm),
                   Text(
                     AppDate.time(when),
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -89,37 +94,28 @@ class EventTitle extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Text(
-                    hasTitle ? title!.trim() : 'Naziv događaja nije unet',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: hasTitle
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
-                      fontWeight: hasTitle ? FontWeight.w600 : FontWeight.w400,
-                      height: 1.2,
-                    ),
-                  ),
-                ),
-                if (minutes != null) ...[
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    AppDate.shortDuration(minutes),
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,
-                    ),
-                  ),
                 ],
               ],
             ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              hasTitle ? title!.trim() : 'Naziv događaja nije unet',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: hasTitle
+                    ? AppColors.textPrimary
+                    : AppColors.textSecondary,
+                fontWeight: hasTitle ? FontWeight.w600 : FontWeight.w400,
+                height: 1.2,
+              ),
+            ),
+            if (minutes != null)
+              Text(
+                AppDate.shortDuration(minutes),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
           ],
         ),
       ),

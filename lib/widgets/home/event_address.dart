@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_theme.dart';
 import '../common/copy_button.dart';
 
-/// HOME-003 — adresa događaja: tekst, mini mapa i dugme "Navigacija".
+/// HOME-003 — adresa događaja: grad, tekst adrese i dugme "Navigacija".
+///
+/// **Mini mape više nema.** Statična sličica ulice ne govori ništa što adresa
+/// već ne kaže, a zauzimala je pola ekrana i vukla pločice sa mreže. Snalaženje
+/// ide kroz "Navigacija", u aplikaciji koju korisnik već ima na telefonu
+/// (Google Maps, Waze...).
 ///
 /// Widget je "glup": prima gotovu adresu i koordinate kroz konstruktor.
-/// Mapa je samo pregled — prava navigacija se otvara u aplikaciji koju
-/// korisnik već ima na telefonu (Google Maps, Waze...).
 class EventAddress extends StatelessWidget {
   const EventAddress({
     super.key,
@@ -38,12 +39,6 @@ class EventAddress extends StatelessWidget {
     final city = parts.last.trim();
     return city.isEmpty ? null : city.toLowerCase();
   }
-
-  /// Visina mini mape. Dovoljno da se vidi ulica, a da ne pojede ekran.
-  static const double _mapHeight = 160;
-
-  /// Zumiranje na nivou ulice.
-  static const double _mapZoom = 15;
 
   bool get _hasCoordinates => latitude != null && longitude != null;
 
@@ -133,10 +128,6 @@ class EventAddress extends StatelessWidget {
                 if (hasAddress) CopyButton(value: value, label: 'Adresa'),
               ],
             ),
-            if (_hasCoordinates) ...[
-              const SizedBox(height: AppSpacing.md),
-              _MiniMap(center: LatLng(latitude!, longitude!), zoom: _mapZoom),
-            ],
             if (hasAddress || _hasCoordinates) ...[
               const SizedBox(height: AppSpacing.md),
               SizedBox(
@@ -148,56 +139,6 @@ class EventAddress extends StatelessWidget {
                 ),
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Mali pregled lokacije na mapi. Ne pomera se i ne zumira — služi samo da
-/// se vidi gde je to; pravo snalaženje ide kroz dugme "Navigacija".
-class _MiniMap extends StatelessWidget {
-  const _MiniMap({required this.center, required this.zoom});
-
-  final LatLng center;
-  final double zoom;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(kCardRadius),
-      child: SizedBox(
-        height: EventAddress._mapHeight,
-        child: FlutterMap(
-          options: MapOptions(
-            initialCenter: center,
-            initialZoom: zoom,
-            interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.none,
-            ),
-          ),
-          children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              // OSM traži da se aplikacija predstavi pravim imenom paketa
-              // (isti applicationId kao u android/app/build.gradle.kts).
-              userAgentPackageName: 'com.eventapp.event_app',
-            ),
-            MarkerLayer(
-              markers: [
-                Marker(
-                  point: center,
-                  width: 36,
-                  height: 36,
-                  child: const Icon(
-                    Icons.location_on,
-                    color: AppColors.accent,
-                    size: 36,
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),

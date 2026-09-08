@@ -2,7 +2,6 @@ import 'package:event_app/theme/app_theme.dart';
 import 'package:event_app/widgets/home/event_address.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Widget se uvek testira u pravoj temi aplikacije.
@@ -39,7 +38,6 @@ void main() {
     expect(find.text('Kisačka 78, Novi Sad'), findsOneWidget);
     expect(find.text('Navigacija'), findsOneWidget);
     expect(find.byIcon(Icons.copy_rounded), findsOneWidget);
-    expect(find.byType(FlutterMap), findsNothing);
   });
 
   testWidgets('kad adrese nema prikazuje objašnjenje i nema dugmadi',
@@ -56,21 +54,6 @@ void main() {
     await tester.pumpWidget(_wrap(const EventAddress(address: '   ')));
 
     expect(find.text('Adresa nije uneta'), findsOneWidget);
-  });
-
-  testWidgets('sa koordinatama se prikazuje mini mapa',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(
-      _wrap(
-        const EventAddress(
-          address: 'Bulevar Oslobođenja 45, Novi Sad',
-          latitude: 45.2671,
-          longitude: 19.8335,
-        ),
-      ),
-    );
-
-    expect(find.byType(FlutterMap), findsOneWidget);
   });
 
   testWidgets('navigacija sa koordinatama vodi na tačnu tačku',

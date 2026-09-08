@@ -404,8 +404,33 @@ Ispravke posle prve provere na telefonu (snimci ekrana sa uređaja).
 
 ---
 
+## 8. septembar 2026 — trajanje ispod imena, mini mapa uklonjena
+
+- **Trajanje više ne visi u vazduhu.** `2h` je prebačeno ispod imena i godina,
+  sitnim fontom u pomoćnoj boji — podatak koji se pogleda jednom pa zaboravi.
+  Kartica time nije porasla.
+- **Mini mapa je uklonjena** iz kartice adrese. Statična sličica ulice ne
+  govori ništa što adresa već ne kaže, a zauzimala je pola ekrana i vukla
+  pločice sa mreže. Dugme "Navigacija" ostaje.
+  - Paketi `flutter_map` i `latlong2` su **namerno ostavljeni** u projektu —
+    trebaće ako se radi predlog sa rutom i saobraćajem (vidi TODO).
+- Datum se slepio sa satom ("12. septembar16:00") pošto se skuplja do pune
+  širine — dodat razmak.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 73/73 prolaze;
+  provereno na telefonu (SM-A346B).
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
+- **Vremenska prognoza na Home tabu (predlog korisnika).** Ikonica sa
+  temperaturom i stanjem (sunčano / kiša / ...) za mesto i vreme događaja —
+  da organizator unapred zna hoće li mu kiša pasti na pola programa. Traži
+  izbor izvora podataka i jedan paket za mrežu; čeka odluku korisnika.
+- **Saobraćaj na ruti do događaja (predlog korisnika).** Povezati lokaciju
+  korisnika i lokaciju događaja, pa na toj ruti izdvojiti zatvorene
+  saobraćajnice, udese i veća kašnjenja. Traži izvor podataka o saobraćaju
+  (uglavnom se plaća) i dozvolu za lokaciju; čeka odluku korisnika.
 - **OpenStreetMap pločice za mini mapu.** Koristi se javni server
   `tile.openstreetmap.org`, koji ima pravila korišćenja (nije za velike
   količine saobraćaja). Za nekoliko korisnika iz ekipe je sasvim u redu; ako
