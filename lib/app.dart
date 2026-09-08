@@ -5,6 +5,7 @@ import 'screens/lager_screen.dart';
 import 'screens/led_screen.dart';
 import 'screens/music_screen.dart';
 import 'theme/app_theme.dart';
+import 'widgets/common/app_header.dart';
 
 /// Koren aplikacije: tema i navigacija sa 4 taba.
 class EventApp extends StatelessWidget {
@@ -73,6 +74,9 @@ class _RootNavigationState extends State<RootNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Jedan zajednički header za sve tabove — u njemu stoji logotip tima,
+      // ne naziv taba (koji je tab otvoren vidi se u donjoj navigaciji).
+      appBar: const AppHeader(),
       body: IndexedStack(index: _currentIndex, children: _tabs),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,

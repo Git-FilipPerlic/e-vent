@@ -9,7 +9,6 @@ class LedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('LED')),
       body: const PlaceholderBody(
         icon: Icons.lightbulb_outline,
         title: 'LED tab',

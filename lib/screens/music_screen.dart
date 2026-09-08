@@ -9,7 +9,6 @@ class MusicScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Muzika')),
       body: const PlaceholderBody(
         icon: Icons.music_note_outlined,
         title: 'Muzika tab',

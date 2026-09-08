@@ -9,7 +9,6 @@ class LagerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lager')),
       body: const PlaceholderBody(
         icon: Icons.checklist_outlined,
         title: 'Lager tab',
