@@ -191,8 +191,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nijedna numera nije dodata.'), findsOneWidget);
-      expect(find.text('Folder'), findsOneWidget);
-      expect(find.text('Numere'), findsOneWidget);
+      // Jedini put do numera je sopstveni pregled fajlova.
+      expect(find.text('Pregledaj fajlove'), findsOneWidget);
     });
   });
 }

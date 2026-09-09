@@ -43,6 +43,7 @@ dependencies:
   http: ^1.6.0
   just_audio: ^0.10.6
   file_picker: ^12.2.0
+  permission_handler: 12.0.0
 
 dev_dependencies:
   flutter_test:

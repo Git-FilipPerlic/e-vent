@@ -1,12 +1,11 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../models/track.dart';
-import '../services/music_folder.dart';
 import '../services/music_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
 import '../widgets/music/track_tile.dart';
+import 'file_browser_screen.dart';
 import 'player_screen.dart';
 
 /// Muzika tab — spisak numera za nastup.
@@ -15,10 +14,10 @@ import 'player_screen.dart';
 /// dugmetom. Zato ekran ima dva koraka: prvo se numera izabere iz spiska, pa
 /// se otvori plejer.
 ///
-/// Numere se dodaju na dva načina: **izborom pojedinačnih fajlova** ili
-/// **izborom celog foldera**. Oba idu kroz sistemski birač, pa ne treba
-/// posebna dozvola za čitanje memorije — korisnik sam pokazuje šta sme da se
-/// čita.
+/// Numere se dodaju kroz **sopstveni pregled fajlova** (`FileBrowserScreen`),
+/// koji radi kao Moji fajlovi: ulazak u foldere, pa "ceo folder" ili označene
+/// numere. Sistemski birač se više ne koristi, jer na Androidu vraća
+/// `content://` adresu foldera koja ne može da se čita.
 class MusicScreen extends StatefulWidget {
   const MusicScreen({super.key, this.service});
 
@@ -39,10 +38,6 @@ class _MusicScreenState extends State<MusicScreen> {
   /// osvežavanje spiska ne obriše.
   final List<Track> _pickedTracks = [];
 
-  int _nextPickedNumber = 1;
-
-  /// Naziv foldera koji je izabran, ako je izabran — stoji iznad spiska.
-  String? _folderName;
   String? _selectedTrackId;
   bool _isLoading = true;
   String? _errorMessage;
@@ -75,103 +70,21 @@ class _MusicScreenState extends State<MusicScreen> {
     }
   }
 
-  /// Otvara sistemski birač foldera i učitava sve numere iz njega.
-  ///
-  /// Folder zamenjuje dotadašnji spisak — to je i poenta: bira se folder
-  /// koji se pušta na tom nastupu.
-  Future<void> _pickFolder() async {
-    final messenger = ScaffoldMessenger.of(context);
-
-    final String? folder;
-    try {
-      folder = await FilePicker.getDirectoryPath(
-        dialogTitle: 'Izaberi folder sa muzikom',
-      );
-    } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Biranje foldera nije uspelo.')),
-        );
-      return;
-    }
+  /// Otvara pregled fajlova i dodaje ono što se odande vrati.
+  Future<void> _browse() async {
+    final tracks = await Navigator.of(context).push<List<Track>>(
+      MaterialPageRoute(builder: (_) => const FileBrowserScreen()),
+    );
 
     // Korisnik je odustao.
-    if (folder == null) return;
-
-    try {
-      final tracks = await MusicFolder.tracksIn(folder);
-      if (!mounted) return;
-
-      if (tracks.isEmpty) {
-        messenger
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            const SnackBar(content: Text('U folderu nema numera.')),
-          );
-        return;
-      }
-
-      setState(() {
-        _pickedTracks
-          ..clear()
-          ..addAll(tracks);
-        _tracks = tracks;
-        _folderName = folder!.split(RegExp(r'[/\\]')).last;
-        _selectedTrackId = null;
-      });
-    } on FolderNotReadableException {
-      if (!mounted) return;
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Ovaj folder telefon ne da da se čita. '
-              'Izaberi same numere preko "Dodaj numere".',
-            ),
-            duration: Duration(seconds: 5),
-          ),
-        );
-    }
-  }
-
-  /// Otvara sistemski birač i dodaje izabrane numere u spisak.
-  Future<void> _pickTracks() async {
-    final messenger = ScaffoldMessenger.of(context);
-
-    final List<PlatformFile> files;
-    try {
-      files = await FilePicker.pickFiles(type: FileType.audio);
-    } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Biranje numera nije uspelo.')),
-        );
-      return;
-    }
-
-    // Korisnik je odustao — ništa se ne menja i ništa se ne javlja.
-    if (files.isEmpty) return;
-
-    final added = [
-      for (final file in files)
-        Track(
-          id: 'izabrano-${_nextPickedNumber++}',
-          title: file.name,
-          // Na Androidu birač vraća `content://` adresu, ne putanju na disku,
-          // pa se pamti cela adresa — plejer ume da pusti i jedno i drugo.
-          path: file.path ?? file.uri.toString(),
-        ),
-    ];
-
+    if (tracks == null || tracks.isEmpty) return;
     if (!mounted) return;
+
     setState(() {
-      _pickedTracks.addAll(added);
-      _tracks = [..._tracks, ...added];
-      // Poslednja dodata numera je verovatno ona koja se traži.
-      _selectedTrackId = added.last.id;
+      _pickedTracks.addAll(tracks);
+      _tracks = [..._tracks, ...tracks];
+      // Prva dodata numera je verovatno ona od koje se kreće.
+      _selectedTrackId = tracks.first.id;
     });
   }
 
@@ -214,54 +127,15 @@ class _MusicScreenState extends State<MusicScreen> {
             AppSpacing.md,
             AppSpacing.sm,
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _pickFolder,
-                  icon: const Icon(Icons.folder_open_rounded, size: 20),
-                  label: const Text('Folder'),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _pickTracks,
-                  icon: const Icon(Icons.library_music_rounded, size: 20),
-                  label: const Text('Numere'),
-                ),
-              ),
-            ],
+          child: SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _browse,
+              icon: const Icon(Icons.folder_open_rounded, size: 20),
+              label: const Text('Pregledaj fajlove'),
+            ),
           ),
         ),
-        if (_folderName != null)
-          Padding(
-            padding: const EdgeInsets.only(
-              left: AppSpacing.md,
-              right: AppSpacing.md,
-              bottom: AppSpacing.sm,
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.folder_rounded,
-                  size: 16,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    '$_folderName · ${_tracks.length}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         Expanded(
           child: _tracks.isEmpty
               ? _emptyList(context)

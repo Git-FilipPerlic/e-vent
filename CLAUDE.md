@@ -221,7 +221,7 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-004 | Fade-in 10 sekundi | gotovo |
 | MUSIC-005 | Prsten po ivici ekrana (za sada ravna linija) | gotovo |
 | MUSIC-006 | Dodavanje pojedinačnih numera sa telefona | gotovo |
-| MUSIC-007 | Izbor foldera sa numerama | gotovo |
+| MUSIC-007 | Sopstveni pregled fajlova (ulazak u foldere, ceo folder / označene) | gotovo |
 | MUSIC-008 | Zbijen spisak (36 dp) + sklanjanje headera pri skrolovanju | gotovo |
 | MUSIC-009 | **Red čekanja** (queue) | sledeće |
 | MUSIC-010 | Dodir ubacuje numeru kao sledeću u redu | |
@@ -232,7 +232,7 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-015 | Prevlačenje po prstenu premotava pesmu | |
 | MUSIC-016 | Talasni oblik u prstenu (traži paket) | |
 | MUSIC-017 | Podaci iz fajla: izvođač, album, trajanje | |
-| MUSIC-018 | Pregled foldera sa ulaskom u podfoldere | |
+| MUSIC-018 | ~~Pregled foldera sa ulaskom u podfoldere~~ — urađeno uz MUSIC-007 | gotovo |
 | MUSIC-019 | Rad u pozadini + kontrole u notifikaciji (traži paket) | |
 | MUSIC-020 | Pretapanje naslova pri prelasku na sledeću numeru | |
 | MUSIC-021 | Provera podrške za formate (mp3, m4a, aac, wav, flac, ogg, opus, wma) | |
@@ -246,10 +246,12 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 - **MUSIC-019 (rad u pozadini)** je najveća stavka: traži paket
   (`just_audio_background` ili `audio_service`), dozvolu za foreground servis
   na Androidu i posebno ponašanje na iOS-u. Radi se kad sve ostalo radi.
-- **MUSIC-018** je pravi pregled foldera, sa ulaskom u podfoldere. Sadašnji
-  MUSIC-007 samo bira jedan folder; na Androidu ume da vrati `content://`
-  adresu koja se ne može listati, i tada aplikacija kaže da se biraju same
-  numere.
+- **Pristup fajlovima (odluka od 9. septembra 2026):** aplikacija ima
+  **sopstveni pregled fajlova**, ne koristi sistemski birač. Sistemski birač na
+  Androidu vraća `content://` adresu foldera koja ne može da se čita, pa je
+  „ceo folder" bio neupotrebljiv. Umesto toga se traži dozvola **„Pristup svim
+  fajlovima"**, koju korisnik odobrava u sistemskim podešavanjima; bez nje
+  ekran objasni zašto je potrebna i vodi do nje.
 
 #### Odbačeno (odluka od 9. septembra 2026)
 
@@ -556,7 +558,7 @@ za proveru praznih stanja) mogu da posluže kao seed za Firestore.
 | Bluetooth (LED tab) | planirano `react-native-ble-plx` | `flutter_blue_plus` |
 | Dozvole (Bluetooth, fajlovi) | Expo permissions | `permission_handler` |
 | Vremenska prognoza | — | `http` + Open-Meteo (bez ključa) |
-| Biranje numera sa telefona | — | `file_picker` |
+| Pristup fajlovima i dozvole | — | `permission_handler` (zaključan na 12.0.0) |
 
 ---
 

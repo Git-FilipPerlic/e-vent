@@ -66,11 +66,31 @@ class _EdgeRingPainter extends CustomPainter {
       size.height - EdgeProgressRing.inset * 2,
     );
 
-    // Putanja kreće iz gornjeg levog ugla i ide u smeru kazaljke na satu.
+    // Putanja se gradi ručno, a ne preko `addRRect`, zato što `addRRect`
+    // počinje na svom mestu i u svom smeru. Specifikacija traži tačno:
+    // kreni iz **gornjeg levog ugla**, pa desno duž gornje ivice, niz desnu,
+    // duž donje nalevo, i uz levu nazad gore.
+    const double r = kCardRadius * 2;
+    final left = rect.left;
+    final top = rect.top;
+    final right = rect.right;
+    final bottom = rect.bottom;
+
     final path = ui.Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(kCardRadius * 2)),
-      );
+      ..moveTo(left + r, top)
+      // gornja ivica, nadesno
+      ..lineTo(right - r, top)
+      ..arcToPoint(Offset(right, top + r), radius: const Radius.circular(r))
+      // desna ivica, nadole
+      ..lineTo(right, bottom - r)
+      ..arcToPoint(Offset(right - r, bottom), radius: const Radius.circular(r))
+      // donja ivica, nalevo
+      ..lineTo(left + r, bottom)
+      ..arcToPoint(Offset(left, bottom - r), radius: const Radius.circular(r))
+      // leva ivica, nagore, nazad u gornji levi ugao
+      ..lineTo(left, top + r)
+      ..arcToPoint(Offset(left + r, top), radius: const Radius.circular(r))
+      ..close();
 
     _cachedPath = path;
     _cachedSize = size;

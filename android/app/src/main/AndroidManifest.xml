@@ -4,6 +4,17 @@
          (release) buildu ne bi radila. -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- Muzika tab ima svoj pregled fajlova, pa mora da čita foldere na
+         telefonu i SD kartici. Od Androida 11 to traži "Pristup svim
+         fajlovima", koji korisnik odobrava u sistemskim podešavanjima. -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <!-- Za starije Androide (do 12) i za slučaj da korisnik da samo pristup
+         muzici. -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+
     <application
         android:label="event_app"
         android:name="${applicationName}"

@@ -624,6 +624,40 @@ Korisnik je doneo spisak feature-a iz ranije muzičke aplikacije. Upoređen je s
 
 ---
 
+## 9. septembar 2026 — sopstveni pregled fajlova, dozvola, popravke plejera
+
+Posle provere na telefonu ispostavilo se da **ništa nije moglo da se učita**:
+telefon je Android 16, a aplikacija je imala samo dozvolu za internet.
+Sistemski birač foldera vraća `content://` adresu koju nije moguće čitati kao
+folder — zato „Use this folder" nije dodavao pesme.
+
+- **Izabrano rešenje (odluka korisnika): „Pristup svim fajlovima"**
+  (`MANAGE_EXTERNAL_STORAGE`), pa aplikacija ima **sopstveni pregled fajlova**
+  umesto sistemskog birača.
+  - `lib/services/file_browser.dart` — dozvole, spisak nosača (memorija
+    telefona, SD kartica), čitanje foldera. Prikazuju se samo folderi i numere.
+  - `lib/screens/file_browser_screen.dart` — ekran kao Moji fajlovi: ulazak u
+    foldere, putanja iznad spiska, označavanje numera, dugmad **„Ceo folder"**
+    i **„Označene"**. Kad dozvole nema, ekran objasni zašto i vodi do nje.
+  - `file_picker` se više ne koristi za muziku; `lib/services/music_folder.dart`
+    je obrisan.
+- **`permission_handler` 13 traži Android SDK 37**, a projekat je na 36 —
+  zaključan je na **12.0.0** umesto dizanja celog build alata.
+- **Izmišljena plejlista je obrisana** — spisak počinje prazan.
+- **Dugme za puštanje prepravljeno**: bio je providan gradijent koji se nije
+  razaznavao od crne pozadine; sada je pun tirkizni krug 128 dp sa tamnom
+  ikonicom i sjajem, uz **−10 s i +10 s** sa strane (ugašeni dok numera nije
+  spremna, i ne izlaze izvan trajanja numere).
+- **Prsten je kretao sa pogrešnog mesta.** `Path.addRRect` počinje gde Skia
+  hoće; specifikacija traži start iz **gornjeg levog ugla** u smeru kazaljke.
+  Putanja se sada gradi ručno, tačno tim redom.
+- Provereno na telefonu: pregled fajlova čita prave foldere (`Music/DJ Lord`,
+  19 numera), **muzika svira**, prsten se kreće, vreme teče.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 115/115.
+- Sledeće: dva nivoa plejera (kontrole uz spisak + nastupni ekran), pa MUSIC-009.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.
