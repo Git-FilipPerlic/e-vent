@@ -276,9 +276,9 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-014 | Crossfade između dve numere | gotovo |
 | MUSIC-015 | Prevlačenje po prstenu premotava pesmu | gotovo |
 | MUSIC-016 | Talasni oblik u prstenu | gotovo (`just_waveform`) |
-| MUSIC-017 | Podaci iz fajla: izvođač, album, trajanje | sledeće |
+| MUSIC-017 | Podaci iz fajla: izvođač, album, trajanje | gotovo (`audio_metadata_reader`) |
 | MUSIC-018 | ~~Pregled foldera sa ulaskom u podfoldere~~ — urađeno uz MUSIC-007 | gotovo |
-| MUSIC-019 | Rad u pozadini + kontrole u notifikaciji (traži paket) | |
+| MUSIC-019 | Rad u pozadini + kontrole u notifikaciji | sledeće |
 | MUSIC-020 | Pretapanje naslova pri prelasku na sledeću numeru | gotovo |
 | MUSIC-021 | Provera podrške za formate (mp3, m4a, aac, wav, flac, ogg, opus, wma) | |
 | MUSIC-022 | Provera rasporeda na različitim veličinama ekrana | gotovo |
@@ -603,6 +603,7 @@ za proveru praznih stanja) mogu da posluže kao seed za Firestore.
 | Ikonice | Feather (`@expo/vector-icons`) | ugrađene Material ikonice |
 | Audio (Muzika tab) | planirano `expo-av` | **`just_audio`** (izabrano) |
 | Talasni oblik pesme | — | **`just_waveform`** (izabrano) |
+| Podaci iz audio fajla | — | **`audio_metadata_reader`** (izabrano) |
 | Bluetooth (LED tab) | planirano `react-native-ble-plx` | `flutter_blue_plus` |
 | Dozvole (Bluetooth, fajlovi) | Expo permissions | `permission_handler` |
 | Vremenska prognoza | — | `http` + Open-Meteo (bez ključa) |

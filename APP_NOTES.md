@@ -913,6 +913,28 @@ Dodat paket **`just_waveform`** (^0.0.7), po odluci korisnika.
 
 ---
 
+## 9. septembar 2026 — MUSIC-017: podaci iz samih fajlova
+
+Dodat paket **`audio_metadata_reader`** (^1.8.0).
+
+- `lib/services/track_metadata_service.dart` — čita naziv, izvođača i trajanje
+  iz oznaka u fajlu. Time se rešava i ono `--:--` u spisku: trajanje se ranije
+  saznavalo tek kad se numera otvori u plejeru.
+- Oznake iz fajla imaju prednost nad nazivom fajla, ali **prazna oznaka ne
+  briše ono što već imamo**.
+- Čita se jednom po numeri i pamti se. Fajl bez oznaka, u nepoznatom obliku
+  ili nedostupan ostaje kakav jeste — to nije greška koju korisnik treba da
+  vidi.
+- Spisak se prikaže odmah, a podaci ulaze čim stignu; isti podaci se prosleđuju
+  i redu čekanja (`MusicPlayerController.refreshQueue`), inače bi plejer
+  pokazivao naziv fajla dok spisak već pokazuje pravi naziv.
+- `test/metadata_test.dart` — 4 testa (bez putanje, `content://` adresa,
+  nepostojeći fajl, spisak u kome jedan fajl ne valja).
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 168/168.
+  Vizuelna provera na telefonu nije stigla — telefon se zaključao.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Release APK za deljenje.** Sadašnji build je debug — radi, ali je krupniji

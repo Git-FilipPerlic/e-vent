@@ -195,6 +195,28 @@ class MusicPlayerController extends ChangeNotifier {
     await _select(index);
   }
 
+  /// Zamenjuje numere u redu dopunjenim podacima iz fajlova.
+  ///
+  /// Ne dira ni izabranu ni onu koja svira — menja se samo ono što piše, da
+  /// plejer ne bi pokazivao naziv fajla dok spisak već pokazuje pravi naziv.
+  void refreshQueue(Map<String, Track> byId) {
+    var changed = false;
+    for (var i = 0; i < _queue.length; i++) {
+      final better = byId[_queue[i].id];
+      if (better == null) continue;
+      _queue[i] = better;
+      changed = true;
+    }
+
+    // Trajanje iz fajla vredi i za prikaz, dok plejer ne kaže svoje.
+    final current = selected;
+    if (changed && _duration == null && current?.duration != null) {
+      _duration = current!.duration;
+      _updateProgress();
+    }
+    if (changed) notifyListeners();
+  }
+
   /// Postavlja ceo red i priprema prvu numeru, bez puštanja.
   Future<void> setQueue(List<Track> tracks) async {
     _queue

@@ -4,6 +4,7 @@ import '../models/track.dart';
 import '../services/audio_playback.dart';
 import '../services/music_player_controller.dart';
 import '../services/music_service.dart';
+import '../services/track_metadata_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
 import '../widgets/music/edge_progress_ring.dart';
@@ -39,6 +40,9 @@ class MusicScreen extends StatefulWidget {
 class _MusicScreenState extends State<MusicScreen> {
   /// Jedino mesto gde se bira izvor numera.
   late final MusicService _service = widget.service ?? MockMusicService();
+
+  /// Čita izvođača i trajanje iz samih fajlova.
+  final TrackMetadataService _metadata = TrackMetadataService();
 
   /// Reprodukcija i red čekanja. Nastupni ekran ga samo pozajmljuje.
   late final MusicPlayerController _player =
@@ -111,6 +115,24 @@ class _MusicScreenState extends State<MusicScreen> {
     });
     // Dodate numere postaju red čekanja, ali se ne puštaju same.
     await _player.setQueue(tracks);
+
+    // Izvođač i trajanje se čitaju iz fajlova tek posle toga: spisak se vidi
+    // odmah, a podaci ulaze čim stignu.
+    await _fillMetadata(tracks);
+  }
+
+  /// Dopunjava spisak podacima iz samih fajlova.
+  Future<void> _fillMetadata(List<Track> tracks) async {
+    final enriched = await _metadata.enrichAll(tracks);
+    if (!mounted) return;
+
+    final byId = {for (final track in enriched) track.id: track};
+    setState(() {
+      _tracks = [for (final track in _tracks) byId[track.id] ?? track];
+    });
+    // Red čekanja mora da dobije iste podatke, inače bi plejer pokazivao
+    // naziv fajla dok spisak već pokazuje pravi naziv.
+    _player.refreshQueue(byId);
   }
 
   void _openPlayer() {
