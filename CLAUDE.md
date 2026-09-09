@@ -215,6 +215,17 @@ Plejer ne pušta jednu po jednu pesmu — vodi **red čekanja**:
 - prelazak sa pesme na pesmu ide uz **kratko pretapanje naslova** (do 200 ms);
   ostatak ekrana se ne animira, po opštim pravilima za pokret
 
+**Plejer ima dva nivoa** (dogovoreno 9. septembra 2026):
+
+1. **Kontrole uz spisak** — prethodna, −10 s, plej/pauza, +10 s, sledeća.
+   Dovoljno da se upravlja bez izlaska iz spiska.
+2. **Nastupni ekran** — prsten, vreme, ogromno dugme i fade in. Do njega vodi
+   posebno dugme.
+
+Reprodukcija pripada **Muzika tabu**, ne nastupnom ekranu, pa muzika ne
+prestaje kad se sa njega izađe. **Veliko dugme pusti numeru i odmah vrati na
+spisak** — pesma krene, a ruke su slobodne da se pripremi sledeća.
+
 #### Spisak feature-a i redosled rada
 
 Radi se odozgo nadole. Gotovo je ono što je označeno.
@@ -229,11 +240,11 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-006 | Dodavanje pojedinačnih numera sa telefona | gotovo |
 | MUSIC-007 | Sopstveni pregled fajlova (ulazak u foldere, ceo folder / označene) | gotovo |
 | MUSIC-008 | Zbijen spisak (36 dp) + sklanjanje headera pri skrolovanju | gotovo |
-| MUSIC-009 | **Red čekanja** (queue) | sledeće |
-| MUSIC-010 | Dodir ubacuje numeru kao sledeću u redu | |
-| MUSIC-011 | Dodir na aktivnu numeru je ponavlja | |
-| MUSIC-012 | Skip napred / skip nazad | |
-| MUSIC-013 | Fade-out na kraju i pri pauzi | |
+| MUSIC-009 | Red čekanja (queue) | gotovo |
+| MUSIC-010 | Dodir ubacuje numeru kao sledeću u redu | gotovo |
+| MUSIC-011 | Dodir na aktivnu numeru je ponavlja | gotovo |
+| MUSIC-012 | Skip napred / skip nazad | gotovo |
+| MUSIC-013 | Fade-out na kraju i pri pauzi | sledeće |
 | MUSIC-014 | Crossfade između dve numere | |
 | MUSIC-015 | Prevlačenje po prstenu premotava pesmu | |
 | MUSIC-016 | Talasni oblik u prstenu (traži paket) | |

@@ -12,6 +12,10 @@ abstract interface class AudioPlayback {
   Stream<Duration?> get duration;
   Stream<bool> get playing;
 
+  /// Javlja da je numera odsvirala do kraja — po tome red čekanja prelazi
+  /// na sledeću.
+  Stream<void> get completed;
+
   /// Učitava numeru i vraća njeno trajanje, ako se zna.
   /// Baca [AudioLoadException] kad numera ne može da se otvori.
   Future<Duration?> load(String path);
@@ -65,6 +69,10 @@ class JustAudioPlayback implements AudioPlayback {
 
   @override
   Stream<bool> get playing => _player.playingStream;
+
+  @override
+  Stream<void> get completed => _player.processingStateStream
+      .where((state) => state == ProcessingState.completed);
 
   @override
   Future<Duration?> load(String path) async {

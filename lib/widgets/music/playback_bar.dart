@@ -1,0 +1,166 @@
+import 'package:flutter/material.dart';
+
+import '../../services/music_player_controller.dart';
+import '../../theme/app_theme.dart';
+import 'track_tile.dart';
+
+/// Kontrole uz sam spisak numera: naziv trenutne numere, preskakanje po
+/// 10 sekundi, puštanje i pauza, i prelaz na sledeću.
+///
+/// Ovo je **prvi nivo** — dovoljno da se upravlja bez napuštanja spiska.
+/// Drugi nivo je nastupni ekran, sa ogromnim dugmetom i prstenom; do njega
+/// vodi `onOpenPlayer`.
+///
+/// Widget je "glup": prima kontroler i prikazuje njegovo stanje.
+class PlaybackBar extends StatelessWidget {
+  const PlaybackBar({
+    super.key,
+    required this.controller,
+    required this.onOpenPlayer,
+  });
+
+  final MusicPlayerController controller;
+  final VoidCallback onOpenPlayer;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final track = controller.current;
+    if (track == null) return const SizedBox.shrink();
+
+    final ready = controller.isReady;
+    final error = controller.errorMessage;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.sm,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      track.displayTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: error == null
+                            ? AppColors.textPrimary
+                            : AppColors.danger,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    '${TrackTile.formatDuration(controller.position)}'
+                    ' / ${TrackTile.formatDuration(controller.duration)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
+              if (error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.xs),
+                  child: Text(
+                    error,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.danger,
+                    ),
+                  ),
+                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _BarButton(
+                    icon: Icons.skip_previous_rounded,
+                    label: 'Prethodna numera',
+                    onPressed: ready ? controller.previous : null,
+                  ),
+                  _BarButton(
+                    icon: Icons.replay_10_rounded,
+                    label: '10 sekundi unazad',
+                    onPressed: ready
+                        ? () => controller.skip(const Duration(seconds: -10))
+                        : null,
+                  ),
+                  _BarButton(
+                    icon: controller.isPlaying
+                        ? Icons.pause_circle_filled_rounded
+                        : Icons.play_circle_filled_rounded,
+                    label: controller.isPlaying ? 'Pauza' : 'Pusti',
+                    size: 44,
+                    onPressed: ready ? controller.toggle : null,
+                  ),
+                  _BarButton(
+                    icon: Icons.forward_10_rounded,
+                    label: '10 sekundi unapred',
+                    onPressed: ready
+                        ? () => controller.skip(const Duration(seconds: 10))
+                        : null,
+                  ),
+                  _BarButton(
+                    icon: Icons.skip_next_rounded,
+                    label: 'Sledeća numera',
+                    onPressed: ready && controller.hasNext
+                        ? controller.next
+                        : null,
+                  ),
+                  _BarButton(
+                    icon: Icons.open_in_full_rounded,
+                    label: 'Otvori nastupni ekran',
+                    onPressed: onOpenPlayer,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Jedno dugme u traci.
+class _BarButton extends StatelessWidget {
+  const _BarButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.size = 28,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(icon),
+        iconSize: size,
+        tooltip: label,
+        color: AppColors.accent,
+        disabledColor: AppColors.border,
+      ),
+    );
+  }
+}

@@ -1,10 +1,14 @@
 import 'package:event_app/models/track.dart';
 import 'package:event_app/screens/music_screen.dart';
+import 'package:event_app/services/music_player_controller.dart';
 import 'package:event_app/services/music_service.dart';
 import 'package:event_app/theme/app_theme.dart';
+import 'package:event_app/widgets/music/playback_bar.dart';
 import 'package:event_app/widgets/music/track_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'fakes.dart';
 
 Widget _wrap(Widget child) {
   return MaterialApp(
@@ -129,8 +133,17 @@ void main() {
 
   group('Muzika ekran', () {
     testWidgets('učita spisak numera', (WidgetTester tester) async {
+      final controller = MusicPlayerController(
+        playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
+      );
+      addTearDown(controller.dispose);
       await tester.pumpWidget(
-        _wrap(MusicScreen(service: FakeMusicService(_sample))),
+        _wrap(
+          MusicScreen(
+            service: FakeMusicService(_sample),
+            controller: controller,
+          ),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -142,28 +155,46 @@ void main() {
 
     testWidgets('dodir bira numeru, ali ne pokreće reprodukciju',
         (WidgetTester tester) async {
+      final controller = MusicPlayerController(
+        playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
+      );
+      addTearDown(controller.dispose);
       await tester.pumpWidget(
-        _wrap(MusicScreen(service: FakeMusicService(_sample))),
+        _wrap(
+          MusicScreen(
+            service: FakeMusicService(_sample),
+            controller: controller,
+          ),
+        ),
       );
       await tester.pumpAndSettle();
 
-      // Dok ništa nije izabrano, nema ni dugmeta za plejer.
-      expect(find.textContaining('Otvori plejer'), findsNothing);
+      // Dok ništa nije izabrano, nema ni kontrola.
+      expect(find.byType(PlaybackBar), findsNothing);
 
       await tester.tap(find.textContaining('Igre za decu'));
       await tester.pumpAndSettle();
 
-      // Izbor samo otvara put do plejera — muzika ne kreće sama.
-      expect(
-        find.textContaining('Otvori plejer — Igre za decu'),
-        findsOneWidget,
-      );
+      // Numera je postala trenutna i pojavile su se kontrole,
+      // ali zvuk nije krenuo.
+      expect(find.byType(PlaybackBar), findsOneWidget);
+      expect(find.byIcon(Icons.play_circle_filled_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.pause_circle_filled_rounded), findsNothing);
     });
 
-    testWidgets('izbor druge numere menja dugme',
+    testWidgets('dodir na drugu numeru je ubacuje u red, ne menja trenutnu',
         (WidgetTester tester) async {
+      final controller = MusicPlayerController(
+        playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
+      );
+      addTearDown(controller.dispose);
       await tester.pumpWidget(
-        _wrap(MusicScreen(service: FakeMusicService(_sample))),
+        _wrap(
+          MusicScreen(
+            service: FakeMusicService(_sample),
+            controller: controller,
+          ),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -172,8 +203,12 @@ void main() {
       await tester.tap(find.textContaining('Vatreni show'));
       await tester.pumpAndSettle();
 
+      // U traci i dalje stoji prva izabrana numera.
       expect(
-        find.textContaining('Otvori plejer — Vatreni show'),
+        find.descendant(
+          of: find.byType(PlaybackBar),
+          matching: find.textContaining('Igre za decu'),
+        ),
         findsOneWidget,
       );
     });

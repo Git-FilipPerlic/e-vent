@@ -1,0 +1,82 @@
+import 'dart:async';
+
+import 'package:event_app/services/audio_playback.dart';
+
+/// Lažni plejer: pravi zvuk se u testu ne može pustiti, pa se vodi samo
+/// evidencija šta je od plejera traženo.
+class FakePlayback implements AudioPlayback {
+  FakePlayback({this.failsToLoad = false, this.trackDuration});
+
+  final bool failsToLoad;
+  final Duration? trackDuration;
+
+  final _position = StreamController<Duration>.broadcast();
+  final _duration = StreamController<Duration?>.broadcast();
+  final _playing = StreamController<bool>.broadcast();
+  final _completed = StreamController<void>.broadcast();
+
+  final List<String> loadedPaths = [];
+  int playCalls = 0;
+  int pauseCalls = 0;
+  Duration? lastSeek;
+  bool? lastFadeIn;
+  bool disposed = false;
+
+  String? get loadedPath => loadedPaths.isEmpty ? null : loadedPaths.last;
+
+  @override
+  Stream<Duration> get position => _position.stream;
+
+  @override
+  Stream<Duration?> get duration => _duration.stream;
+
+  @override
+  Stream<bool> get playing => _playing.stream;
+
+  @override
+  Stream<void> get completed => _completed.stream;
+
+  @override
+  Future<Duration?> load(String path) async {
+    if (failsToLoad) throw AudioLoadException(path);
+    loadedPaths.add(path);
+    return trackDuration;
+  }
+
+  @override
+  Future<void> play({bool fadeIn = false}) async {
+    playCalls++;
+    lastFadeIn = fadeIn;
+    _playing.add(true);
+  }
+
+  @override
+  Future<void> pause() async {
+    pauseCalls++;
+    _playing.add(false);
+  }
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> seek(Duration position) async {
+    lastSeek = position;
+    _position.add(position);
+  }
+
+  @override
+  Future<void> dispose() async {
+    disposed = true;
+    await _position.close();
+    await _duration.close();
+    await _playing.close();
+    await _completed.close();
+  }
+
+  /// Pomera reprodukciju, kao da je pesma odmakla.
+  void emitPosition(Duration value) => _position.add(value);
+
+  /// Javlja da je numera odsvirala do kraja.
+  void emitCompleted() => _completed.add(null);
+}

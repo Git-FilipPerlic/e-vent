@@ -673,6 +673,35 @@ folder — zato „Use this folder" nije dodavao pesme.
 
 ---
 
+## 9. septembar 2026 — dva nivoa plejera i red čekanja (MUSIC-009..012)
+
+- `lib/services/music_player_controller.dart` — **kontroler koji vodi
+  reprodukciju i red čekanja**. Živi u Muzika tabu; nastupni ekran ga samo
+  pozajmljuje, pa **muzika ne prestaje kad se izađe sa nastupnog ekrana**.
+  Ekran gasi kontroler samo ako ga je sam napravio.
+- **Ponašanje reda (MUSIC-009..011):**
+  - dodir na numeru kad ništa ne svira → postaje trenutna, **bez zvuka**
+  - dodir na drugu numeru → ubacuje se **kao sledeća**, trenutna se ne prekida
+  - dodir na trenutnu numeru → vraća je na početak
+  - kraj numere → sam prelazak na sledeću; kraj reda → pauza i povratak na
+    početak
+- **Skip napred/nazad (MUSIC-012):** unazad prvo vraća na početak numere ako
+  je pesma odmakla preko 3 sekunde, kao na svakom plejeru; tek na samom
+  početku ide na prethodnu.
+- `lib/widgets/music/playback_bar.dart` — **prvi nivo**: kontrole uz sam spisak
+  (prethodna, −10 s, plej/pauza, +10 s, sledeća, i dugme za nastupni ekran).
+  Trake nema dok numera nije izabrana.
+- `lib/screens/player_screen.dart` — **drugi nivo**, nastupni ekran.
+  **Veliko dugme pusti numeru i odmah vrati na spisak**, po dogovoru: pesma
+  krene, a ruke su slobodne da se pripremi sledeća. Pauza ostavlja ekran
+  otvorenim.
+- `AudioPlayback` je dobio `completed` stream — po njemu red prelazi na
+  sledeću numeru.
+- `test/fakes.dart` — lažni plejer izdvojen da ga dele oba test fajla.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 120/120.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.
