@@ -50,9 +50,8 @@ void main() {
 
       expect(find.text('7 Mia'), findsOneWidget);
       expect(find.text('16:00'), findsOneWidget);
-      expect(find.text('Novi Sad'), findsWidgets);
-      // Trajanje stoji uz naziv, kao i na Home tabu.
-      expect(find.text('/ 2h'), findsOneWidget);
+      // Mesto i trajanje dele donji red, da naziv ne bi bio isečen.
+      expect(find.text('Novi Sad · 2h'), findsOneWidget);
     });
 
     testWidgets('događaj bez datuma ima crticu umesto sata', (

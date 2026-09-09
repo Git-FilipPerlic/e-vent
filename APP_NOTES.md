@@ -1141,8 +1141,18 @@ Ispostavilo se da je popravka mala, jer je servis od početka radio po
     `events_screen_test.dart` (8), `events_list_test.dart` (10);
     `widget_test.dart` prepisan na nov tok, `layout_test.dart` proverava i
     spisak na četiri veličine ekrana.
+  - **Provereno na telefonu:** grupisanje je tačno (12. septembar pod „Ova
+    nedelja", 19. septembar i 3. oktobar pod „Kasnije", nedodeljeni događaj
+    pod „Bez datuma"), prekidač „Moji / Delegirani" se pojavljuje tek posle
+    prijave, a otvaranje svadbe povuklo je i Home i Lager na taj događaj
+    (13 delova umesto 5 sa rođendana).
+  - Na telefonu se videlo da se **nazivi seku**, jer je trajanje jelo širinu
+    prvog reda. Trajanje je sišlo u donji red uz mesto (`Novi Sad · 2h`), pa
+    naziv sada dobija ceo red.
 - Otvoreni problemi:
-  - **Vizuelna provera na telefonu nije urađena** — telefon je bio zaključan.
+  - Dva test naziva („Krštenje - porodica Nikolić", „Svadba - Jelena i
+    Nemanja") ne poštuju konvenciju iz `CLAUDE.md` i zato se i dalje seku.
+    To su ostaci iz React Native verzije; pravi nazivi su kratki (`7 Mia`).
   - Mock nalozi su imena (`'Filip'`); sa Firebase Auth-om tu ulaze `uid`-jevi.
 - Sledeće: ADMIN-007 — „Create and share", pravljenje događaja i dodela timu.
   Tek sada ima smisla, kad spisak postoji.

@@ -219,6 +219,13 @@ class _EventRow extends StatelessWidget {
     final address = event.address;
     final city = address == null ? null : EventAddress.cityFrom(address);
 
+    // Mesto i trajanje u jednom redu; ono čega nema se preskače, pa se ne
+    // pojavljuje usamljena tačka ni prazan red.
+    final details = [
+      ?city,
+      if (duration != null) AppDate.shortDuration(duration),
+    ].join(' · ');
+
     return Card(
       margin: const EdgeInsets.fromLTRB(
         AppSpacing.md,
@@ -250,37 +257,22 @@ class _EventRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            event.title ?? 'Događaj bez naziva',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: event.title == null
-                                  ? AppColors.textSecondary
-                                  : AppColors.textPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        if (duration != null) ...[
-                          const SizedBox(width: AppSpacing.xs),
-                          Text(
-                            '/ ${AppDate.shortDuration(duration)}',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ],
+                    // Naziv dobija ceo red za sebe. Trajanje je sišlo u donji
+                    // red jer je gore sekao imena („Svadba - Jel…").
+                    Text(
+                      event.title ?? 'Događaj bez naziva',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: event.title == null
+                            ? AppColors.textSecondary
+                            : AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    if (city != null)
+                    if (details.isNotEmpty)
                       Text(
-                        city,
+                        details,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodyMedium?.copyWith(
