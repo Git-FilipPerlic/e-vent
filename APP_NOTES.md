@@ -729,6 +729,20 @@ bi nastavak ostao tih.
 
 ---
 
+## 9. septembar 2026 — gornja linija prstena spuštena ispod headera
+
+- Umesto borbe sa sistemskim pokretima, **linija je sklonjena sa ivice**:
+  gornji potez prstena je spušten za **72 dp** (visina headera), pa prolazi
+  tačno ispod mesta gde header stoji.
+- Time premotavanje prevlačenjem (MUSIC-015) više ne pada u pojas kojim se
+  otvara sistemska zavesa — problem je rešen pre nego što je nastao.
+- Leva, desna i donja linija ostaju uvučene 18 dp.
+- Puni ekran bez sistemskih traka ostaje kao druga brana; može da se isključi
+  jednom linijom ako se pokaže da je korisniji vidljiv sat tokom nastupa.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 131/131.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.

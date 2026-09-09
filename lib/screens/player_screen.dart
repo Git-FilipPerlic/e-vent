@@ -16,12 +16,10 @@ import '../widgets/music/track_tile.dart';
 /// pesma krene, a ruke su ti već slobodne da pripremiš sledeću. Nazad se
 /// ulazi dugmetom kad treba pogledati prsten ili pauzirati.
 ///
-/// **Ekran radi preko celog ekrana, bez sistemskih traka.** Prsten kreće iz
-/// gornjeg levog ugla i ide duž gornje ivice — a to je tačno pojas u kome
-/// povlačenje nadole otvara sistemsku zavesu sa podešavanjima. Usred nastupa
-/// je dovoljno da prst malo promaši pa da se isključi Wi-Fi ili da aplikacija
-/// nestane sa ekrana. Zato se ovde trake sklanjaju: prvo povlačenje ih samo
-/// nakratko prikaže, umesto da otvori zavesu.
+/// **Gornja linija prstena ne ide uz samu ivicu ekrana**, nego ispod mesta gde
+/// stoji header — inače bi premotavanje prevlačenjem padalo u pojas kojim se
+/// otvara sistemska zavesa. Uz to ekran radi bez sistemskih traka, kao druga
+/// brana: prvo povlačenje ih samo nakratko prikaže.
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({super.key, required this.controller});
 

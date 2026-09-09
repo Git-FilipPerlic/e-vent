@@ -18,10 +18,21 @@ import '../../theme/app_theme.dart';
 /// ponovnog građenja widget stabla; putanja se gradi jednom po veličini
 /// ekrana, a ceo prsten stoji u `RepaintBoundary`.
 ///
+/// **Gornja linija ne ide uz samu ivicu ekrana**, nego ispod mesta gde stoji
+/// header. Uz ivicu bi prevlačenje po prstenu (premotavanje) padalo u pojas
+/// kojim sistem otvara zavesu sa podešavanjima — usred nastupa je dovoljno da
+/// prst malo promaši pa da se isključi Wi-Fi. Jednostavnije je skloniti liniju
+/// nego se boriti sa sistemskim pokretima.
+///
 /// Talasni oblik pesme (amplitude) dolazi u kasnijoj fazi — dok ga nema,
 /// crta se ravna linija, nikad prazan ekran.
 class EdgeProgressRing extends StatelessWidget {
-  const EdgeProgressRing({super.key, required this.progress, this.child});
+  const EdgeProgressRing({
+    super.key,
+    required this.progress,
+    this.child,
+    this.topInset = defaultTopInset,
+  });
 
   /// Dokle je stigla reprodukcija, 0..1.
   final ValueListenable<double> progress;
@@ -29,12 +40,21 @@ class EdgeProgressRing extends StatelessWidget {
   /// Sadržaj koji stoji unutar prstena (vreme, dugme za puštanje).
   final Widget? child;
 
-  /// Koliko je linija uvučena od same ivice ekrana.
+  /// Koliko je linija uvučena sa leve, desne i donje ivice.
   ///
   /// Namerno nije skroz uz rub: tačka koja klizi po putanji mora da ostane
   /// dohvatljiva prstom, a da pritom ne pada u pojas kojim sistem hvata
   /// povlačenje sa ivice.
   static const double inset = 18;
+
+  /// Koliko je gornja linija spuštena od vrha ekrana.
+  ///
+  /// Jednako visini headera (72 dp) — linija prolazi tačno ispod mesta gde
+  /// header stoji, van pojasa kojim se otvara sistemska zavesa.
+  static const double defaultTopInset = 72;
+
+  /// Koliko je gornja linija spuštena na ovom ekranu.
+  final double topInset;
 
   /// Debljina linije.
   static const double strokeWidth = 4;
@@ -43,7 +63,7 @@ class EdgeProgressRing extends StatelessWidget {
   Widget build(BuildContext context) {
     return RepaintBoundary(
       child: CustomPaint(
-        painter: _EdgeRingPainter(progress: progress),
+        painter: _EdgeRingPainter(progress: progress, topInset: topInset),
         child: child,
       ),
     );
@@ -51,23 +71,30 @@ class EdgeProgressRing extends StatelessWidget {
 }
 
 class _EdgeRingPainter extends CustomPainter {
-  _EdgeRingPainter({required this.progress}) : super(repaint: progress);
+  _EdgeRingPainter({required this.progress, required this.topInset})
+    : super(repaint: progress);
 
   final ValueListenable<double> progress;
+  final double topInset;
 
   /// Putanja se gradi jednom po veličini ekrana, ne po kadru.
   ui.Path? _cachedPath;
   Size? _cachedSize;
+  double _cachedTopInset = -1;
   double _cachedLength = 0;
 
   ui.Path _pathFor(Size size) {
-    if (_cachedPath != null && _cachedSize == size) return _cachedPath!;
+    if (_cachedPath != null &&
+        _cachedSize == size &&
+        _cachedTopInset == topInset) {
+      return _cachedPath!;
+    }
 
-    final rect = Rect.fromLTWH(
+    final rect = Rect.fromLTRB(
       EdgeProgressRing.inset,
-      EdgeProgressRing.inset,
-      size.width - EdgeProgressRing.inset * 2,
-      size.height - EdgeProgressRing.inset * 2,
+      topInset,
+      size.width - EdgeProgressRing.inset,
+      size.height - EdgeProgressRing.inset,
     );
 
     // Putanja se gradi ručno, a ne preko `addRRect`, zato što `addRRect`
@@ -98,6 +125,7 @@ class _EdgeRingPainter extends CustomPainter {
 
     _cachedPath = path;
     _cachedSize = size;
+    _cachedTopInset = topInset;
     _cachedLength = path
         .computeMetrics()
         .fold<double>(0, (sum, metric) => sum + metric.length);
@@ -174,6 +202,6 @@ class _EdgeRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EdgeRingPainter oldDelegate) {
-    return oldDelegate.progress != progress;
+    return oldDelegate.progress != progress || oldDelegate.topInset != topInset;
   }
 }
