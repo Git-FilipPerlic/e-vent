@@ -1,5 +1,8 @@
 package com.eventapp.event_app
 
-import io.flutter.embedding.android.FlutterActivity
+import com.ryanheise.audioservice.AudioServiceActivity
 
-class MainActivity : FlutterActivity()
+// Muzika treba da svira i kad aplikacija nije na ekranu, sa kontrolama u
+// notifikaciji. Zato aktivnost mora da bude AudioServiceActivity umesto
+// obične FlutterActivity — inače servis ne može da je pokrene nazad.
+class MainActivity : AudioServiceActivity()

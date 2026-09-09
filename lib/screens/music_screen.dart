@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/track.dart';
 import '../services/audio_playback.dart';
+import '../services/background_audio.dart';
 import '../services/music_player_controller.dart';
 import '../services/music_service.dart';
 import '../services/track_metadata_service.dart';
@@ -27,7 +28,15 @@ import 'player_screen.dart';
 /// numere. Sistemski birač se više ne koristi, jer na Androidu vraća
 /// `content://` adresu foldera koja ne može da se čita.
 class MusicScreen extends StatefulWidget {
-  const MusicScreen({super.key, this.service, this.controller});
+  const MusicScreen({
+    super.key,
+    this.service,
+    this.controller,
+    this.audioHandler,
+  });
+
+  /// Veza sa notifikacijom i kontrolama van aplikacije.
+  final BackgroundAudioHandler? audioHandler;
 
   /// Ubacuje se u testu; u aplikaciji se pravi sam.
   final MusicService? service;
@@ -65,6 +74,9 @@ class _MusicScreenState extends State<MusicScreen> {
   void initState() {
     super.initState();
     _player.addListener(_onPlayerChanged);
+    // Notifikacija prati ovaj isti kontroler — dugmad u njoj rade isto što i
+    // dugmad u aplikaciji.
+    widget.audioHandler?.attach(_player);
     _loadTracks();
   }
 
@@ -73,6 +85,7 @@ class _MusicScreenState extends State<MusicScreen> {
   @override
   void dispose() {
     _player.removeListener(_onPlayerChanged);
+    widget.audioHandler?.detach(_player);
     if (_ownsPlayer) _player.dispose();
     super.dispose();
   }

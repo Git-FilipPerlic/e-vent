@@ -935,8 +935,43 @@ Dodat paket **`audio_metadata_reader`** (^1.8.0).
 
 ---
 
+## 9. septembar 2026 — MUSIC-019: rad u pozadini i kontrole u notifikaciji
+
+**Izabran `audio_service`, a ne `just_audio_background`** — i to je bila prava
+odluka, ne ukus. Dokumentacija jednostavnijeg paketa kaže doslovno:
+
+> It supports the simple use case where an app has a single `AudioPlayer`
+> instance. ... instead use the `audio_service` package directly ... while also
+> allowing you to use multiple audio player instances.
+
+Naš plejer drži **dva** plejera zbog preklapanja numera (MUSIC-014), pa bi
+`just_audio_background` ubio crossfade. Zato je prvo dodat pa odmah uklonjen.
+
+- `lib/services/background_audio.dart` — `BackgroundAudioHandler`. **Ne pušta
+  zvuk sam**: prosleđuje komande postojećem kontroleru i javlja sistemu šta
+  svira i dokle je stiglo. Dugmad u notifikaciji rade isto što i dugmad u
+  aplikaciji, jer gađaju isti kontroler.
+- `lib/main.dart` — servis se podiže **pre `runApp`**, jer ga sistem može
+  pokrenuti i pre nego što se vidi ijedan ekran.
+- `MainActivity` više nije `FlutterActivity` nego **`AudioServiceActivity`** —
+  inače servis ne može da vrati aplikaciju na ekran.
+- `AndroidManifest.xml`: servis `AudioService` sa `mediaPlayback` vrstom,
+  `MediaButtonReceiver` za dugmad na slušalicama, i dozvole
+  `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, `WAKE_LOCK`.
+- **Provereno na telefonu:** aplikacija se podiže bez greške i sistem je
+  registrovao media sesiju (`MediaSessionService` i `MediaPlayerList` u logu
+  pokazuju `com.eventapp.event_app`). **Nije provereno** kako notifikacija
+  izgleda sa puštenom pesmom — telefon se zaključao, pa dodiri preko kabla ne
+  prolaze. To ostaje za ručnu proveru.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 168/168.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
+- **Ručno proveriti notifikaciju.** Pustiti pesmu, izaći iz aplikacije i
+  zaključati telefon: muzika treba da svira dalje, a u notifikaciji da stoje
+  naziv numere i dugmad (prethodna, pusti/pauza, sledeća).
 - **Release APK za deljenje.** Sadašnji build je debug — radi, ali je krupniji
   i sporiji i nije za deljenje. Za pravu verziju treba ključ za potpisivanje
   (pravi se jednom).

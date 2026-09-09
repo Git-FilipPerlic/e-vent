@@ -278,9 +278,9 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-016 | Talasni oblik u prstenu | gotovo (`just_waveform`) |
 | MUSIC-017 | Podaci iz fajla: izvođač, album, trajanje | gotovo (`audio_metadata_reader`) |
 | MUSIC-018 | ~~Pregled foldera sa ulaskom u podfoldere~~ — urađeno uz MUSIC-007 | gotovo |
-| MUSIC-019 | Rad u pozadini + kontrole u notifikaciji | sledeće |
+| MUSIC-019 | Rad u pozadini + kontrole u notifikaciji | gotovo (`audio_service`) |
 | MUSIC-020 | Pretapanje naslova pri prelasku na sledeću numeru | gotovo |
-| MUSIC-021 | Provera podrške za formate (mp3, m4a, aac, wav, flac, ogg, opus, wma) | |
+| MUSIC-021 | Provera podrške za formate (mp3, m4a, aac, wav, flac, ogg, opus, wma) | sledeće |
 | MUSIC-022 | Provera rasporeda na različitim veličinama ekrana | gotovo |
 
 **Napomene uz pojedine stavke:**
@@ -290,9 +290,12 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
   zamene uloge. Sledeća numera se **učitava unapred**, inače prelaz zapne dok
   se fajl otvara. Preklapanje ima prednost nad stišavanjem pred kraj, da ne
   nastane rupa između numera.
-- **MUSIC-019 (rad u pozadini)** je najveća stavka: traži paket
-  (`just_audio_background` ili `audio_service`), dozvolu za foreground servis
-  na Androidu i posebno ponašanje na iOS-u. Radi se kad sve ostalo radi.
+- **MUSIC-019 je urađen preko `audio_service`, a ne `just_audio_background`.**
+  Jednostavniji paket u svojoj dokumentaciji izričito kaže da radi samo sa
+  **jednim** plejerom, a naš ih drži dva zbog preklapanja numera (MUSIC-014).
+  `audio_service` dozvoljava više plejera, pa se preklapanje ne gubi.
+  Sloj `BackgroundAudioHandler` ne pušta zvuk sam — samo prosleđuje komande
+  kontroleru i javlja sistemu šta se dešava.
 - **Pristup fajlovima (odluka od 9. septembra 2026):** aplikacija ima
   **sopstveni pregled fajlova**, ne koristi sistemski birač. Sistemski birač na
   Androidu vraća `content://` adresu foldera koja ne može da se čita, pa je

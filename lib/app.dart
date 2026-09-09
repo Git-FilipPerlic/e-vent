@@ -9,6 +9,7 @@ import 'screens/lager_screen.dart';
 import 'screens/led_screen.dart';
 import 'screens/music_screen.dart';
 import 'services/auth_service.dart';
+import 'services/background_audio.dart';
 import 'services/team_logo_service.dart';
 import 'theme/app_theme.dart';
 import 'widgets/common/app_header.dart';
@@ -16,7 +17,11 @@ import 'widgets/common/top_tab_bar.dart';
 
 /// Koren aplikacije: tema i navigacija sa 4 taba.
 class EventApp extends StatelessWidget {
-  const EventApp({super.key});
+  const EventApp({super.key, this.audioHandler});
+
+  /// Veza sa notifikacijom i kontrolama van aplikacije.
+  /// `null` u testovima, gde servis ne postoji.
+  final BackgroundAudioHandler? audioHandler;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +30,7 @@ class EventApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       // Aplikacija je samo tamna, bez obzira na podešavanje telefona.
       theme: AppTheme.dark,
-      home: const RootNavigation(),
+      home: RootNavigation(audioHandler: audioHandler),
     );
   }
 }
@@ -38,7 +43,9 @@ class EventApp extends StatelessWidget {
 ///
 /// Stanje je običan [setState] — bez Riverpod-a/Provider-a u MVP fazi.
 class RootNavigation extends StatefulWidget {
-  const RootNavigation({super.key});
+  const RootNavigation({super.key, this.audioHandler});
+
+  final BackgroundAudioHandler? audioHandler;
 
   @override
   State<RootNavigation> createState() => _RootNavigationState();
@@ -60,11 +67,11 @@ class _RootNavigationState extends State<RootNavigation> {
 
   // IndexedStack čuva stanje svakog taba pri prebacivanju
   // (npr. plejer u Muzici ostaje kako je bio).
-  static const List<Widget> _tabs = [
-    HomeScreen(),
-    MusicScreen(),
-    LedScreen(),
-    LagerScreen(),
+  late final List<Widget> _tabs = [
+    const HomeScreen(),
+    MusicScreen(audioHandler: widget.audioHandler),
+    const LedScreen(),
+    const LagerScreen(),
   ];
 
   static const List<TopTab> _destinations = [
