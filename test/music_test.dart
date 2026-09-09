@@ -64,13 +64,14 @@ void main() {
       );
       expect(
         const Track(id: 't', path: '/muzika/bez-naziva-04.mp3').displayTitle,
-        'bez-naziva-04.mp3',
+        'bez-naziva-04',
       );
       expect(const Track(id: 't').displayTitle, 'Numera bez naziva');
       // Prazan naziv se tretira kao da ga nema.
       expect(
         const Track(id: 't', title: '   ', path: '/m/a.mp3').displayTitle,
-        'a.mp3',
+        // Bez nastavka: „.mp3" na kraju svakog reda ne kaže ništa.
+        'a',
       );
     });
 
@@ -152,7 +153,7 @@ void main() {
       expect(find.textContaining('Uvodna špica'), findsOneWidget);
       expect(find.textContaining('Igre za decu'), findsOneWidget);
       // Numera bez naziva pada na naziv fajla.
-      expect(find.textContaining('bez-naziva-04.mp3'), findsOneWidget);
+      expect(find.textContaining('bez-naziva-04'), findsOneWidget);
     });
 
     testWidgets('dodir bira numeru, ali ne pokreće reprodukciju',
@@ -254,6 +255,21 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(EdgeProgressRing), findsOneWidget);
+    });
+  });
+  group('naziv fajla', () {
+    test('nastavak se skida', () {
+      expect(Track.withoutExtension('Beat It.mp3'), 'Beat It');
+      expect(Track.withoutExtension('spot.mix.final.wav'), 'spot.mix.final');
+    });
+
+    test('ime bez nastavka ostaje kakvo jeste', () {
+      expect(Track.withoutExtension('Uvod'), 'Uvod');
+    });
+
+    test('skriven fajl se ne kljaštri', () {
+      // Tačka na početku znači skriven fajl, ne nastavak.
+      expect(Track.withoutExtension('.tajna'), '.tajna');
     });
   });
 }

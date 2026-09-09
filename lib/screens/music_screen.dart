@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/track.dart';
@@ -5,6 +7,7 @@ import '../services/audio_playback.dart';
 import '../services/background_audio.dart';
 import '../services/music_player_controller.dart';
 import '../services/music_service.dart';
+import '../services/track_library_service.dart';
 import '../services/track_metadata_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
@@ -49,6 +52,9 @@ class MusicScreen extends StatefulWidget {
 class _MusicScreenState extends State<MusicScreen> {
   /// Jedino mesto gde se bira izvor numera.
   late final MusicService _service = widget.service ?? MockMusicService();
+
+  /// Pamti dodate numere između pokretanja aplikacije.
+  final TrackLibraryService _library = const TrackLibraryService();
 
   /// Čita izvođača i trajanje iz samih fajlova.
   final TrackMetadataService _metadata = TrackMetadataService();
@@ -103,6 +109,10 @@ class _MusicScreenState extends State<MusicScreen> {
         _tracks = [...tracks, ..._pickedTracks];
         _isLoading = false;
       });
+
+      // Zapamćene numere se dodaju **posle** toga i ne drže ekran: spisak se
+      // vidi odmah, a ono što je zapamćeno ulazi čim se pročita.
+      unawaited(_restoreRemembered());
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -113,6 +123,25 @@ class _MusicScreenState extends State<MusicScreen> {
   }
 
   /// Otvara pregled fajlova i dodaje ono što se odande vrati.
+  /// Dodaje numere zapamćene iz prethodnog pokretanja.
+  ///
+  /// Bez ovoga bi izvođač pred svaki nastup ponovo tražio isti folder —
+  /// spisak je ranije živeo samo dok je aplikacija otvorena.
+  Future<void> _restoreRemembered() async {
+    if (_pickedTracks.isNotEmpty) return;
+
+    final remembered = await _library.load();
+    if (!mounted || remembered.isEmpty) return;
+
+    setState(() {
+      _pickedTracks.addAll(remembered);
+      _tracks = [..._tracks, ...remembered];
+    });
+
+    await _player.setQueue(_tracks);
+    await _fillMetadata(remembered);
+  }
+
   Future<void> _browse() async {
     final tracks = await Navigator.of(context).push<List<Track>>(
       MaterialPageRoute(builder: (_) => const FileBrowserScreen()),
@@ -126,6 +155,8 @@ class _MusicScreenState extends State<MusicScreen> {
       _pickedTracks.addAll(tracks);
       _tracks = [..._tracks, ...tracks];
     });
+    // Spisak se pamti odmah, da preživi zatvaranje aplikacije.
+    unawaited(_library.save(_pickedTracks));
     // Dodate numere postaju red čekanja, ali se ne puštaju same.
     await _player.setQueue(tracks);
 

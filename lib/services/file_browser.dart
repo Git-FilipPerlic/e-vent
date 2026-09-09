@@ -161,7 +161,7 @@ abstract final class FileBrowser {
   static Track trackFor(BrowserEntry entry) {
     return Track(
       id: 'fajl-${entry.path.hashCode}',
-      title: entry.name,
+      title: Track.withoutExtension(entry.name),
       source: TrackSource.folder,
       path: entry.path,
     );

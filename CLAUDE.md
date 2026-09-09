@@ -175,10 +175,25 @@ dugmetom.
 2. **Izvor numere se uvek vidi** (folder ili plejlista). U žurbi se lako pomeša
    pesma iz telefona sa pesmom pripremljenom za nastup. U zbijenom spisku izvor
    se prikazuje ikonicom, jer za tekst nema mesta.
-3. **Svaki podatak može da nedostaje.** Numera bez naziva pada na naziv fajla,
+3. **Spisak numera se pamti između pokretanja** (MUSIC-026). Ranije je živeo
+   samo dok je aplikacija otvorena, pa bi izvođač pred svaki nastup ponovo
+   tražio isti folder. Pamte se **samo putanje do fajlova**: izvođač i
+   trajanje se iznova čitaju iz fajla, pa bi njihovo pamćenje značilo da
+   zastare čim se fajl zameni. **Fajl kojeg više nema se preskače** — na
+   nastupu numera koja ne može da se pusti samo smeta.
+
+   Čitanje ne drži ekran: spisak se prikaže odmah, a zapamćene numere ulaze
+   čim se pročitaju. Ako pamćenje pukne, Muzika tab se otvara prazan umesto
+   da javi grešku — to je udobnost, ne uslov za rad.
+
+4. **Naziv numere se prikazuje bez nastavka fajla.** „.mp3" na kraju svakog
+   reda ne kaže ništa, a jede širinu na uskom ekranu. Ime koje počinje tačkom
+   je skriven fajl, ne nastavak, pa se ne dira.
+
+5. **Svaki podatak može da nedostaje.** Numera bez naziva pada na naziv fajla,
    numera bez poznatog trajanja prikazuje `--:--`, numera koja ne može da se
    otvori javlja grešku umesto da obori plejer.
-4. **Jačina zvuka ima tri stepenika, ne klizač** (odluka od 9. septembra
+6. **Jačina zvuka ima tri stepenika, ne klizač** (odluka od 9. septembra
    2026). Prikazuje se **jednim slovom** u traci uz spisak, koje se dodirom
    vrti u krug:
 
@@ -195,11 +210,11 @@ dugmetom.
    pažnju. Zadata jačina važi i za sva pretapanja: preklapanje ide do nje, ne
    do pune jačine, inače bi stišana muzika skakala nazad na 100%.
 
-5. **Red u spisku je 36 dp** — svesno ispod minimalne dodirne mete od 48 dp,
+7. **Red u spisku je 36 dp** — svesno ispod minimalne dodirne mete od 48 dp,
    zbog gustine spiska na nastupu. Red je preko cele širine ekrana, pa je meta
    i dalje široka.
 
-6. **Traka uz spisak ima dva reda.** Gore je premotavanje i pauza — ono što
+8. **Traka uz spisak ima dva reda.** Gore je premotavanje i pauza — ono što
    se dira u hodu. Dole su tri odluke druge vrste: **folder**, ulaz u
    **nastupni ekran** i **jačina**. Donji red je visok **36 dp**, isti svesni
    izuzetak od 48 dp: ta tri dugmeta se ne traže u žurbi, a spisak numera time
@@ -408,6 +423,7 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-023 | Dodir stavlja numeru na mesto „sledeća"; dodir na aktivnu dodaje kopiju | gotovo |
 | MUSIC-024 | Jačina zvuka u tri stepenika (L / E / F) | gotovo |
 | MUSIC-025 | Veliko dugme kao kvadrat preko četiri petine ekrana | gotovo |
+| MUSIC-026 | Spisak numera se pamti između pokretanja | gotovo |
 
 **Napomene uz pojedine stavke:**
 

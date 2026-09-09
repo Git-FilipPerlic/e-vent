@@ -54,9 +54,19 @@ class Track {
     if (name != null && name.isNotEmpty) return name;
 
     final file = path?.split(RegExp(r'[/\\]')).last.trim();
-    if (file != null && file.isNotEmpty) return file;
+    if (file != null && file.isNotEmpty) return withoutExtension(file);
 
     return 'Numera bez naziva';
+  }
+
+  /// Naziv fajla bez nastavka.
+  ///
+  /// „.mp3" na kraju svakog reda ne kaže ništa, a jede širinu na uskom
+  /// ekranu. Tačka na samom početku znači skriven fajl, ne nastavak, pa se
+  /// takvo ime ne dira.
+  static String withoutExtension(String fileName) {
+    final dot = fileName.lastIndexOf('.');
+    return dot > 0 ? fileName.substring(0, dot) : fileName;
   }
 
   bool get hasArtist => artist != null && artist!.trim().isNotEmpty;

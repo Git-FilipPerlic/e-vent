@@ -1372,6 +1372,29 @@ Tri primedbe sa nastupa, sve tri sa razlogom koji vredi zapisati:
 - **Ostaje vizuelna provera na telefonu** — korisnik ga je u međuvremenu
   uzeo u ruke.
 
+## 9. septembar 2026 — MUSIC-026: spisak numera se pamti
+
+Korisnik je sam pitao da li se red pesama resetuje svaki put; jeste, i to ne
+zbog novog build-a nego zato što spisak nije nigde čuvan.
+
+- Nov `lib/services/track_library_service.dart` — pamti **samo putanje**
+  (`shared_preferences`, isto kao logotip tima). Izvođač i trajanje se
+  iznova čitaju iz fajlova, pa bi njihovo pamćenje značilo da zastare.
+  **Fajl kojeg više nema se preskače.**
+- Čitanje **ne drži ekran**: spisak se prikaže odmah, zapamćene numere ulaze
+  čim se pročitaju. Prvi pokušaj je blokirao učitavanje i oborio
+  `layout_test` sa „pumpAndSettle timed out", jer `SharedPreferences` u
+  testu nikad ne odgovori, pa je vrteći indikator ostajao zauvek.
+- Pamćenje je udobnost, ne uslov: greška pri čitanju ili upisu se guta, tab
+  se tada otvara prazan.
+- Uz to: **naziv numere više ne nosi `.mp3`.** `Track.withoutExtension` skida
+  nastavak i u pregledu fajlova i u zapamćenom spisku; ime koje počinje
+  tačkom (skriven fajl) se ne dira.
+- Provereno na telefonu: dodat folder, aplikacija **ubijena**
+  (`am force-stop`), pa ponovo otvorena — svih 14 numera je bilo tu, sa
+  trajanjima i bez nastavaka u nazivu.
+- `flutter analyze` čist, `flutter test` 299/299.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Uhvatiti pad Bluetooth veze sa mikseta.** Zvuk ide preko Bluetooth-a do
@@ -1381,10 +1404,6 @@ Tri primedbe sa nastupa, sve tri sa razlogom koji vredi zapisati:
   reprodukciju uz jasnu poruku**. Traži čitanje audio izlaza sa Androida
   (platform channel ili paket), pa je zaseban feature.
 
-- **Spisak numera se ne pamti.** Živi samo u memoriji `MusicScreen`-a, pa se
-  gubi svaki put kad se aplikacija zatvori — ne samo pri novom build-u.
-  Izvođač bi pred svaki nastup ponovo dodavao isti folder. Treba sačuvati
-  putanje (`shared_preferences`, kao logotip) i učitati ih pri pokretanju.
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`
   i `android/key.properties` nisu u gitu. Ako se izgube, **nova verzija
