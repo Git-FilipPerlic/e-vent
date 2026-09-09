@@ -124,6 +124,19 @@ korisnik može da doda svoju stavku, traka napretka i limit od 90 stavki.
 *Raspakivanje* posle. Odvojeni su namerno — kad se posle događaja proverava
 šta se vratilo, ne sme da se poništi ono što je pre bilo spakovano.
 
+**Sekcije i stavke nisu ugrađene u aplikaciju** (odluka od 8. septembra 2026).
+Šest sekcija koje sada stoje su samo početni šablon. Različite firme imaju
+različit lager, pa i **sekcije i stavke unutar njih određuje admin iz login
+konzole**, po timu odnosno firmi. Aplikacija ih samo prikazuje.
+
+Iz toga sledi:
+
+- broj sekcija nije fiksan — ekran mora da radi i sa tri i sa petnaest sekcija
+- šablon se čita iz baze (`checklistTemplates`), ne iz koda
+- limit od **90 stavki** po događaju ostaje bez obzira na broj sekcija
+- stavke koje sada stoje u `mock_event_service.dart` su privremene i služe
+  samo dok se ne poveže baza
+
 ### Muzika tab
 
 Lista muzičkih fajlova sa izvorom (Folder / Playlista). Izbor fajla **ne**

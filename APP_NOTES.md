@@ -491,6 +491,28 @@ Ispravke posle prve provere na telefonu (snimci ekrana sa uređaja).
 
 ---
 
+## 9. septembar 2026 — Muzika tab, prvi korak: spisak numera
+
+- `lib/models/track.dart` — numera sa izvorom (Folder / Playlista). Naziv pada
+  redom: naziv iz podataka → naziv fajla → "Numera bez naziva". Nepoznat izvor
+  iz baze se tretira kao folder, nikad se ne puca.
+- `lib/services/music_service.dart` — interfejs + `MockMusicService` sa pet
+  test numera (sa izvođačem i bez, iz oba izvora, jedna bez naziva, jedna bez
+  poznatog trajanja).
+- `lib/widgets/music/track_tile.dart` — jedan red spiska: naziv, izvođač,
+  **izvor** i trajanje. Izvor uvek stoji uz numeru, jer se u žurbi lako pomeša
+  pesma iz telefona sa pesmom iz plejliste za nastup.
+- `lib/screens/music_screen.dart` — spisak, izbor numere i dugme "Otvori
+  plejer" pri dnu. **Dodir na numeru ne pokreće reprodukciju** — samo je bira;
+  tako usred programa ne krene pogrešna pesma zato što je prst okrznuo ekran.
+- `test/music_test.dart` — 11 testova.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 103/103 prolaze.
+- **Sledeće: plejer.** Za pravo puštanje zvuka treba paket (`just_audio` ili
+  `audioplayers`) — čeka odluku korisnika. Do tada dugme "Otvori plejer" samo
+  javi koja bi se numera otvorila.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Logotip tima nestaje posle reinstalacije aplikacije.** `image_picker`
@@ -498,8 +520,9 @@ Ispravke posle prve provere na telefonu (snimci ekrana sa uređaja).
   briše pri reinstalaciji, pa zapamćena putanja više ne postoji. Header to
   podnosi (vrati se na ime aplikacije), ali sliku treba prekopirati u trajni
   folder aplikacije — traži paket `path_provider`, pa čeka odluku korisnika.
-- **Prave stavke za Lager checklist.** Sekcije su tačne, stavke unutar njih su
-  i dalje privremene (13 komada). Pravi spisak daje korisnik.
+- **Lager šablon se unosi iz admin konzole.** Ne samo stavke nego i **sekcije**:
+  različite firme imaju različit lager, pa broj sekcija nije fiksan. Sadašnjih
+  šest sekcija i 13 stavki su privremeni šablon dok se ne poveže baza.
 - **Saobraćaj na ruti do događaja (predlog korisnika).** Povezati lokaciju
   korisnika i lokaciju događaja, pa na toj ruti izdvojiti zatvorene
   saobraćajnice, udese i veća kašnjenja. Traži izvor podataka o saobraćaju
