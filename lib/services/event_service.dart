@@ -11,6 +11,19 @@ abstract interface class EventService {
   /// Učitava jedan događaj. Baca [EventNotFoundException] ako ga nema.
   Future<Event> loadEvent(String eventId);
 
+  /// Spisak događaja, od najbližeg ka daljem.
+  ///
+  /// Filtriranje ide **ovde, a ne na ekranu**: kad umesto mock servisa dođe
+  /// Firestore, spisak mora da ograniči baza. Ekran koji sam prosejava tuđe
+  /// događaje znači da su mu tuđi podaci ipak stigli.
+  ///
+  /// * [assignedTo] — događaji koje taj korisnik ima kao svoj zadatak
+  /// * [createdBy] — događaji koje je taj korisnik napravio i podelio timu
+  ///
+  /// Bez oba se vraća sve. To je stanje **bez prijave**, kad se ne zna ni ko
+  /// gleda; sa pravim backendom spisak i tada ograničava baza.
+  Future<List<Event>> loadEvents({String? assignedTo, String? createdBy});
+
   /// Spisak vozila koja ekipa može da izabere.
   Future<List<Vehicle>> loadVehicles();
 

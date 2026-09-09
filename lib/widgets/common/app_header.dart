@@ -21,7 +21,11 @@ class AppHeader extends StatelessWidget {
     this.signedInAs,
     this.onSignIn,
     this.onSignOut,
+    this.onBack,
   });
+
+  /// Vraća na spisak događaja. `null` kad je spisak već otvoren.
+  final VoidCallback? onBack;
 
   /// Ime prijavljenog korisnika, ako je neko prijavljen.
   final String? signedInAs;
@@ -68,6 +72,34 @@ class AppHeader extends StatelessWidget {
             )
           else
             _Wordmark(theme: theme),
+
+          if (onBack != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: DecoratedBox(
+                // Isto zatamnjenje kao desno: strelica mora da se vidi i
+                // preko svetlog banera.
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerRight,
+                    end: Alignment.centerLeft,
+                    colors: [
+                      Colors.transparent,
+                      AppColors.background,
+                      AppColors.background,
+                    ],
+                    stops: [0, 0.35, 1],
+                  ),
+                ),
+                child: IconButton(
+                  onPressed: onBack,
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  iconSize: 22,
+                  color: AppColors.accent,
+                  tooltip: 'Nazad na spisak događaja',
+                ),
+              ),
+            ),
 
           Align(
             alignment: Alignment.centerRight,

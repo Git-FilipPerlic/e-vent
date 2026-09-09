@@ -44,6 +44,8 @@ class Event {
     this.vehicleId,
     this.categoryIds = const [],
     this.participants = const [],
+    this.createdBy,
+    this.assignedTo = const [],
   });
 
   final String id;
@@ -91,6 +93,32 @@ class Event {
 
   final List<Participant> participants;
 
+  /// Ko je događaj napravio i podelio timu.
+  ///
+  /// Po ovome manager vidi spisak onoga što je **delegirao**.
+  final String? createdBy;
+
+  /// Kome je događaj dodeljen — spisak članova ekipe koji ga vide kao svoj.
+  ///
+  /// Za sada su to **imena** (`'Filip'`), jer lokalna prijava drugo i nema;
+  /// sa Firebase Auth-om ovde ulaze `uid`-jevi, a ekrani se ne diraju.
+  final List<String> assignedTo;
+
+  /// Da li je događaj dodeljen datom korisniku. Veličina slova se ne gleda —
+  /// ime se kuca ručno i lako se omakne.
+  bool isAssignedTo(String user) {
+    final needle = user.trim().toLowerCase();
+    if (needle.isEmpty) return false;
+    return assignedTo.any((name) => name.trim().toLowerCase() == needle);
+  }
+
+  /// Da li je događaj napravio dati korisnik.
+  bool isCreatedBy(String user) {
+    final owner = createdBy?.trim().toLowerCase();
+    if (owner == null || owner.isEmpty) return false;
+    return owner == user.trim().toLowerCase();
+  }
+
   /// Isti događaj, sa izmenjenim poljima. Model je nepromenljiv, pa svaka
   /// izmena pravi kopiju.
   ///
@@ -111,6 +139,8 @@ class Event {
     String? vehicleId,
     List<String>? categoryIds,
     List<Participant>? participants,
+    String? createdBy,
+    List<String>? assignedTo,
   }) {
     return Event(
       id: id,
@@ -129,6 +159,8 @@ class Event {
       vehicleId: vehicleId ?? this.vehicleId,
       categoryIds: categoryIds ?? this.categoryIds,
       participants: participants ?? this.participants,
+      createdBy: _edited(createdBy, this.createdBy),
+      assignedTo: assignedTo ?? this.assignedTo,
     );
   }
 
@@ -157,6 +189,8 @@ class Event {
       vehicleId: newVehicleId,
       categoryIds: categoryIds,
       participants: participants,
+      createdBy: createdBy,
+      assignedTo: assignedTo,
     );
   }
 
@@ -217,6 +251,8 @@ class Event {
       vehicleId: _emptyToNull(map['vehicleId'] as String?),
       categoryIds: ((map['categoryIds'] as List?) ?? const []).cast<String>(),
       participants: participants,
+      createdBy: _emptyToNull(map['createdBy'] as String?),
+      assignedTo: ((map['assignedTo'] as List?) ?? const []).cast<String>(),
     );
   }
 

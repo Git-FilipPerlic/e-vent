@@ -42,8 +42,50 @@ class MockEventService implements EventService {
   Future<Event> loadEvent(String eventId) async {
     await Future<void>.delayed(_delay);
 
-    final map = _events[eventId];
-    if (map == null) throw EventNotFoundException(eventId);
+    if (!_events.containsKey(eventId)) throw EventNotFoundException(eventId);
+
+    return _resolve(eventId);
+  }
+
+  @override
+  Future<List<Event>> loadEvents({
+    String? assignedTo,
+    String? createdBy,
+  }) async {
+    await Future<void>.delayed(_delay);
+
+    final events = [for (final id in _events.keys) _resolve(id)];
+
+    final matching = [
+      for (final event in events)
+        if (_matches(event, assignedTo: assignedTo, createdBy: createdBy))
+          event,
+    ];
+
+    // Najbliži prvi; događaj bez datuma ide na kraj — ne zna se kada je,
+    // pa ne sme da zauzme vrh spiska.
+    matching.sort((a, b) {
+      final left = a.eventDate;
+      final right = b.eventDate;
+      if (left == null && right == null) return 0;
+      if (left == null) return 1;
+      if (right == null) return -1;
+      return left.compareTo(right);
+    });
+
+    return matching;
+  }
+
+  bool _matches(Event event, {String? assignedTo, String? createdBy}) {
+    if (assignedTo != null && event.isAssignedTo(assignedTo)) return true;
+    if (createdBy != null && event.isCreatedBy(createdBy)) return true;
+    // Bez filtera se vraća sve.
+    return assignedTo == null && createdBy == null;
+  }
+
+  /// Događaj sa uračunatim izmenama i izabranim vozilom.
+  Event _resolve(String eventId) {
+    final map = _events[eventId]!;
 
     final edited = _edited[eventId];
     if (edited != null) return edited;
@@ -132,6 +174,8 @@ const Map<String, Map<String, dynamic>> _events = {
       {'name': 'Ana', 'role': 'vozač'},
       {'name': 'Marko', 'role': 'pomoćni'},
     ],
+    'createdBy': 'Filip',
+    'assignedTo': ['Filip', 'Ana', 'Marko'],
   },
   // Samo jedan učesnik — proverava status tima kad fali vozač.
   'evt-002': {
@@ -152,6 +196,8 @@ const Map<String, Map<String, dynamic>> _events = {
     'participants': [
       {'name': 'Filip', 'role': 'glavni'},
     ],
+    'createdBy': 'Filip',
+    'assignedTo': ['Filip'],
   },
   // Bez telefona i bez vozila. Učesnici namerno nemaju upisane uloge —
   // dodeljuju se po redosledu (Filip glavni, Ana vozač).
@@ -180,9 +226,12 @@ const Map<String, Map<String, dynamic>> _events = {
       {'name': 'Filip'},
       {'name': 'Ana'},
     ],
+    'createdBy': 'Filip',
+    'assignedTo': ['Filip', 'Ana'],
   },
   // Sva polja prazna — jedini siguran način da se provere prazna stanja.
-  'evt-004': {'id': 'evt-004'},
+  // Napravljen ali još nikome dodeljen — takav se vidi samo u „Delegirani".
+  'evt-004': {'id': 'evt-004', 'createdBy': 'Filip'},
 };
 
 /// Šablon checkliste opreme.

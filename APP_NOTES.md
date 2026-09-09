@@ -1108,6 +1108,45 @@ pripadaju.** Ono što se ne nosi se na pakovanju ne prikazuje.
   - Vizuelna provera na telefonu.
 - Sledeće: ADMIN-007 — „Create and share", dodela događaja timu.
 
+## 9. septembar 2026 — EVENTS-001..005: više događaja
+
+Korisnik je uočio propust: cela aplikacija je radila sa **jednim** događajem,
+a i onaj ko delegira i onaj kome je delegirano imaju više događaja, često i
+više u istom danu.
+
+Ispostavilo se da je popravka mala, jer je servis od početka radio po
+`eventId`: jedini pravi hardkod bio je `_eventId = 'evt-001'` na dva mesta.
+
+- Urađeno:
+  - `Event` je dobio `createdBy` (ko ga je napravio) i `assignedTo` (kome je
+    dodeljen), uz `isAssignedTo` / `isCreatedBy` koji ne gledaju veličinu
+    slova. `copyWith` i `withVehicle` ih prenose dalje.
+  - `EventService.loadEvents({assignedTo, createdBy})` — **filtriranje je u
+    servisu, ne na ekranu**: kad dođe Firestore, spisak mora da ograniči baza.
+    Bez filtera se vraća sve, što je stanje bez prijave.
+  - `lib/utils/event_grouping.dart` — deli događaje u *Danas / Sutra / Ova
+    nedelja / Kasnije / Bez datuma / Prošli*. Grupiše se **po danu, ne po
+    satu**, da se spisak ne premešta u toku dana; prošli se čitaju unazad.
+  - Nov `lib/screens/events_screen.dart` — spisak sa satom, nazivom i mestom,
+    prekidačem „Moji / Delegirani" (samo za onoga ko delegira), praznim
+    stanjima i porukom o grešci sa „Pokušaj ponovo".
+  - `app.dart`: spisak je **nulti sloj `IndexedStack`-a**, tabovi su slojevi
+    1–4. Tako Muzika nastavlja da svira i dok se bira drugi događaj. Tabovi se
+    prikazuju tek kad je događaj otvoren; u headeru je strelica nazad.
+  - `HomeScreen` je dobio `eventId`; Home i Lager nose `ValueKey` po događaju,
+    pa se pri prelasku na drugi grade iz početka umesto da pokažu tuđe podatke.
+- Provereno:
+  - `flutter analyze` — bez primedbi.
+  - `flutter test` — 249/249. Novo: `event_grouping_test.dart` (7),
+    `events_screen_test.dart` (8), `events_list_test.dart` (10);
+    `widget_test.dart` prepisan na nov tok, `layout_test.dart` proverava i
+    spisak na četiri veličine ekrana.
+- Otvoreni problemi:
+  - **Vizuelna provera na telefonu nije urađena** — telefon je bio zaključan.
+  - Mock nalozi su imena (`'Filip'`); sa Firebase Auth-om tu ulaze `uid`-jevi.
+- Sledeće: ADMIN-007 — „Create and share", pravljenje događaja i dodela timu.
+  Tek sada ima smisla, kad spisak postoji.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

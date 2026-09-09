@@ -36,7 +36,10 @@ import 'category_items_screen.dart';
 /// naziv sa datumom, satom i trajanjem (HOME-001/005) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → polazak (HOME-007) → vozilo → učesnici (HOME-012) → status tima (HOME-013) → spremnost (HOME-011) →
 /// status događaja (HOME-018) → podsetnik (HOME-019) → scenario (HOME-025).
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.auth});
+  const HomeScreen({super.key, this.eventId = 'evt-001', this.auth});
+
+  /// Koji se događaj prikazuje. Bira se na spisku događaja.
+  final String eventId;
 
   /// Ko je prijavljen. Bez prijave su kartice samo za čitanje.
   final AuthService? auth;
@@ -52,10 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Prognoza dolazi sa Open-Meteo servisa — besplatan, bez API ključa.
   final WeatherService _weather = OpenMeteoWeatherService();
-
-  /// Za sada se uvek učitava isti test događaj, kao u ranijoj verziji
-  /// aplikacije. Kasnije će ga birati prijavljeni korisnik.
-  static const String _eventId = 'evt-001';
 
   Event? _event;
   List<Vehicle> _vehicles = const [];
@@ -144,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // Događaj i spisak vozila stižu uporedo — nema razloga da se čeka
       // jedno pa drugo.
       final results = await Future.wait([
-        _service.loadEvent(_eventId),
+        _service.loadEvent(widget.eventId),
         _service.loadVehicles(),
         _service.loadChecklistTemplate(),
       ]);
@@ -283,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _event = event.withVehicle(vehicleId));
 
     try {
-      await _service.setEventVehicle(_eventId, vehicleId);
+      await _service.setEventVehicle(widget.eventId, vehicleId);
     } catch (_) {
       if (!mounted) return;
       // Upis nije prošao — vraća se staro stanje, da ekran ne laže.

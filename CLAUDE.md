@@ -373,6 +373,55 @@ Ono što iz te analize već sada važi kao pravilo za naš LED tab:
 3. da li su u planu i 2D paneli (matrix), ili samo trake — to određuje da li
    kontrolni ekran od početka treba prekidač tipa uređaja
 
+### Više događaja (dogovoreno 9. septembra 2026)
+
+Do sada je aplikacija radila sa **jednim** događajem. To je bio propust: čim
+postoji delegiranje, i onaj ko dodeljuje i onaj kome je dodeljeno imaju
+**više događaja pred sobom** — često i više u istom danu.
+
+**Spisak događaja je prvi ekran aplikacije.** Kad se izabere događaj,
+otvaraju se četiri taba za **taj** događaj; strelica nazad vraća na spisak.
+Odluka je korisnikova, uz dva razloga:
+
+- na poslu se aplikacija otvara sa već poznatim pitanjem „koji mi je sledeći" —
+  spisak je odgovor na to pitanje, ne prepreka pred njim
+- manager time dobija pregled delegiranog **bez posebnog ekrana** — to je isti
+  spisak, samo drugi filter
+
+**Kako je spisak organizovan:**
+
+- grupisan po vremenu: *Danas*, *Sutra*, *Ova nedelja*, *Kasnije*, pa
+  *Prošli* na dnu
+- unutar dana poređan **po satu početka**, i sat stoji u redu — više nastupa
+  istog dana je uobičajeno, pa se redosled mora videti na prvi pogled
+- red nosi: sat, naziv (`7 Mia / 2h`), mesto. Datum se ne ponavlja u redu jer
+  ga nosi grupa
+- **prekidač „Moji / Delegirani"** vidi samo onaj ko ima dozvolu za
+  delegiranje; ostalima stoji samo njihov spisak, bez prekidača
+
+**Šta iz toga sledi za podatke:**
+
+- `Event` nosi **ko ga je napravio** (`createdBy`) i **kome je dodeljen**
+  (`assignedTo`, spisak imena/ID-jeva) — bez toga nema ni „moji" ni
+  „delegirani"
+- servis dobija `loadEvents()`; koji se vraćaju zavisi od toga ko je prijavljen
+- **koji je događaj otvoren pamti se na jednom mestu** koje Home i Lager oba
+  gledaju, kao što oba gledaju u `AuthService`. Nikad dva izvora istine o tome
+- **Muzika i LED se ne vezuju za događaj** — plejlista i rasveta su izvođačeva
+  oprema, ne podatak o proslavi
+
+#### Spisak feature-a za više događaja
+
+Radi se pre ADMIN-007: dodela događaja timu nema smisla dok ne postoji spisak.
+
+| ID | Šta | Status |
+|---|---|---|
+| EVENTS-001 | `createdBy` i `assignedTo` na `Event`, `loadEvents()` u servisu | gotovo |
+| EVENTS-002 | Ekran spiska, grupisan po vremenu i poređan po satu | gotovo |
+| EVENTS-003 | Izbor događaja otvara tabove za taj događaj, nazad vraća na spisak | gotovo |
+| EVENTS-004 | Prekidač „Moji / Delegirani" za onoga ko delegira | gotovo |
+| EVENTS-005 | Prazna stanja i greška pri učitavanju spiska | gotovo |
+
 ### Admin konzola i login (dogovoreno 8. septembra 2026)
 
 Aplikacija ima **dva lica istog Home ekrana**:

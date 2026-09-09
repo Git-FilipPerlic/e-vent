@@ -1,5 +1,6 @@
 import 'package:event_app/models/checklist.dart';
 import 'package:event_app/models/track.dart';
+import 'package:event_app/screens/events_screen.dart';
 import 'package:event_app/screens/lager_screen.dart';
 import 'package:event_app/screens/music_screen.dart';
 import 'package:event_app/screens/player_screen.dart';
@@ -127,6 +128,16 @@ void main() {
         await _atSize(tester, size, scale, () async {
           await tester.pumpWidget(
             _wrap(_scaled(scale, PlayerScreen(controller: controller))),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+        });
+      });
+
+      testWidgets('spisak događaja staje $label', (WidgetTester tester) async {
+        await _atSize(tester, size, scale, () async {
+          await tester.pumpWidget(
+            _wrap(_scaled(scale, EventsScreen(onOpen: (_) {}))),
           );
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);

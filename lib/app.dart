@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'screens/events_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/lager_screen.dart';
@@ -64,17 +65,17 @@ class _RootNavigationState extends State<RootNavigation> {
   int _currentIndex = 0;
   String? _logoPath;
 
+  /// Koji je događaj otvoren. `null` znači da još nijedan nije biran.
+  ///
+  /// Pamti se i pošto se izađe na spisak, da bi tabovi zadržali stanje —
+  /// samo [_inEvent] kaže da li se gleda spisak ili sam događaj.
+  String? _eventId;
+
+  /// Da li su otvoreni tabovi jednog događaja (`false` = spisak događaja).
+  bool _inEvent = false;
+
   /// Da li se header i tabovi trenutno vide.
   bool _chromeVisible = true;
-
-  // IndexedStack čuva stanje svakog taba pri prebacivanju
-  // (npr. plejer u Muzici ostaje kako je bio).
-  late final List<Widget> _tabs = [
-    HomeScreen(auth: _auth),
-    MusicScreen(audioHandler: widget.audioHandler),
-    const LedScreen(),
-    LagerScreen(auth: _auth),
-  ];
 
   static const List<TopTab> _destinations = [
     TopTab(label: 'Home', icon: Icons.home_rounded),
@@ -151,6 +152,25 @@ class _RootNavigationState extends State<RootNavigation> {
     setState(() => _currentIndex = index);
   }
 
+  /// Otvara događaj: tabovi od sada pokazuju baš njegove podatke.
+  void _openEvent(String eventId) {
+    setState(() {
+      _eventId = eventId;
+      _inEvent = true;
+      _currentIndex = 0;
+      _chromeVisible = true;
+    });
+  }
+
+  /// Nazad na spisak. Muzika se **ne prekida** — plejer ostaje u stablu,
+  /// pa nastup ne stane zato što je neko pogledao raspored.
+  void _backToList() {
+    setState(() {
+      _inEvent = false;
+      _chromeVisible = true;
+    });
+  }
+
   /// Skrolovanje nadole sklanja header i tabove, nagore ih vraća.
   bool _onScroll(UserScrollNotification notification) {
     if (notification.metrics.axis != Axis.vertical) return false;
@@ -169,6 +189,7 @@ class _RootNavigationState extends State<RootNavigation> {
   @override
   Widget build(BuildContext context) {
     final path = _logoPath;
+    final eventId = _eventId;
     // Menjanje logotipa traži prijavu — to je funkcija managementa.
     final canEditLogo = _auth.can(AppPermission.editTeamLogo);
     final user = _auth.currentUser;
@@ -202,12 +223,16 @@ class _RootNavigationState extends State<RootNavigation> {
                             signedInAs: user?.name,
                             onSignIn: user == null ? _openLogin : null,
                             onSignOut: user == null ? null : _signOut,
+                            onBack: _inEvent ? _backToList : null,
                           ),
-                          TopTabBar(
-                            tabs: _destinations,
-                            currentIndex: _currentIndex,
-                            onSelected: _onTabSelected,
-                          ),
+                          // Na spisku događaja tabova nema — oni pripadaju
+                          // jednom događaju, a tada nijedan nije otvoren.
+                          if (_inEvent)
+                            TopTabBar(
+                              tabs: _destinations,
+                              currentIndex: _currentIndex,
+                              onSelected: _onTabSelected,
+                            ),
                         ],
                       )
                     : const SizedBox(width: double.infinity),
@@ -217,7 +242,33 @@ class _RootNavigationState extends State<RootNavigation> {
               // Sadržaj ne sme da upadne pod sistemsku traku sa gestovima.
               child: SafeArea(
                 top: false,
-                child: IndexedStack(index: _currentIndex, children: _tabs),
+                child: IndexedStack(
+                  // Nulti sloj je spisak događaja, pa tabovi. Sve stoji u
+                  // stablu da bi Muzika nastavila da svira i dok se bira
+                  // drugi događaj.
+                  index: _inEvent ? _currentIndex + 1 : 0,
+                  children: [
+                    EventsScreen(auth: _auth, onOpen: _openEvent),
+                    // Ključ po događaju: kad se otvori drugi, ekran se gradi
+                    // iz početka umesto da prikaže tuđe podatke.
+                    eventId == null
+                        ? const SizedBox.shrink()
+                        : HomeScreen(
+                            key: ValueKey('home-$eventId'),
+                            eventId: eventId,
+                            auth: _auth,
+                          ),
+                    MusicScreen(audioHandler: widget.audioHandler),
+                    const LedScreen(),
+                    eventId == null
+                        ? const SizedBox.shrink()
+                        : LagerScreen(
+                            key: ValueKey('lager-$eventId'),
+                            eventId: eventId,
+                            auth: _auth,
+                          ),
+                  ],
+                ),
               ),
             ),
           ],
