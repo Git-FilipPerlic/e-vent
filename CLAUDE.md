@@ -243,12 +243,12 @@ ovakvog rada slede tri stvari koje se moraju poštovati:
 1. **Jačina u aplikaciji (L / E / F) je ovde bitnija nego što izgleda.**
    Mikseta je daleko, ne prilazi joj se usred programa. Zato mora da postoji
    način da se muzika stiša iz same aplikacije, a ne samo na razglasu.
-2. **Ako Bluetooth veza padne, Android vraća zvuk na zvučnik telefona.**
-   Usred nastupa to znači da muzika odjednom svira iz telefona u ruci
-   voditelja, umesto iz razglasa. To je najgori mogući ishod i vredi ga
-   kasnije uhvatiti: prepoznati da izlaz više nije Bluetooth uređaj i
-   **zaustaviti reprodukciju uz jasnu poruku**, umesto da nastavi da svira
-   „u prazno".
+2. **Pad Bluetooth veze se ne obrađuje** (odluka korisnika, 9. septembra
+   2026). Ako veza padne, Android vraća zvuk na zvučnik telefona. Predlog je
+   bio da aplikacija to prepozna i stane uz poruku, ali korisnik je rekao da
+   nije potrebno: „ako se diskonektuje povezaćemo ponovo". To se u praksi
+   rešava rukom, za sekund, i ne treba mu aplikacija koja sama zaustavlja
+   muziku. **Ne praviti taj feature bez novog dogovora.**
 3. **Bluetooth unosi kašnjenje** (obično 100–200 ms). Sve što se meri na uho
    — kada tačno krene pretapanje, koliko traje fade — dešava se na razglasu
    nešto kasnije nego na ekranu. Nema šta da se popravi u kodu, ali se ne

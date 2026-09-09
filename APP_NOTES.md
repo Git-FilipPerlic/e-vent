@@ -1397,14 +1397,6 @@ zbog novog build-a nego zato što spisak nije nigde čuvan.
 
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
-- **Uhvatiti pad Bluetooth veze sa mikseta.** Zvuk ide preko Bluetooth-a do
-  risivera u mikseti; ako veza padne, Android vraća reprodukciju na zvučnik
-  telefona — usred nastupa muzika odjednom svira iz telefona u ruci voditelja.
-  Trebalo bi prepoznati da izlaz više nije Bluetooth uređaj i **zaustaviti
-  reprodukciju uz jasnu poruku**. Traži čitanje audio izlaza sa Androida
-  (platform channel ili paket), pa je zaseban feature.
-
-
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`
   i `android/key.properties` nisu u gitu. Ako se izgube, **nova verzija
   aplikacije ne može da se objavi pod istim potpisom** — korisnici bi morali
@@ -1434,8 +1426,6 @@ zbog novog build-a nego zato što spisak nije nigde čuvan.
 - **Prave stavke opreme za Lager checklist.** Sekcije su tačne, ali su stavke
   unutar njih izmišljene kao privremene. Zamisao: izbor jedne sekcije izlistava
   niz stavki ispod nje. Pravi spisak daje korisnik.
-- Prikazno ime aplikacije na telefonu je i dalje `event_app` — treba ga
-  promeniti na "e-vent" u `AndroidManifest.xml` i `Info.plist`.
 - `flutter run` visi na "Installing ..." zbog Secure Foldera na telefonu
   (profili `0` i `150`), pa za sada nema hot reload-a. Zaobilazi se ručnim
   `flutter build apk --debug` + `adb install --user 0` + `am start --user 0`.
