@@ -38,4 +38,23 @@ void main() {
     expect(find.text('Pakovanje'), findsOneWidget);
     expect(find.text('Tehnika'), findsOneWidget);
   });
+
+  testWidgets('skrolovanje nadole sklanja header i tabove, nagore ih vraća',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const EventApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TopTabBar), findsOneWidget);
+
+    // Povlačenje nagore = skrolovanje nadole kroz spisak.
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TopTabBar), findsNothing);
+
+    await tester.drag(find.byType(ListView), const Offset(0, 300));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TopTabBar), findsOneWidget);
+  });
 }

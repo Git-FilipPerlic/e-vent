@@ -575,6 +575,28 @@ Dodati paketi: **`just_audio`** (^0.10.6) i **`file_picker`** (^12.2.0).
 
 ---
 
+## 9. septembar 2026 — gušći redovi (36 dp) i sklanjanje headera pri skrolovanju
+
+- **Red u spisku numera je sada 36 dp** (bio 48). Ikonica 16, tekst manji,
+  bočni razmak sa 16 na 8.
+  **Svesno odstupanje od pravila:** 36 dp je ispod minimalne dodirne mete od
+  48 dp iz `CLAUDE.md`. Korisnik je tako tražio zbog gustine; red je i dalje
+  preko cele širine ekrana, pa je meta široka i pored manje visine.
+  Odstupanje je zapisano i u komentaru samog widgeta.
+- **Header i tabovi se sklanjaju pri skrolovanju nadole** i vraćaju čim se
+  krene nagore (`NotificationListener<UserScrollNotification>` u `app.dart`,
+  `AnimatedSize` 200 ms). Statusna traka ostaje zaklonjena i kad je header
+  sklonjen. Poštuje se sistemsko podešavanje za smanjen pokret.
+- Time se dobija oko 150 dp, pa u spisak numera staje **oko 19–20 redova**
+  umesto ranijih 10–11. Traženo je 30; za toliko bi red morao ispod 20 dp,
+  što više ne bi bilo dodirljivo.
+- `test/widget_test.dart` — nov test: skrolovanje nadole skloni tabove,
+  nagore ih vrati.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 111/111;
+  provereno na telefonu.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'screens/home_screen.dart';
@@ -30,6 +31,11 @@ class EventApp extends StatelessWidget {
 }
 
 /// Header sa logotipom, ispod njega tabovi, pa sadržaj.
+///
+/// Header i tabovi se **sklanjaju pri skrolovanju nadole** i vraćaju čim se
+/// krene nagore — tako spisak (numere, oprema) dobije oko 150 dp više, a
+/// tabovi su na dohvat jednim pokretom.
+///
 /// Stanje je običan [setState] — bez Riverpod-a/Provider-a u MVP fazi.
 class RootNavigation extends StatefulWidget {
   const RootNavigation({super.key});
@@ -48,6 +54,9 @@ class _RootNavigationState extends State<RootNavigation> {
 
   int _currentIndex = 0;
   String? _logoPath;
+
+  /// Da li se header i tabovi trenutno vide.
+  bool _chromeVisible = true;
 
   // IndexedStack čuva stanje svakog taba pri prebacivanju
   // (npr. plejer u Muzici ostaje kako je bio).
@@ -112,43 +121,73 @@ class _RootNavigationState extends State<RootNavigation> {
     setState(() => _currentIndex = index);
   }
 
+  /// Skrolovanje nadole sklanja header i tabove, nagore ih vraća.
+  bool _onScroll(UserScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) return false;
+
+    switch (notification.direction) {
+      case ScrollDirection.reverse:
+        if (_chromeVisible) setState(() => _chromeVisible = false);
+      case ScrollDirection.forward:
+        if (!_chromeVisible) setState(() => _chromeVisible = true);
+      case ScrollDirection.idle:
+        break;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final path = _logoPath;
     // Menjanje logotipa traži prijavu — to je funkcija managementa.
     final canEditLogo = _auth.can(Permission.editTeamLogo);
 
+    // Poštuje se sistemsko podešavanje za smanjen pokret.
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+
     return Scaffold(
-      body: Column(
-        children: [
-          // Header i tabovi ne smeju pod statusnu traku telefona.
-          SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                AppHeader(
-                  logo: path != null ? FileImage(File(path)) : null,
-                  onEditLogo: canEditLogo ? _pickLogo : null,
-                  onRemoveLogo: canEditLogo && path != null
-                      ? _removeLogo
-                      : null,
-                ),
-                TopTabBar(
-                  tabs: _destinations,
-                  currentIndex: _currentIndex,
-                  onSelected: _onTabSelected,
-                ),
-              ],
+      body: NotificationListener<UserScrollNotification>(
+        onNotification: _onScroll,
+        child: Column(
+          children: [
+            // Statusna traka ostaje zaklonjena i kad se header skloni.
+            SafeArea(
+              bottom: false,
+              child: AnimatedSize(
+                duration: reduceMotion
+                    ? Duration.zero
+                    : const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                alignment: Alignment.topCenter,
+                child: _chromeVisible
+                    ? Column(
+                        children: [
+                          AppHeader(
+                            logo: path != null ? FileImage(File(path)) : null,
+                            onEditLogo: canEditLogo ? _pickLogo : null,
+                            onRemoveLogo: canEditLogo && path != null
+                                ? _removeLogo
+                                : null,
+                          ),
+                          TopTabBar(
+                            tabs: _destinations,
+                            currentIndex: _currentIndex,
+                            onSelected: _onTabSelected,
+                          ),
+                        ],
+                      )
+                    : const SizedBox(width: double.infinity),
+              ),
             ),
-          ),
-          Expanded(
-            // Sadržaj ne sme da upadne pod sistemsku traku sa gestovima.
-            child: SafeArea(
-              top: false,
-              child: IndexedStack(index: _currentIndex, children: _tabs),
+            Expanded(
+              // Sadržaj ne sme da upadne pod sistemsku traku sa gestovima.
+              child: SafeArea(
+                top: false,
+                child: IndexedStack(index: _currentIndex, children: _tabs),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -276,6 +276,13 @@ uglovi idu zajedno.
 Prevlačenje između tabova se **ne koristi** — sadržaj stoji u `IndexedStack`,
 da bi prevlačenje ostalo slobodno za prsten na Muzici.
 
+**Header i tabovi se sklanjaju pri skrolovanju nadole** i vraćaju čim se krene
+nagore. Time spisak dobija oko 150 dp, a tabovi su na dohvat jednim pokretom.
+
+**Izuzetak od pravila o dodirnoj meti:** red u spisku numera je 36 dp, ne 48.
+Odluka korisnika, zbog gustine spiska na nastupu. Red je preko cele širine
+ekrana, pa je meta i dalje široka. Svuda drugde važi 48 dp.
+
 ### Pravila dizajna
 
 - **Aplikacija je samo tamna** (čuva noćni vid i bateriju na večernjim nastupima)

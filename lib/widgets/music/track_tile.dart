@@ -5,9 +5,14 @@ import '../../theme/app_theme.dart';
 
 /// Jedan red u spisku numera.
 ///
-/// **Namerno je zbijen** — jedan red, visine minimalne dodirne mete (48 dp),
-/// bez kartice i bez razmaka oko sebe. Na nastupu se traži pesma u spisku od
-/// nekoliko desetina numera, pa je gustina važnija od prostora.
+/// **Namerno je zbijen** — jedan red od 36 dp, bez kartice i bez razmaka oko
+/// sebe. Na nastupu se pesma traži u spisku od nekoliko desetina numera, pa
+/// je gustina važnija od prostora.
+///
+/// **Svesno odstupanje od pravila:** 36 dp je ispod minimalne dodirne mete od
+/// 48 dp iz `CLAUDE.md`. Korisnik je tako tražio, da bi na ekran stalo više
+/// numera; red je i dalje preko cele širine ekrana, pa je meta široka i pored
+/// manje visine.
 ///
 /// Da bi sve stalo u jedan red, **izvor se vidi po ikonici** (folder ili
 /// plejlista) umesto po tekstu, a izvođač ide uz naziv kad ima mesta.
@@ -27,9 +32,8 @@ class TrackTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  /// Visina jednog reda. Ne ide ispod ovoga — to je minimalna dodirna meta
-  /// iz pravila projekta.
-  static const double height = kMinTouchTarget;
+  /// Visina jednog reda.
+  static const double height = 36;
 
   /// `3:24` — trajanje numere; `--:--` dok se ne pročita iz fajla.
   static String formatDuration(Duration? duration) {
@@ -71,7 +75,7 @@ class TrackTile extends StatelessWidget {
                   color: isSelected
                       ? AppColors.accent
                       : AppColors.textSecondary,
-                  size: 18,
+                  size: 16,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -82,7 +86,7 @@ class TrackTile extends StatelessWidget {
                       : track.displayTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
+                  style: theme.textTheme.bodySmall?.copyWith(
                     color: isSelected
                         ? AppColors.accent
                         : AppColors.textPrimary,
