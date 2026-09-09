@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'screens/events_screen.dart';
@@ -11,9 +12,12 @@ import 'screens/lager_screen.dart';
 import 'screens/led_screen.dart';
 import 'screens/music_screen.dart';
 import 'services/auth_service.dart';
+import 'services/event_service.dart';
+import 'services/mock_event_service.dart';
 import 'services/background_audio.dart';
 import 'services/team_logo_service.dart';
 import 'theme/app_theme.dart';
+import 'utils/date_format.dart';
 import 'widgets/common/app_header.dart';
 import 'widgets/common/top_tab_bar.dart';
 
@@ -30,6 +34,20 @@ class EventApp extends StatelessWidget {
     return MaterialApp(
       title: 'e-vent',
       debugShowCheckedModeBanner: false,
+      // Aplikacija je na srpskom, pa i sistemski dijalozi moraju da budu.
+      // Bez ovih prevoda biranje datuma ne radi — `showDatePicker` traži
+      // `MaterialLocalizations` za jezik koji mu se zada.
+      locale: AppDate.locale2,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale.fromSubtags(languageCode: 'sr', scriptCode: 'Latn'),
+        Locale('sr'),
+        Locale('en'),
+      ],
       // Aplikacija je samo tamna, bez obzira na podešavanje telefona.
       theme: AppTheme.dark,
       home: RootNavigation(audioHandler: audioHandler),
@@ -58,6 +76,11 @@ class _RootNavigationState extends State<RootNavigation> {
   /// menjaju se ove dve linije.
   /// Ko je prijavljen. Bez prijave aplikacija radi, samo se ništa ne menja.
   final AuthService _auth = MockAuthService();
+
+  /// **Jedino mesto gde se bira izvor podataka.** Spisak, Home i Lager dele
+  /// isti servis — inače svaki ekran ima svoje podatke, pa izmena napravljena
+  /// na Home tabu ne stigne do spiska.
+  final EventService _events = MockEventService();
   final TeamLogoService _logoService = const TeamLogoService();
 
   final ImagePicker _picker = ImagePicker();
@@ -73,6 +96,10 @@ class _RootNavigationState extends State<RootNavigation> {
 
   /// Da li su otvoreni tabovi jednog događaja (`false` = spisak događaja).
   bool _inEvent = false;
+
+  /// Kucne kad se treba vratiti na spisak, da se podaci ponovo učitaju —
+  /// događaj je u međuvremenu mogao da se izmeni.
+  final ValueNotifier<int> _eventsRevision = ValueNotifier<int>(0);
 
   /// Da li se header i tabovi trenutno vide.
   bool _chromeVisible = true;
@@ -98,6 +125,7 @@ class _RootNavigationState extends State<RootNavigation> {
   void dispose() {
     _auth.removeListener(_onAuthChanged);
     _auth.dispose();
+    _eventsRevision.dispose();
     super.dispose();
   }
 
@@ -169,6 +197,8 @@ class _RootNavigationState extends State<RootNavigation> {
       _inEvent = false;
       _chromeVisible = true;
     });
+    // Spisak je sve vreme stajao u stablu sa starim podacima.
+    _eventsRevision.value++;
   }
 
   /// Skrolovanje nadole sklanja header i tabove, nagore ih vraća.
@@ -248,7 +278,12 @@ class _RootNavigationState extends State<RootNavigation> {
                   // drugi događaj.
                   index: _inEvent ? _currentIndex + 1 : 0,
                   children: [
-                    EventsScreen(auth: _auth, onOpen: _openEvent),
+                    EventsScreen(
+                      auth: _auth,
+                      service: _events,
+                      onOpen: _openEvent,
+                      reloadSignal: _eventsRevision,
+                    ),
                     // Ključ po događaju: kad se otvori drugi, ekran se gradi
                     // iz početka umesto da prikaže tuđe podatke.
                     eventId == null
@@ -257,6 +292,7 @@ class _RootNavigationState extends State<RootNavigation> {
                             key: ValueKey('home-$eventId'),
                             eventId: eventId,
                             auth: _auth,
+                            service: _events,
                           ),
                     MusicScreen(audioHandler: widget.audioHandler),
                     const LedScreen(),
@@ -266,6 +302,7 @@ class _RootNavigationState extends State<RootNavigation> {
                             key: ValueKey('lager-$eventId'),
                             eventId: eventId,
                             auth: _auth,
+                            service: _events,
                           ),
                   ],
                 ),

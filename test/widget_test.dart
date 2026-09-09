@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:event_app/app.dart';
+import 'package:event_app/widgets/common/edit_text_sheet.dart';
 import 'package:event_app/widgets/common/top_tab_bar.dart';
 import 'package:event_app/utils/date_format.dart';
 
@@ -86,5 +87,43 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TopTabBar), findsOneWidget);
+  });
+
+  testWidgets('izmena datuma se vidi na spisku po povratku', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const EventApp());
+    await tester.pumpAndSettle();
+
+    // Prijava, da bi olovke uopšte postojale.
+    await tester.tap(find.byTooltip('Prijava'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Filip');
+    await tester.enterText(find.byType(TextField).last, '1234');
+    await tester.tap(find.text('Prijavi se'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('7 Mia'));
+    await tester.pumpAndSettle();
+
+    // Trajanje sa 2h na 3h.
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is EditFieldButton && w.label == 'Datum, sat i trajanje',
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, '3h'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sačuvaj'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Nazad na spisak događaja'));
+    await tester.pumpAndSettle();
+
+    // Spisak stoji u stablu sve vreme, pa mora da se osveži sam. Rođendan je
+    // sada 3h, kao i svadba — otud dva.
+    expect(find.text('2h'), findsNothing);
+    expect(find.text('3h'), findsNWidgets(2));
   });
 }

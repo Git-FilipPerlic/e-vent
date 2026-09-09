@@ -5,9 +5,29 @@ import 'package:event_app/utils/date_format.dart';
 import 'package:event_app/widgets/common/edit_text_sheet.dart';
 import 'package:event_app/widgets/common/event_when_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Widget _wrap(Widget child) => MaterialApp(theme: AppTheme.dark, home: child);
+/// Ista podešavanja jezika kao u pravoj aplikaciji.
+///
+/// Bitno je da ih test ima: bez njih `showDatePicker` na telefonu ruši ekran
+/// porukom „No MaterialLocalizations found", a to se u testu sa podrazumevanim
+/// `MaterialApp`-om ne bi videlo.
+Widget _wrap(Widget child) => MaterialApp(
+  theme: AppTheme.dark,
+  locale: AppDate.locale2,
+  localizationsDelegates: const [
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  supportedLocales: const [
+    Locale.fromSubtags(languageCode: 'sr', scriptCode: 'Latn'),
+    Locale('sr'),
+    Locale('en'),
+  ],
+  home: child,
+);
 
 /// Olovka koja menja baš to polje.
 Finder _pencil(String label) => find.byWidgetPredicate(
@@ -57,7 +77,9 @@ void main() {
         act: (tester) async {},
       );
 
-      expect(find.text('12. septembar 2026.'), findsOneWidget);
+      // Godina se ne piše kad je tekuća — na uskom telefonu je zbog nje
+      // datum ispadao kao „12. septembar …".
+      expect(find.text('12. septembar'), findsOneWidget);
       expect(find.text('16:00'), findsOneWidget);
       // Izabrano trajanje stoji među ponuđenima.
       expect(find.widgetWithText(ChoiceChip, '2h'), findsOneWidget);
@@ -169,7 +191,43 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Kada i koliko'), findsOneWidget);
-      expect(find.text('12. septembar 2026.'), findsOneWidget);
+      // Isti datum stoji i na kartici ispod lista, pa ih je dva.
+      expect(find.text('12. septembar'), findsWidgets);
+    });
+
+    testWidgets('sistemski birač datuma se otvara na srpskom', (
+      WidgetTester tester,
+    ) async {
+      final auth = MockAuthService();
+      await auth.signIn(name: 'Filip', pin: '1234');
+
+      await tester.pumpWidget(_wrap(HomeScreen(auth: auth)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(_pencil('Datum, sat i trajanje'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Datum'));
+      await tester.pumpAndSettle();
+
+      // Bez srpskih prevoda ovde puca „No MaterialLocalizations found".
+      expect(tester.takeException(), isNull);
+      expect(find.byType(DatePickerDialog), findsOneWidget);
+    });
+
+    testWidgets('sistemski birač sata se otvara', (WidgetTester tester) async {
+      final auth = MockAuthService();
+      await auth.signIn(name: 'Filip', pin: '1234');
+
+      await tester.pumpWidget(_wrap(HomeScreen(auth: auth)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(_pencil('Datum, sat i trajanje'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sat početka'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(TimePickerDialog), findsOneWidget);
     });
 
     testWidgets('izmena trajanja se odmah vidi na kartici', (

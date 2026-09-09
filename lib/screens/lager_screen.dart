@@ -36,7 +36,16 @@ enum LagerMode {
 /// **posle** događaja šta se vratilo. Zato svaki režim ima svoje kvačice —
 /// pakovanje se ne poništava kad se posle raspakuje.
 class LagerScreen extends StatefulWidget {
-  const LagerScreen({super.key, this.eventId = 'evt-001', this.auth});
+  const LagerScreen({
+    super.key,
+    this.eventId = 'evt-001',
+    this.auth,
+    this.service,
+  });
+
+  /// Izvor podataka. `null` znači sopstveni mock; u aplikaciji je isti onaj
+  /// koji koriste spisak i Home tab.
+  final EventService? service;
 
   /// Događaj čije se kategorije prikazuju.
   final String eventId;
@@ -50,8 +59,7 @@ class LagerScreen extends StatefulWidget {
 }
 
 class _LagerScreenState extends State<LagerScreen> {
-  /// Jedino mesto gde se bira izvor podataka.
-  final EventService _service = MockEventService();
+  late final EventService _service = widget.service ?? MockEventService();
 
   /// Ceo katalog kategorija koje firma ima.
   List<ChecklistSection> _catalog = const [];

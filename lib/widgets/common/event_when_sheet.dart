@@ -60,7 +60,6 @@ class _EventWhenSheetState extends State<_EventWhenSheet> {
       // spisak popunjava unazad. Zato godina unazad, a ne od danas.
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 3),
-      locale: const Locale('sr', 'Latn'),
     );
     if (picked == null) return;
 
@@ -134,7 +133,7 @@ class _EventWhenSheetState extends State<_EventWhenSheet> {
 
             _PickerRow(
               label: 'Datum',
-              value: start != null ? AppDate.long(start) : 'Nije unet',
+              value: start != null ? AppDate.dateShort(start) : 'Nije unet',
               hasValue: start != null,
               onTap: _pickDate,
             ),
@@ -230,7 +229,7 @@ class _PickerRow extends StatelessWidget {
         child: Row(
           children: [
             SizedBox(
-              width: 108,
+              width: 96,
               child: Text(
                 label,
                 style: theme.textTheme.labelMedium?.copyWith(

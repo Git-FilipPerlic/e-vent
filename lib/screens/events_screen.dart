@@ -37,7 +37,15 @@ class EventsScreen extends StatefulWidget {
     required this.onOpen,
     this.auth,
     this.service,
+    this.reloadSignal,
   });
+
+  /// Javlja da su se podaci promenili i da spisak treba ponovo učitati.
+  ///
+  /// Spisak ostaje u stablu dok se gleda pojedinačan događaj (da muzika ne
+  /// stane), pa se sam od sebe ne bi osvežio — a događaj se u međuvremenu
+  /// menja. Bez ovoga se posle izmene datuma vraćaš na stari spisak.
+  final Listenable? reloadSignal;
 
   /// Poziva se sa id-jem izabranog događaja.
   final ValueChanged<String> onOpen;
@@ -69,12 +77,14 @@ class _EventsScreenState extends State<EventsScreen> {
   void initState() {
     super.initState();
     widget.auth?.addListener(_onAuthChanged);
+    widget.reloadSignal?.addListener(_load);
     _load();
   }
 
   @override
   void dispose() {
     widget.auth?.removeListener(_onAuthChanged);
+    widget.reloadSignal?.removeListener(_load);
     super.dispose();
   }
 

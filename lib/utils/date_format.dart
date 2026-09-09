@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
@@ -8,6 +9,13 @@ import 'package:intl/intl.dart';
 abstract final class AppDate {
   /// Srpski, latinica. (Obično `sr` je ćirilica — zato izričito `sr_Latn`.)
   static const String locale = 'sr_Latn';
+
+  /// Isti jezik u obliku koji traži `MaterialApp` i sistemski dijalozi.
+  /// Piše se na jednom mestu da se latinica ne bi negde omakla u ćirilicu.
+  static const Locale locale2 = Locale.fromSubtags(
+    languageCode: 'sr',
+    scriptCode: 'Latn',
+  );
 
   /// Učitava nazive meseci i dana za naš jezik. Zove se jednom, u `main()`,
   /// pre nego što se bilo šta iscrta.
@@ -30,6 +38,15 @@ abstract final class AppDate {
 
   /// Sat i minut u 24-časovnom obliku: `14:30`
   static String time(DateTime value) => DateFormat.Hm(locale).format(value);
+
+  /// Datum sa godinom **samo kad godina nije tekuća**.
+  ///
+  /// Posao se planira nedeljama unapred, pa godina najčešće samo zauzima
+  /// mesto — a na uskom telefonu zbog nje ispadne „12. septembar …".
+  static String dateShort(DateTime value, {DateTime? now}) {
+    final today = now ?? DateTime.now();
+    return value.year == today.year ? dayMonth(value) : long(value);
+  }
 
   /// Trajanje u najkraćem obliku: `2h`, `1h30`, `45min`.
   ///

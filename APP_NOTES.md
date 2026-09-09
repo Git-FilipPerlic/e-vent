@@ -1221,6 +1221,39 @@ ADMIN-007: nov događaj se ne može napraviti bez biranja datuma.
   - Vizuelna provera na telefonu — telefon se zaključao.
 - Sledeće: ADMIN-007 — pravljenje događaja i dodela timu.
 
+## 9. septembar 2026 — dve greške koje su se videle tek na telefonu
+
+Obe je našla provera na uređaju, nijednu testovi — vredi zapisati zašto.
+
+**1. Biranje datuma je rušilo ekran.** `showDatePicker` sa zadatim srpskim
+jezikom traži `MaterialLocalizations` za taj jezik, a aplikacija ih nije
+imala: crveni ekran „No MaterialLocalizations found". U testu se to nije
+videlo jer podrazumevani `MaterialApp` sam donosi engleske prevode.
+
+- Dodat `flutter_localizations` (dolazi uz Flutter SDK, nije spoljni paket) i
+  `localizationsDelegates` + `supportedLocales` u `MaterialApp`, uz
+  `locale: AppDate.locale2`. Sistemski dijalozi su sada na srpskom:
+  „Izaberite datum", „Otkaži", „Potvrdi", nazivi meseci i dana.
+- Test sada podiže ekran sa **istim podešavanjima jezika kao aplikacija** i
+  zaista otvara oba birača — inače bi greška opet prošla.
+
+**2. Izmena se nije videla na spisku.** Dva uzroka, oba popravljena:
+
+- **Svaki ekran je pravio svoj `MockEventService`.** Spisak, Home i Lager su
+  imali odvojene podatke, pa izmena sa Home taba nije stizala do spiska.
+  Sada `app.dart` pravi **jedan** servis i prosleđuje ga svima — to je i bila
+  namera („jedino mesto gde se bira izvor podataka"), samo je u međuvremenu
+  ispalo na tri mesta. Sa Firestore-om se ovo ne bi ni primetilo, jer je baza
+  jedna; mock je to razotkrio.
+- **Spisak ostaje u stablu** dok se gleda događaj (da muzika ne stane), pa se
+  sam ne osvežava. Dodat `reloadSignal`: povratak strelicom kucne i spisak se
+  ponovo učita.
+- Nov test u `widget_test.dart` prolazi ceo put: prijava → otvori događaj →
+  promeni trajanje → nazad → spisak pokazuje novo.
+
+Usput: datum u listu „Kada i koliko" ispisuje godinu **samo kad nije tekuća**,
+jer je na uskom telefonu ispadalo „12. septembar …".
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

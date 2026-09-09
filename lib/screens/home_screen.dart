@@ -37,7 +37,17 @@ import 'category_items_screen.dart';
 /// naziv sa datumom, satom i trajanjem (HOME-001/005) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → polazak (HOME-007) → vozilo → učesnici (HOME-012) → status tima (HOME-013) → spremnost (HOME-011) →
 /// status događaja (HOME-018) → podsetnik (HOME-019) → scenario (HOME-025).
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.eventId = 'evt-001', this.auth});
+  const HomeScreen({
+    super.key,
+    this.eventId = 'evt-001',
+    this.auth,
+    this.service,
+  });
+
+  /// Izvor podataka. `null` znači sopstveni mock — tako testovi mogu da
+  /// podignu ekran sam, ali u aplikaciji ga **deli sa spiskom događaja**,
+  /// inače spisak ne vidi izmene napravljene ovde.
+  final EventService? service;
 
   /// Koji se događaj prikazuje. Bira se na spisku događaja.
   final String eventId;
@@ -50,9 +60,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  /// Jedino mesto gde se bira izvor podataka. Kad se priključi Firebase,
-  /// menja se samo ova linija — nijedan widget se ne dira.
-  final EventService _service = MockEventService();
+  late final EventService _service = widget.service ?? MockEventService();
 
   /// Prognoza dolazi sa Open-Meteo servisa — besplatan, bez API ključa.
   final WeatherService _weather = OpenMeteoWeatherService();
