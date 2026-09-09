@@ -463,10 +463,11 @@ za proveru praznih stanja) mogu da posluže kao seed za Firestore.
 | Logo tima iz galerije | `expo-image-picker` | `image_picker` |
 | Trajno čuvanje loga | *nije radilo u Expo Go* | `shared_preferences` |
 | Ikonice | Feather (`@expo/vector-icons`) | ugrađene Material ikonice |
-| Audio (Muzika tab) | planirano `expo-av` | `just_audio` ili `audioplayers` |
+| Audio (Muzika tab) | planirano `expo-av` | **`just_audio`** (izabrano) |
 | Bluetooth (LED tab) | planirano `react-native-ble-plx` | `flutter_blue_plus` |
 | Dozvole (Bluetooth, fajlovi) | Expo permissions | `permission_handler` |
 | Vremenska prognoza | — | `http` + Open-Meteo (bez ključa) |
+| Biranje numera sa telefona | — | `file_picker` |
 
 ---
 

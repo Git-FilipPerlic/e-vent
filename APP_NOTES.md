@@ -513,8 +513,52 @@ Ispravke posle prve provere na telefonu (snimci ekrana sa uređaja).
 
 ---
 
+## 9. septembar 2026 — Muzika: plejer i prave numere sa telefona
+
+Dodati paketi: **`just_audio`** (^0.10.6) i **`file_picker`** (^12.2.0).
+
+- `lib/services/audio_playback.dart` — interfejs `AudioPlayback` +
+  `JustAudioPlayback`. Razdvojeno namerno: u testu se podmeće lažni plejer,
+  jer se pravi zvuk u testu ne može pustiti, a paket se kasnije može zameniti
+  bez diranja ekrana.
+  - **Fade in 10 sek**: zvuk kreće od tišine i penje se u koracima od 200 ms,
+    da uvod ne "udari" iz zvučnika. Ako pauza padne usred fade-in-a, jačina se
+    vraća na punu — inače bi nastavak ostao tih.
+- `lib/widgets/music/edge_progress_ring.dart` — **prsten po ivici ekrana**.
+  Pređeni deo u boji `accent` sa blagim sjajem, nepređeni u `accentDeep`, i
+  tačka na trenutnoj poziciji. Putanja se gradi jednom po veličini ekrana;
+  prerisavanje okida `ValueListenable`, bez ponovnog građenja widget stabla;
+  sve stoji u `RepaintBoundary`. Talasni oblik (amplitude) dolazi kasnije —
+  za sada je linija ravna, kako i piše u specifikaciji.
+- `lib/screens/player_screen.dart` — veliko okruglo dugme, vreme u sredini
+  (ne animira se), prekidač za fade in. Numera bez putanje ili koja ne može
+  da se otvori javlja grešku umesto da pukne. Izlazak sa ekrana gasi plejer.
+- `lib/screens/music_screen.dart` — dugme **"Dodaj numere sa telefona"**.
+  Biranje ide kroz sistemski birač, pa **ne treba posebna dozvola** za čitanje
+  memorije — korisnik sam pokazuje šta sme da se čita.
+- `test/player_test.dart` — 7 testova sa lažnim plejerom.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 110/110;
+  build i instalacija na telefon prošli.
+
+**Dve stvari koje su iskočile u toku rada:**
+
+- `file_picker` 12.x ima **nov API**: `FilePicker.pickFiles(...)` je statička
+  metoda i vraća `List<PlatformFile>`, nema više `FilePicker.platform` ni
+  `FilePickerResult`.
+- Na Androidu birač vraća **`content://` adresu**, ne putanju na disku, pa
+  `PlatformFile.path` ume da bude `null`. Zato se pamti cela adresa, a plejer
+  prima i putanju i adresu sa shemom.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
+- **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.
+  Za pravi talasni oblik treba paket (`just_waveform` ili `audio_waveforms`) —
+  odluka se donosi sa korisnikom, kako piše u `CLAUDE.md`.
+- **Release APK za deljenje.** Sadašnji build je debug — radi, ali je krupniji
+  i sporiji i nije za deljenje. Za pravu verziju treba ključ za potpisivanje
+  (pravi se jednom).
 - **Logotip tima nestaje posle reinstalacije aplikacije.** `image_picker`
   ostavlja izabranu sliku u privremenom folderu aplikacije, a taj folder se
   briše pri reinstalaciji, pa zapamćena putanja više ne postoji. Header to
