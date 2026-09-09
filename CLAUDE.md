@@ -184,6 +184,12 @@ izvođač jednim pogledom zna šta ga čeka — dolazi li tih uvod ili udar.
   dopuna, ne zamena za brojku
 - prevlačenjem po prstenu se premotava pesma (MUSIC-015)
 
+**Zaštita gornje ivice:** prsten kreće iz gornjeg levog ugla i ide duž gornje
+ivice, a to je isti pojas kojim se povlačenjem nadole otvara sistemska zavesa.
+Zato plejer radi **preko celog ekrana, bez sistemskih traka** — prvo povlačenje
+ih samo nakratko prikaže. Usred nastupa promašen prst ne sme da isključi Wi-Fi
+ni da izbaci aplikaciju sa ekrana.
+
 **Podaci i izvedba (bitno za performanse):**
 
 - amplitude se računaju **jednom po pesmi**, pri učitavanju fajla — niz od N

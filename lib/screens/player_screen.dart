@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/track.dart';
 import '../services/audio_playback.dart';
@@ -13,6 +14,13 @@ import '../widgets/music/track_tile.dart';
 /// Ovde i samo ovde kreće zvuk — i to tek kad se pritisne veliko dugme.
 /// Prsten po ivici ekrana pokazuje dokle je pesma stigla; u sredini stoji
 /// vreme, jer prsten je dopuna, ne zamena za brojku.
+///
+/// **Ekran radi preko celog ekrana, bez sistemskih traka.** Prsten kreće iz
+/// gornjeg levog ugla i ide duž gornje ivice — a to je tačno pojas u kome
+/// povlačenje nadole otvara sistemsku zavesu sa podešavanjima. Usred nastupa
+/// je dovoljno da prst malo promaši pa da se isključi Wi-Fi ili da aplikacija
+/// nestane sa ekrana. Zato se ovde trake sklanjaju: prvo povlačenje ih samo
+/// nakratko prikaže, umesto da otvori zavesu.
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({super.key, required this.track, this.playback});
 
@@ -44,6 +52,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
   @override
   void initState() {
     super.initState();
+    // Sistemske trake se sklanjaju dok traje nastup — vidi objašnjenje
+    // uz opis ekrana.
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _open();
   }
 
@@ -127,6 +138,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   @override
   void dispose() {
+    // Trake se vraćaju čim se izađe iz plejera.
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     for (final subscription in _subscriptions) {
       subscription.cancel();
     }

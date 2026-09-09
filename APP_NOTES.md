@@ -658,6 +658,21 @@ folder — zato „Use this folder" nije dodavao pesme.
 
 ---
 
+## 9. septembar 2026 — plejer preko celog ekrana (zaštita gornje ivice)
+
+- Prsten kreće iz gornjeg levog ugla i ide duž gornje ivice — a to je tačno
+  pojas u kome povlačenje nadole otvara sistemsku zavesu. Usred nastupa je
+  dovoljno da prst malo promaši pa da se isključi Wi-Fi ili da aplikacija
+  nestane sa ekrana.
+- Zato plejer sada radi **preko celog ekrana** (`SystemUiMode.immersiveSticky`):
+  prvo povlačenje sa vrha samo nakratko prikaže trake, umesto da otvori zavesu.
+  Trake se vraćaju čim se izađe iz plejera.
+- Prsten je uvučen sa 10 na **18 dp** od ivice, da tačka ostane dohvatljiva
+  prstom a ne upada u pojas kojim sistem hvata povlačenje sa ivice.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 115/115.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.

@@ -30,7 +30,11 @@ class EdgeProgressRing extends StatelessWidget {
   final Widget? child;
 
   /// Koliko je linija uvučena od same ivice ekrana.
-  static const double inset = 10;
+  ///
+  /// Namerno nije skroz uz rub: tačka koja klizi po putanji mora da ostane
+  /// dohvatljiva prstom, a da pritom ne pada u pojas kojim sistem hvata
+  /// povlačenje sa ivice.
+  static const double inset = 18;
 
   /// Debljina linije.
   static const double strokeWidth = 4;
