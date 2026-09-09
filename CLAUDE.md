@@ -281,7 +281,7 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-019 | Rad u pozadini + kontrole u notifikaciji (traži paket) | |
 | MUSIC-020 | Pretapanje naslova pri prelasku na sledeću numeru | gotovo |
 | MUSIC-021 | Provera podrške za formate (mp3, m4a, aac, wav, flac, ogg, opus, wma) | |
-| MUSIC-022 | Provera rasporeda na različitim veličinama ekrana | |
+| MUSIC-022 | Provera rasporeda na različitim veličinama ekrana | gotovo |
 
 **Napomene uz pojedine stavke:**
 

@@ -894,6 +894,25 @@ Dodat paket **`just_waveform`** (^0.0.7), po odluci korisnika.
 
 ---
 
+## 9. septembar 2026 — MUSIC-022: provera rasporeda na svim ekranima
+
+- `test/layout_test.dart` — spisak numera, nastupni ekran i Lager se crtaju na
+  **četiri veličine ekrana** (320, 393, 430, 800 dp širine) i pri **dva
+  uvećanja teksta** (1.0x i 1.3x), pa se proverava da nema prelivanja.
+  Ukupno 24 provere.
+- **Test je odmah našao pravu grešku:** nastupni ekran se prelivao na uskom
+  telefonu — 8 px pri normalnom fontu i **109 px pri uvećanom**. Isto ono što
+  je ranije odnelo dugme "+10" sa ekrana, samo uspravno.
+- Ispravke na nastupnom ekranu:
+  - **veliko dugme se prilagođava ekranu** — do 200 dp, ali ne više od 62%
+    širine ni 30% visine. Bolje manje dugme nego sadržaj koji ispadne.
+  - sadržaj se **centrira dok ima mesta, a klizi kad ga nema**, pa ništa ne
+    može da ispadne sa ekrana ni pri najvećem fontu
+  - dugme za nazad je izdvojeno u ugao, van sadržaja koji klizi
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 164/164.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Release APK za deljenje.** Sadašnji build je debug — radi, ali je krupniji

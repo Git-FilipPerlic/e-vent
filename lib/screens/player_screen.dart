@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -40,8 +42,20 @@ class _PlayerScreenState extends State<PlayerScreen> {
   /// Koliko se preskače jednim dodirom.
   static const Duration skipStep = Duration(seconds: 10);
 
-  /// Prečnik velikog dugmeta. Namerno ogroman — pogađa se bez gledanja.
-  static const double _playButtonSize = 200;
+  /// Najveći prečnik velikog dugmeta. Namerno ogroman — pogađa se bez
+  /// gledanja u ekran.
+  static const double _maxPlayButtonSize = 200;
+
+  /// Koliko dugme sme da bude na datom ekranu.
+  ///
+  /// Na niskom ekranu, ili kad je sistemski font uvećan, dugme se smanjuje —
+  /// bolje manje dugme nego sadržaj koji ispadne sa ekrana.
+  double _playButtonSize(BoxConstraints constraints) {
+    return math.min(
+      _maxPlayButtonSize,
+      math.min(constraints.maxWidth * 0.62, constraints.maxHeight * 0.30),
+    );
+  }
 
   @override
   void initState() {
@@ -94,19 +108,21 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 onSeekEnd: controller.endScrub,
                 child: child,
               ),
-              child: Padding(
+              child: LayoutBuilder(
+                builder: (context, constraints) => Stack(
+                  children: [
+                    // Sadržaj se centrira dok ima mesta, a klizi kad ga nema —
+                    // ništa ne sme da ispadne sa ekrana.
+                    SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.arrow_back_rounded),
-                        tooltip: 'Nazad na spisak',
-                      ),
-                    ),
-                    const Spacer(),
                     // Naslov se pretapa pri prelasku na sledeću numeru:
                     // naglo prebacivanje teksta se ne primeti, a pretapanje
                     // kaže da se nešto promenilo. Ostatak ekrana miruje.
@@ -146,12 +162,25 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    _playButton(theme, controller),
+                    _playButton(theme, controller, _playButtonSize(constraints)),
                     const SizedBox(height: AppSpacing.md),
                     _skips(controller),
                     const SizedBox(height: AppSpacing.lg),
                     _fadeSwitch(theme, controller),
-                    const Spacer(),
+                  ],
+                ),
+                        ),
+                      ),
+                    ),
+                    // Dugme za nazad stoji u uglu, van sadržaja koji klizi.
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.arrow_back_rounded),
+                        tooltip: 'Nazad na spisak',
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -185,19 +214,23 @@ class _PlayerScreenState extends State<PlayerScreen> {
     );
   }
 
-  Widget _playButton(ThemeData theme, MusicPlayerController controller) {
+  Widget _playButton(
+    ThemeData theme,
+    MusicPlayerController controller,
+    double size,
+  ) {
     if (controller.isLoading) {
-      return const SizedBox(
-        width: _playButtonSize,
-        height: _playButtonSize,
-        child: Center(child: CircularProgressIndicator()),
+      return SizedBox(
+        width: size,
+        height: size,
+        child: const Center(child: CircularProgressIndicator()),
       );
     }
 
     final error = controller.errorMessage;
     if (error != null) {
       return SizedBox(
-        width: _playButtonSize,
+        width: size,
         child: Column(
           children: [
             const Icon(Icons.error_outline_rounded, color: AppColors.danger),
@@ -220,8 +253,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
       button: true,
       label: controller.isPlaying ? 'Pauza' : 'Pusti',
       child: Container(
-        width: _playButtonSize,
-        height: _playButtonSize,
+        width: size,
+        height: size,
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
           color: AppColors.accent,
@@ -243,7 +276,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
               controller.isPlaying
                   ? Icons.pause_rounded
                   : Icons.play_arrow_rounded,
-              size: _playButtonSize * 0.55,
+              size: size * 0.55,
               color: AppColors.background,
             ),
           ),
