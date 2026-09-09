@@ -24,7 +24,14 @@ abstract interface class AudioPlayback {
   /// [JustAudioPlayback.fadeInDuration] — da uvod ne "udari" iz zvučnika.
   Future<void> play({bool fadeIn = false});
 
-  Future<void> pause();
+  /// Pauzira. Uz `fadeOut` zvuk se spusti do tišine pa stane — da prekid
+  /// ne bude sečen usred takta.
+  Future<void> pause({bool fadeOut = false});
+
+  /// Spušta zvuk do tišine za zadato vreme, bez pauziranja.
+  /// Koristi se pred kraj numere.
+  Future<void> fadeToSilence(Duration over);
+
   Future<void> stop();
   Future<void> seek(Duration position);
   Future<void> dispose();
@@ -50,6 +57,13 @@ class JustAudioPlayback implements AudioPlayback {
 
   /// Koliko traje fade-in kad je uključen.
   static const Duration fadeInDuration = Duration(seconds: 10);
+
+  /// Koliko traje spuštanje zvuka pred kraj numere.
+  static const Duration fadeOutDuration = Duration(seconds: 10);
+
+  /// Pauza se stišava kratko — deset sekundi čekanja da muzika stane bilo bi
+  /// besmisleno kad neko hoće tišinu odmah.
+  static const Duration pauseFadeDuration = Duration(milliseconds: 1200);
 
   /// Koliko se najduže čeka da se numera otvori.
   ///
@@ -100,28 +114,48 @@ class JustAudioPlayback implements AudioPlayback {
 
     await _player.setVolume(0);
     unawaited(_player.play());
-    _startFade();
+    unawaited(_fade(target: 1, over: fadeInDuration));
   }
 
-  void _startFade() {
-    final steps = fadeInDuration.inMilliseconds ~/ _fadeStep.inMilliseconds;
+  /// Vodi jačinu od trenutne do [target] za zadato vreme.
+  ///
+  /// Vraća `Future` koji se završi kad se stigne do cilja, pa pauza može da
+  /// sačeka da zvuk zaista utihne.
+  Future<void> _fade({required double target, required Duration over}) {
+    _cancelFade();
+
+    final start = _player.volume;
+    final steps = (over.inMilliseconds / _fadeStep.inMilliseconds)
+        .round()
+        .clamp(1, 1000);
     var step = 0;
 
+    final done = Completer<void>();
     _fadeTimer = Timer.periodic(_fadeStep, (timer) {
       step++;
-      final volume = (step / steps).clamp(0.0, 1.0);
-      _player.setVolume(volume);
-      if (volume >= 1) timer.cancel();
+      final t = (step / steps).clamp(0.0, 1.0);
+      _player.setVolume(start + (target - start) * t);
+      if (t >= 1) {
+        timer.cancel();
+        if (!done.isCompleted) done.complete();
+      }
     });
+    return done.future;
   }
 
   @override
-  Future<void> pause() async {
+  Future<void> fadeToSilence(Duration over) => _fade(target: 0, over: over);
+
+  @override
+  Future<void> pause({bool fadeOut = false}) async {
+    if (fadeOut && _player.playing) {
+      await _fade(target: 0, over: pauseFadeDuration);
+    }
     _cancelFade();
-    // Ako je pauza pala usred fade-in-a, zvuk bi pri nastavku ostao tih —
-    // zato se jačina vraća na punu.
-    await _player.setVolume(1);
     await _player.pause();
+    // Ako je pauza pala usred fade-in-a ili posle stišavanja, zvuk bi pri
+    // nastavku ostao tih — zato se jačina vraća na punu.
+    await _player.setVolume(1);
   }
 
   @override

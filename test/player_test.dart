@@ -219,7 +219,7 @@ void main() {
       await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(SwitchListTile));
+      await tester.tap(find.byType(Switch).first);
       await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.play_arrow_rounded));
       await tester.pumpAndSettle();
@@ -277,6 +277,82 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(playback.disposed, isFalse);
+      controller.dispose();
+    });
+  });
+
+  group('fade-out', () {
+    test('pauza uz fade-out stišava zvuk pre nego što stane', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      controller.setFadeOut(true);
+
+      await controller.play();
+      await controller.toggle();
+
+      expect(playback.lastFadeOut, isTrue);
+      controller.dispose();
+    });
+
+    test('bez fade-out-a pauza seče odmah', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      await controller.play();
+      await controller.toggle();
+
+      expect(playback.lastFadeOut, isFalse);
+      controller.dispose();
+    });
+
+    test('pred kraj numere zvuk se sam spusti', () async {
+      final playback = FakePlayback(
+        trackDuration: const Duration(seconds: 120),
+      );
+      final controller = await _controllerWith(playback);
+      controller.setFadeOut(true);
+      await controller.play();
+
+      // Još je rano — ništa se ne stišava.
+      playback.emitPosition(const Duration(seconds: 60));
+      await Future<void>.delayed(Duration.zero);
+      expect(playback.lastFadeToSilence, isNull);
+
+      // Ušlo se u poslednjih deset sekundi.
+      playback.emitPosition(const Duration(seconds: 114));
+      await Future<void>.delayed(Duration.zero);
+      expect(playback.lastFadeToSilence, const Duration(seconds: 6));
+
+      controller.dispose();
+    });
+
+    test('bez fade-out-a se ništa ne stišava pred kraj', () async {
+      final playback = FakePlayback(
+        trackDuration: const Duration(seconds: 120),
+      );
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      playback.emitPosition(const Duration(seconds: 114));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(playback.lastFadeToSilence, isNull);
+      controller.dispose();
+    });
+
+    testWidgets('nastupni ekran ima oba prekidača',
+        (WidgetTester tester) async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Fade in'), findsOneWidget);
+      expect(find.text('Fade out'), findsOneWidget);
+
+      await tester.tap(find.text('Fade out'));
+      await tester.pumpAndSettle();
       controller.dispose();
     });
   });

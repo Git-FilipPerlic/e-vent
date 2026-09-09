@@ -18,6 +18,7 @@ class MusicPlayerController extends ChangeNotifier {
     _subscriptions.addAll([
       playback.position.listen((value) {
         _position = value;
+        _maybeFadeOut();
         _updateProgress();
         notifyListeners();
       }),
@@ -50,6 +51,10 @@ class MusicPlayerController extends ChangeNotifier {
   Duration? _duration;
   bool _isPlaying = false;
   bool _fadeIn = false;
+  bool _fadeOut = false;
+
+  /// Da stišavanje pred kraj numere ne krene dvaput za istu numeru.
+  bool _isFadingOut = false;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -67,6 +72,7 @@ class MusicPlayerController extends ChangeNotifier {
   Duration? get duration => _duration;
   bool get isPlaying => _isPlaying;
   bool get fadeIn => _fadeIn;
+  bool get fadeOut => _fadeOut;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -75,6 +81,23 @@ class MusicPlayerController extends ChangeNotifier {
 
   /// Da li se numera može puštati i premotavati.
   bool get isReady => current != null && !_isLoading && _errorMessage == null;
+
+  /// Pred kraj numere zvuk se sam spusti do tišine, ako je fade-out uključen.
+  ///
+  /// Traje isto koliko i fade-in, pa nastup ima simetrične ivice: pesma
+  /// izađe iz tišine i u tišinu se vrati.
+  void _maybeFadeOut() {
+    if (!_fadeOut || _isFadingOut || !_isPlaying) return;
+
+    final total = _duration;
+    if (total == null || total == Duration.zero) return;
+
+    final left = total - _position;
+    if (left > JustAudioPlayback.fadeOutDuration) return;
+
+    _isFadingOut = true;
+    playback.fadeToSilence(left.isNegative ? Duration.zero : left);
+  }
 
   void _updateProgress() {
     final total = _duration?.inMilliseconds ?? 0;
@@ -168,6 +191,7 @@ class MusicPlayerController extends ChangeNotifier {
     }
     // Kraj reda: numera ostaje, ali se vraća na početak i staje.
     await playback.pause();
+    _isFadingOut = false;
     await restartCurrent();
   }
 
@@ -175,6 +199,7 @@ class MusicPlayerController extends ChangeNotifier {
     if (index < 0 || index >= _queue.length) return;
 
     _currentIndex = index;
+    _isFadingOut = false;
     _position = Duration.zero;
     _duration = _queue[index].duration;
     _errorMessage = null;
@@ -210,8 +235,9 @@ class MusicPlayerController extends ChangeNotifier {
   Future<void> toggle() async {
     if (!isReady) return;
     if (_isPlaying) {
-      await playback.pause();
+      await playback.pause(fadeOut: _fadeOut);
     } else {
+      _isFadingOut = false;
       await playback.play(fadeIn: _fadeIn);
     }
   }
@@ -233,6 +259,11 @@ class MusicPlayerController extends ChangeNotifier {
 
   void setFadeIn(bool value) {
     _fadeIn = value;
+    notifyListeners();
+  }
+
+  void setFadeOut(bool value) {
+    _fadeOut = value;
     notifyListeners();
   }
 

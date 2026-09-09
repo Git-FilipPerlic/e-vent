@@ -125,7 +125,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     const SizedBox(height: AppSpacing.xl),
                     _controls(theme, controller),
                     const SizedBox(height: AppSpacing.lg),
-                    _fadeInSwitch(theme, controller),
+                    _fadeSwitches(theme, controller),
                     const Spacer(),
                   ],
                 ),
@@ -228,24 +228,63 @@ class _PlayerScreenState extends State<PlayerScreen> {
     );
   }
 
-  Widget _fadeInSwitch(ThemeData theme, MusicPlayerController controller) {
-    return SwitchListTile(
-      value: controller.fadeIn,
-      onChanged: controller.setFadeIn,
-      title: Text(
-        'Fade in 10 sek',
-        style: theme.textTheme.bodyLarge?.copyWith(
-          color: AppColors.textPrimary,
+  /// Dva prekidača u jednom redu: pesma izađe iz tišine i u tišinu se vrati.
+  Widget _fadeSwitches(ThemeData theme, MusicPlayerController controller) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _FadeToggle(
+          label: 'Fade in',
+          value: controller.fadeIn,
+          onChanged: controller.setFadeIn,
         ),
-      ),
-      subtitle: Text(
-        'Zvuk kreće iz tišine i penje se',
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: AppColors.textSecondary,
+        const SizedBox(width: AppSpacing.md),
+        _FadeToggle(
+          label: 'Fade out',
+          value: controller.fadeOut,
+          onChanged: controller.setFadeOut,
         ),
+      ],
+    );
+  }
+}
+
+/// Prekidač za pretapanje zvuka, sa natpisom u istom redu.
+class _FadeToggle extends StatelessWidget {
+  const _FadeToggle({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Semantics(
+      toggled: value,
+      label: label,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: AppColors.accent,
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: value ? AppColors.textPrimary : AppColors.textSecondary,
+            ),
+          ),
+        ],
       ),
-      activeThumbColor: AppColors.accent,
-      contentPadding: EdgeInsets.zero,
     );
   }
 }

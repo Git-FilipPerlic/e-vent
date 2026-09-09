@@ -244,8 +244,8 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-010 | Dodir ubacuje numeru kao sledeću u redu | gotovo |
 | MUSIC-011 | Dodir na aktivnu numeru je ponavlja | gotovo |
 | MUSIC-012 | Skip napred / skip nazad | gotovo |
-| MUSIC-013 | Fade-out na kraju i pri pauzi | sledeće |
-| MUSIC-014 | Crossfade između dve numere | |
+| MUSIC-013 | Fade-out na kraju i pri pauzi | gotovo |
+| MUSIC-014 | Crossfade između dve numere | sledeće |
 | MUSIC-015 | Prevlačenje po prstenu premotava pesmu | |
 | MUSIC-016 | Talasni oblik u prstenu (traži paket) | |
 | MUSIC-017 | Podaci iz fajla: izvođač, album, trajanje | |

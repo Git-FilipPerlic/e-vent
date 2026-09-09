@@ -20,6 +20,8 @@ class FakePlayback implements AudioPlayback {
   int pauseCalls = 0;
   Duration? lastSeek;
   bool? lastFadeIn;
+  bool? lastFadeOut;
+  Duration? lastFadeToSilence;
   bool disposed = false;
 
   String? get loadedPath => loadedPaths.isEmpty ? null : loadedPaths.last;
@@ -51,9 +53,15 @@ class FakePlayback implements AudioPlayback {
   }
 
   @override
-  Future<void> pause() async {
+  Future<void> pause({bool fadeOut = false}) async {
     pauseCalls++;
+    lastFadeOut = fadeOut;
     _playing.add(false);
+  }
+
+  @override
+  Future<void> fadeToSilence(Duration over) async {
+    lastFadeToSilence = over;
   }
 
   @override
