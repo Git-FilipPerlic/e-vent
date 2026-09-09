@@ -27,14 +27,16 @@ import '../../theme/app_theme.dart';
 /// ponovnog građenja widget stabla; putanja se gradi jednom po veličini
 /// ekrana, a ceo prsten ide u `RepaintBoundary`.
 ///
-/// Talasni oblik pesme (amplitude) dolazi u kasnijoj fazi — dok ga nema,
-/// crta se ravna linija, nikad prazan ekran.
+/// Kad su prosleđene [amplitudes], linija **nije ravna** nego je talasni oblik
+/// pesme: po odstupanju od putanje se vidi gde su tiši a gde glasniji delovi.
+/// Dok amplitude nisu spremne, crta se ravna linija — nikad prazan ekran.
 class EdgeProgressRing extends StatefulWidget {
   const EdgeProgressRing({
     super.key,
     required this.progress,
     this.child,
     this.topInset = defaultTopInset,
+    this.amplitudes,
     this.onSeekStart,
     this.onSeekUpdate,
     this.onSeekEnd,
@@ -48,6 +50,10 @@ class EdgeProgressRing extends StatefulWidget {
 
   /// Koliko je gornja linija spuštena na ovom ekranu.
   final double topInset;
+
+  /// Talasni oblik pesme: vrednosti 0..1 duž cele putanje.
+  /// `null` dok se ne izvuče iz fajla — tada je linija ravna.
+  final List<double>? amplitudes;
 
   /// Javljaju premotavanje prevlačenjem. Kad su `null`, prsten se samo gleda.
   final VoidCallback? onSeekStart;
@@ -66,6 +72,12 @@ class EdgeProgressRing extends StatefulWidget {
   /// Debljina linije.
   static const double strokeWidth = 4;
 
+  /// Koliko talas najviše odstupa od putanje, na svaku stranu.
+  ///
+  /// Namerno nisko: talas je dopuna, ne ukras. Viši talas prelazi preko
+  /// sadržaja i pretvara prsten u šumu iz koje se ništa ne čita.
+  static const double waveHeight = 7;
+
   /// Širina trake uz ivicu u kojoj se hvata prevlačenje.
   static const double touchBand = 30;
 
@@ -79,6 +91,13 @@ class _EdgeProgressRingState extends State<EdgeProgressRing> {
   double _length = 0;
   Size? _builtFor;
   double _builtTopInset = -1;
+
+  /// Krajnje tačke svake crtice talasa, jedna za drugom: x1, y1, x2, y2.
+  ///
+  /// Računa se **jednom** po veličini ekrana i po pesmi. U toku crtanja se
+  /// samo bira dokle je pesma stigla, bez ijednog novog računa.
+  Float32List? _wave;
+  List<double>? _builtWaveFor;
 
   bool get _canSeek => widget.onSeekUpdate != null || widget.onSeekEnd != null;
 
@@ -131,6 +150,57 @@ class _EdgeProgressRingState extends State<EdgeProgressRing> {
     _length = _metrics.fold<double>(0, (sum, m) => sum + m.length);
     _builtFor = size;
     _builtTopInset = widget.topInset;
+    _wave = null;
+    _builtWaveFor = null;
+  }
+
+  /// Gradi crtice talasa duž putanje.
+  ///
+  /// Svaka crtica stoji **poprečno na putanju**, a dužina joj je srazmerna
+  /// glasnoći na tom mestu. Tako se jednim pogledom vidi dolazi li tih uvod
+  /// ili udar.
+  void _buildWave() {
+    final amplitudes = widget.amplitudes;
+    if (amplitudes == null || amplitudes.isEmpty || _length == 0) {
+      _wave = null;
+      _builtWaveFor = null;
+      return;
+    }
+    if (identical(_builtWaveFor, amplitudes) && _wave != null) return;
+
+    final count = amplitudes.length;
+    final points = Float32List(count * 4);
+
+    for (var i = 0; i < count; i++) {
+      final distance = _length * (i / count);
+      final tangent = _tangentAtLength(distance);
+      if (tangent == null) continue;
+
+      // Normala na putanju: crtica ide upravno na liniju.
+      final direction = tangent.vector;
+      final normal = Offset(-direction.dy, direction.dx);
+      final half = amplitudes[i] * EdgeProgressRing.waveHeight;
+      final position = tangent.position;
+
+      points[i * 4] = position.dx - normal.dx * half;
+      points[i * 4 + 1] = position.dy - normal.dy * half;
+      points[i * 4 + 2] = position.dx + normal.dx * half;
+      points[i * 4 + 3] = position.dy + normal.dy * half;
+    }
+
+    _wave = points;
+    _builtWaveFor = amplitudes;
+  }
+
+  ui.Tangent? _tangentAtLength(double distance) {
+    var remaining = distance;
+    for (final metric in _metrics) {
+      if (remaining <= metric.length) {
+        return metric.getTangentForOffset(remaining);
+      }
+      remaining -= metric.length;
+    }
+    return null;
   }
 
   /// Gde se na putanji nalazi data dužina.
@@ -190,6 +260,7 @@ class _EdgeProgressRingState extends State<EdgeProgressRing> {
       builder: (context, constraints) {
         final size = Size(constraints.maxWidth, constraints.maxHeight);
         _buildPath(size);
+        _buildWave();
 
         return Stack(
           children: [
@@ -201,6 +272,7 @@ class _EdgeProgressRingState extends State<EdgeProgressRing> {
                   path: _path!,
                   metrics: _metrics,
                   length: _length,
+                  wave: _wave,
                 ),
               ),
             ),
@@ -264,12 +336,16 @@ class _EdgeRingPainter extends CustomPainter {
     required this.path,
     required this.metrics,
     required this.length,
+    required this.wave,
   }) : super(repaint: progress);
 
   final ValueListenable<double> progress;
   final ui.Path path;
   final List<ui.PathMetric> metrics;
   final double length;
+
+  /// Crtice talasa, već izračunate. `null` dok talasni oblik nije spreman.
+  final Float32List? wave;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -283,6 +359,12 @@ class _EdgeRingPainter extends CustomPainter {
 
     // Nepređeni deo: vidljiv, ali povučen.
     canvas.drawPath(path, basePaint);
+
+    final waveform = wave;
+    if (waveform != null) {
+      _paintWave(canvas, waveform, value);
+      return;
+    }
 
     if (value <= 0 || metrics.isEmpty) return;
 
@@ -323,6 +405,50 @@ class _EdgeRingPainter extends CustomPainter {
     }
   }
 
+  /// Crta talas: pređeni deo u boji `accent`, ostatak povučen.
+  ///
+  /// Crtice su unapred izračunate, pa se po kadru samo bira odakle dokle se
+  /// crta — bez ijednog novog računa i bez pravljenja novih listi.
+  void _paintWave(Canvas canvas, Float32List points, double value) {
+    // Granica mora da padne na parni broj tačaka: svaka crtica su dve tačke.
+    final ticks = points.length ~/ 4;
+    final split = (ticks * value).round().clamp(0, ticks) * 4;
+
+    final donePaint = Paint()
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round
+      ..color = AppColors.accent;
+
+    final restPaint = Paint()
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round
+      ..color = AppColors.accentDeep;
+
+    if (split < points.length) {
+      canvas.drawRawPoints(
+        ui.PointMode.lines,
+        Float32List.sublistView(points, split),
+        restPaint,
+      );
+    }
+    if (split > 0) {
+      canvas.drawRawPoints(
+        ui.PointMode.lines,
+        Float32List.sublistView(points, 0, split),
+        donePaint,
+      );
+    }
+
+    final head = _pointAtLength(length * value);
+    if (head != null) {
+      canvas.drawCircle(
+        head,
+        EdgeProgressRing.strokeWidth * 1.6,
+        Paint()..color = AppColors.accent,
+      );
+    }
+  }
+
   Offset? _pointAtLength(double distance) {
     var remaining = distance;
     for (final metric in metrics) {
@@ -336,6 +462,8 @@ class _EdgeRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _EdgeRingPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.path != path;
+    return oldDelegate.progress != progress ||
+        oldDelegate.path != path ||
+        oldDelegate.wave != wave;
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/track.dart';
 import 'audio_playback.dart';
+import 'waveform_service.dart';
 
 /// Vodi reprodukciju i red čekanja.
 ///
@@ -21,7 +22,8 @@ import 'audio_playback.dart';
 /// tada prelazi na pripremljenu — uz preklapanje ako je `fade` uključen,
 /// inače odmah.
 class MusicPlayerController extends ChangeNotifier {
-  MusicPlayerController({required this.playback}) {
+  MusicPlayerController({required this.playback, WaveformService? waveforms})
+    : _waveforms = waveforms ?? WaveformService() {
     _subscriptions.addAll([
       playback.position.listen((value) {
         _position = value;
@@ -45,11 +47,18 @@ class MusicPlayerController extends ChangeNotifier {
 
   final AudioPlayback playback;
 
+  final WaveformService _waveforms;
+
   final List<StreamSubscription<dynamic>> _subscriptions = [];
 
   /// Napredak stoji van widget stabla, da prsten može da se prerisava bez
   /// ponovnog građenja ekrana.
   final ValueNotifier<double> progress = ValueNotifier<double>(0);
+
+  /// Talasni oblik izabrane numere; `null` dok se ne izvuče iz fajla.
+  /// Stoji van widget stabla, kao i napredak — prsten ga čita direktno.
+  final ValueNotifier<List<double>?> waveform =
+      ValueNotifier<List<double>?>(null);
 
   final List<Track> _queue = [];
 
@@ -207,6 +216,8 @@ class MusicPlayerController extends ChangeNotifier {
     _selectedIndex = index;
     _errorMessage = null;
     _isLoading = true;
+    // Talas pripada numeri: dok se novi ne izvuče, prsten crta ravnu liniju.
+    waveform.value = null;
 
     // Dok ništa ne svira, vreme i prsten pripadaju izabranoj numeri.
     if (_soundingIndex < 0) {
@@ -241,6 +252,18 @@ class MusicPlayerController extends ChangeNotifier {
     }
     _updateProgress();
     notifyListeners();
+
+    unawaited(_loadWaveform(index, path));
+  }
+
+  /// Izvlačenje talasnog oblika traje, pa ide sa strane — ekran ga ne čeka.
+  ///
+  /// Ako korisnik u međuvremenu izabere drugu numeru, rezultat se odbacuje:
+  /// inače bi na prstenu osvanuo talas pogrešne pesme.
+  Future<void> _loadWaveform(int index, String path) async {
+    final amplitudes = await _waveforms.amplitudes(path);
+    if (index != _selectedIndex) return;
+    waveform.value = amplitudes;
   }
 
   /// Vraća numeru koja svira na početak. Zvuk se ne pokreće sam.
@@ -368,6 +391,7 @@ class MusicPlayerController extends ChangeNotifier {
       subscription.cancel();
     }
     progress.dispose();
+    waveform.dispose();
     playback.dispose();
     super.dispose();
   }

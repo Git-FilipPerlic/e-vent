@@ -84,11 +84,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
           final track = controller.selected;
 
           return SafeArea(
-            child: EdgeProgressRing(
-              progress: controller.progress,
-              onSeekStart: controller.beginScrub,
-              onSeekUpdate: controller.updateScrub,
-              onSeekEnd: controller.endScrub,
+            child: ValueListenableBuilder<List<double>?>(
+              valueListenable: controller.waveform,
+              builder: (context, amplitudes, child) => EdgeProgressRing(
+                progress: controller.progress,
+                amplitudes: amplitudes,
+                onSeekStart: controller.beginScrub,
+                onSeekUpdate: controller.updateScrub,
+                onSeekEnd: controller.endScrub,
+                child: child,
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(

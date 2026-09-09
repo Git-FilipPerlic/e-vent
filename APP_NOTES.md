@@ -861,11 +861,41 @@ amplituda iz audio fajla. Po `CLAUDE.md` ta odluka se donosi sa korisnikom.
 
 ---
 
+## 9. septembar 2026 — MUSIC-016: talasni oblik u prstenu
+
+Dodat paket **`just_waveform`** (^0.0.7), po odluci korisnika.
+
+- `lib/services/waveform_service.dart` — izvlači amplitude iz fajla i svodi ih
+  na 600 vrednosti 0..1.
+  - Iz svakog opsega se uzima **najglasniji trenutak, ne prosek** — prosek
+    spljošti pesmu i sve deluje podjednako tiho.
+  - Tiha numera se **normalizuje** na punu visinu, inače bi tiho snimljena
+    pesma davala jedva vidljiv talas iako je odnos glasnih i tihih delova isti.
+  - Rezultat se pamti po numeri; neuspeh se takođe pamti, da se ne pokušava
+    iznova pri svakom otvaranju.
+  - Numera koja stiže kao `content://` adresa se ne može otvoriti kao fajl —
+    tada nema talasa, i prsten crta ravnu liniju umesto da pukne.
+  - Privremeni fajl ide u `Directory.systemTemp`, pa **nije trebao još jedan
+    paket** za putanje.
+- `lib/widgets/music/edge_progress_ring.dart` — talas se crta kao **crtice
+  poprečno na putanju**, dužine srazmerne glasnoći.
+  - Crtice se računaju **jednom** po veličini ekrana i po pesmi, u
+    `Float32List`. U toku crtanja se samo bira dokle je pesma stigla i crta se
+    `drawRawPoints` nad **pogledom** na tu istu listu (`sublistView`), bez
+    ijednog novog računa i bez pravljenja novih listi po kadru.
+  - Visina talasa je namerno niska (7 dp na svaku stranu): viši talas prelazi
+    preko sadržaja i pretvara prsten u šumu iz koje se ništa ne čita. Prva
+    verzija je bila 13 dp i baš tako je izgledala.
+- Kontroler izvlači talas **sa strane**, pa ekran ne čeka. Ako korisnik u
+  međuvremenu izabere drugu numeru, rezultat se odbacuje — inače bi na prstenu
+  osvanuo talas pogrešne pesme.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 140/140;
+  provereno na telefonu sa pravim numerama.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
-- **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.
-  Za pravi talasni oblik treba paket (`just_waveform` ili `audio_waveforms`) —
-  odluka se donosi sa korisnikom, kako piše u `CLAUDE.md`.
 - **Release APK za deljenje.** Sadašnji build je debug — radi, ali je krupniji
   i sporiji i nije za deljenje. Za pravu verziju treba ključ za potpisivanje
   (pravi se jednom).

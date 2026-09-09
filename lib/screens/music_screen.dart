@@ -158,12 +158,17 @@ class _MusicScreenState extends State<MusicScreen> {
           // Prsten obilazi **spisak**, ne ceo ekran: dokle je pesma stigla
           // vidi se i ovde, a prevlačenjem uz ivicu se premota dok svira.
           // Dugmad iznad i traka ispod ostaju van prstena, da ih linija ne seče.
-          child: EdgeProgressRing(
-            progress: _player.progress,
-            topInset: EdgeProgressRing.inset,
-            onSeekStart: _player.beginScrub,
-            onSeekUpdate: _player.updateScrub,
-            onSeekEnd: _player.endScrub,
+          child: ValueListenableBuilder<List<double>?>(
+            valueListenable: _player.waveform,
+            builder: (context, amplitudes, child) => EdgeProgressRing(
+              progress: _player.progress,
+              amplitudes: amplitudes,
+              topInset: EdgeProgressRing.inset,
+              onSeekStart: _player.beginScrub,
+              onSeekUpdate: _player.updateScrub,
+              onSeekEnd: _player.endScrub,
+              child: child,
+            ),
             child: _tracks.isEmpty
               ? _emptyList(context)
               : RefreshIndicator(
@@ -172,10 +177,14 @@ class _MusicScreenState extends State<MusicScreen> {
                   backgroundColor: AppColors.surface,
                   child: ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    // Spisak stoji unutar prstena, da ga linija ne preseca.
+                    // Spisak stoji unutar prstena, da ga ni linija ni talas
+                    // ne preseca.
                     padding: const EdgeInsets.symmetric(
-                      horizontal: EdgeProgressRing.inset + AppSpacing.sm,
-                      vertical: EdgeProgressRing.inset + AppSpacing.xs,
+                      horizontal: EdgeProgressRing.inset +
+                          EdgeProgressRing.waveHeight +
+                          AppSpacing.xs,
+                      vertical: EdgeProgressRing.inset +
+                          EdgeProgressRing.waveHeight,
                     ),
                     itemExtent: TrackTile.height,
                     itemCount: _tracks.length,

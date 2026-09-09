@@ -201,9 +201,14 @@ pokretima. Uz to plejer radi bez sistemskih traka, kao druga brana.
 - prerisavanje se okida pozicijom reprodukcije preko `Listenable`, bez
   ponovnog građenja widget stabla; ceo prsten ide u `RepaintBoundary`
 - dok amplitude nisu spremne, crta se ravna linija — nikad prazan ekran
-- paket za izvlačenje talasnog oblika treba izabrati kad se dođe do MUSIC-016
-  (kandidati: `just_waveform`, `audio_waveforms`) — odluka se donosi sa
-  korisnikom, ne usput
+- **izabran paket: `just_waveform`** (odluka od 9. septembra 2026). Izabran
+  zato što **samo izvlači amplitude u fajl i ne nameće svoj widget** — prsten
+  crtamo sami, a amplitude nam trebaju kao podatak. `audio_waveforms` je
+  pravljen za snimanje i dolazi sa gotovim prikazom koji bismo zaobilazili.
+- talas se crta kao **crtice poprečno na putanju**, dužine srazmerne glasnoći;
+  crtice se računaju jednom po pesmi i po veličini ekrana, a u toku crtanja se
+  samo bira dokle je pesma stigla (`drawRawPoints` nad unapred spremljenom
+  `Float32List`, bez pravljenja novih listi po kadru)
 
 #### Red čekanja i kretanje kroz spisak (dogovoreno 9. septembra 2026)
 
@@ -270,8 +275,8 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-013 | Fade-out na kraju i pri pauzi | gotovo |
 | MUSIC-014 | Crossfade između dve numere | gotovo |
 | MUSIC-015 | Prevlačenje po prstenu premotava pesmu | gotovo |
-| MUSIC-016 | Talasni oblik u prstenu (traži paket) | sledeće |
-| MUSIC-017 | Podaci iz fajla: izvođač, album, trajanje | |
+| MUSIC-016 | Talasni oblik u prstenu | gotovo (`just_waveform`) |
+| MUSIC-017 | Podaci iz fajla: izvođač, album, trajanje | sledeće |
 | MUSIC-018 | ~~Pregled foldera sa ulaskom u podfoldere~~ — urađeno uz MUSIC-007 | gotovo |
 | MUSIC-019 | Rad u pozadini + kontrole u notifikaciji (traži paket) | |
 | MUSIC-020 | Pretapanje naslova pri prelasku na sledeću numeru | gotovo |
@@ -597,6 +602,7 @@ za proveru praznih stanja) mogu da posluže kao seed za Firestore.
 | Trajno čuvanje loga | *nije radilo u Expo Go* | `shared_preferences` |
 | Ikonice | Feather (`@expo/vector-icons`) | ugrađene Material ikonice |
 | Audio (Muzika tab) | planirano `expo-av` | **`just_audio`** (izabrano) |
+| Talasni oblik pesme | — | **`just_waveform`** (izabrano) |
 | Bluetooth (LED tab) | planirano `react-native-ble-plx` | `flutter_blue_plus` |
 | Dozvole (Bluetooth, fajlovi) | Expo permissions | `permission_handler` |
 | Vremenska prognoza | — | `http` + Open-Meteo (bez ključa) |
