@@ -3,6 +3,7 @@ import 'package:event_app/screens/music_screen.dart';
 import 'package:event_app/services/music_player_controller.dart';
 import 'package:event_app/services/music_service.dart';
 import 'package:event_app/theme/app_theme.dart';
+import 'package:event_app/widgets/music/edge_progress_ring.dart';
 import 'package:event_app/widgets/music/playback_bar.dart';
 import 'package:event_app/widgets/music/track_tile.dart';
 import 'package:flutter/material.dart';
@@ -231,4 +232,43 @@ void main() {
       expect(find.text('Pregledaj fajlove'), findsOneWidget);
     });
   });
+
+  group('prsten na spisku', () {
+    testWidgets('praznog spiska se prsten ne tiče', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(MusicScreen(service: _EmptyMusicService())),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nijedna numera nije dodata.'), findsOneWidget);
+      // Linija oko praznog ekrana izgleda kao greška, a nema šta da pokaže.
+      expect(find.byType(EdgeProgressRing), findsNothing);
+    });
+
+    testWidgets('kad ima numera, prsten je tu', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _wrap(MusicScreen(service: _SampleMusicService())),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EdgeProgressRing), findsOneWidget);
+    });
+  });
+}
+
+/// Prazan spisak — kao na tek instaliranoj aplikaciji.
+class _EmptyMusicService implements MusicService {
+  @override
+  Future<List<Track>> loadTracks() async => const [];
+}
+
+/// Dve numere, dovoljno da spisak ne bude prazan.
+class _SampleMusicService implements MusicService {
+  @override
+  Future<List<Track>> loadTracks() async => const [
+    Track(id: 'trk-1', title: 'Prva', path: '/muzika/1.mp3'),
+    Track(id: 'trk-2', title: 'Druga', path: '/muzika/2.mp3'),
+  ];
 }

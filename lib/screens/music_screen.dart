@@ -193,47 +193,53 @@ class _MusicScreenState extends State<MusicScreen> {
           // Prsten obilazi **spisak**, ne ceo ekran: dokle je pesma stigla
           // vidi se i ovde, a prevlačenjem uz ivicu se premota dok svira.
           // Dugmad iznad i traka ispod ostaju van prstena, da ih linija ne seče.
-          child: ValueListenableBuilder<List<double>?>(
-            valueListenable: _player.waveform,
-            builder: (context, amplitudes, child) => EdgeProgressRing(
-              progress: _player.progress,
-              amplitudes: amplitudes,
-              topInset: EdgeProgressRing.inset,
-              onSeekStart: _player.beginScrub,
-              onSeekUpdate: _player.updateScrub,
-              onSeekEnd: _player.endScrub,
-              child: child,
-            ),
-            child: _tracks.isEmpty
+          //
+          // **Praznog spiska se prsten ne tiče.** Dok nijedna numera nije
+          // dodata nema šta da pokazuje, a linija oko praznog ekrana izgleda
+          // kao greška — korisnik ju je i prijavio kao „neka zelena linija".
+          child: _tracks.isEmpty
               ? _emptyList(context)
-              : RefreshIndicator(
-                  onRefresh: _loadTracks,
-                  color: AppColors.accent,
-                  backgroundColor: AppColors.surface,
-                  child: ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    // Spisak stoji unutar prstena, da ga ni linija ni talas
-                    // ne preseca.
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: EdgeProgressRing.inset +
-                          EdgeProgressRing.waveHeight +
-                          AppSpacing.xs,
-                      vertical: EdgeProgressRing.inset +
-                          EdgeProgressRing.waveHeight,
+              : ValueListenableBuilder<List<double>?>(
+                  valueListenable: _player.waveform,
+                  builder: (context, amplitudes, child) => EdgeProgressRing(
+                    progress: _player.progress,
+                    amplitudes: amplitudes,
+                    topInset: EdgeProgressRing.inset,
+                    onSeekStart: _player.beginScrub,
+                    onSeekUpdate: _player.updateScrub,
+                    onSeekEnd: _player.endScrub,
+                    child: child,
+                  ),
+                  child: RefreshIndicator(
+                    onRefresh: _loadTracks,
+                    color: AppColors.accent,
+                    backgroundColor: AppColors.surface,
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      // Spisak stoji unutar prstena, da ga ni linija ni talas
+                      // ne preseca.
+                      padding: const EdgeInsets.symmetric(
+                        horizontal:
+                            EdgeProgressRing.inset +
+                            EdgeProgressRing.waveHeight +
+                            AppSpacing.xs,
+                        vertical:
+                            EdgeProgressRing.inset +
+                            EdgeProgressRing.waveHeight,
+                      ),
+                      itemExtent: TrackTile.height,
+                      itemCount: _tracks.length,
+                      itemBuilder: (context, index) {
+                        final track = _tracks[index];
+                        return TrackTile(
+                          track: track,
+                          isSelected: track.id == _player.selected?.id,
+                          onTap: () => _player.onTrackTapped(track),
+                        );
+                      },
                     ),
-                    itemExtent: TrackTile.height,
-                    itemCount: _tracks.length,
-                    itemBuilder: (context, index) {
-                      final track = _tracks[index];
-                      return TrackTile(
-                        track: track,
-                        isSelected: track.id == _player.selected?.id,
-                        onTap: () => _player.onTrackTapped(track),
-                      );
-                    },
                   ),
                 ),
-          ),
         ),
         // Prvi nivo: kontrole uz sam spisak, bez izlaska iz njega.
         // Trake nema dok se numera ne izabere — prazna traka samo zauzima red.
@@ -250,9 +256,8 @@ class _MusicScreenState extends State<MusicScreen> {
         child: Text(
           'Nijedna numera nije dodata.',
           textAlign: TextAlign.center,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(color: AppColors.textSecondary),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(color: AppColors.textSecondary),
         ),
       ),
     );

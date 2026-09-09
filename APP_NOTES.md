@@ -1285,6 +1285,19 @@ jer je na uskom telefonu ispadalo „12. septembar …".
     dodiruje ide u `accent`.
 - Sledeće: ADMIN-008 — zamena lokalne prijave Firebase Auth-om.
 
+## 9. septembar 2026 — prsten se ne crta oko praznog spiska
+
+Korisnik je prijavio „neku zelenu liniju oko cele aplikacije". To je bio naš
+prsten talasnog oblika: crtao se oko spiska numera **i kad nijedna numera
+nije dodata**, pa je oko praznog ekrana stajao okvir koji ništa ne znači.
+
+Pravilo iz specifikacije („dok amplitude nisu spremne, crta se ravna linija")
+važi dok se numera učitava — ne i kad numere uopšte nema. `MusicScreen` sada
+prazan spisak prikazuje bez prstena.
+
+Dva nova testa u `music_test.dart` čuvaju oba slučaja: prazan spisak nema
+prsten, spisak sa numerama ga ima.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Spisak numera se ne pamti.** Živi samo u memoriji `MusicScreen`-a, pa se
