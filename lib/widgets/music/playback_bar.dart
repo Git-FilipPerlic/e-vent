@@ -49,15 +49,25 @@ class PlaybackBar extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      track.displayTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: error == null
-                            ? AppColors.textPrimary
-                            : AppColors.danger,
-                        fontWeight: FontWeight.w600,
+                    // Naslov se pretapa pri prelasku na drugu numeru — inače
+                    // se promena ne primeti.
+                    child: AnimatedSwitcher(
+                      duration: MediaQuery.of(context).disableAnimations
+                          ? Duration.zero
+                          : const Duration(milliseconds: 200),
+                      switchInCurve: Curves.easeOut,
+                      switchOutCurve: Curves.easeOut,
+                      child: Text(
+                        track.displayTitle,
+                        key: ValueKey(track.id),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: error == null
+                              ? AppColors.textPrimary
+                              : AppColors.danger,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),

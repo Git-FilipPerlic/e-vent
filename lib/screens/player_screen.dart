@@ -102,11 +102,13 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       ),
                     ),
                     const Spacer(),
-                    Text(
-                      track?.displayTitle ?? 'Nijedna numera nije izabrana',
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    // Naslov se pretapa pri prelasku na sledeću numeru:
+                    // naglo prebacivanje teksta se ne primeti, a pretapanje
+                    // kaže da se nešto promenilo. Ostatak ekrana miruje.
+                    _FadingTitle(
+                      text:
+                          track?.displayTitle ??
+                          'Nijedna numera nije izabrana',
                       style: theme.textTheme.headlineSmall?.copyWith(
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.w600,
@@ -335,6 +337,39 @@ class _SkipButton extends StatelessWidget {
         tooltip: label,
         color: AppColors.accent,
         disabledColor: AppColors.border,
+      ),
+    );
+  }
+}
+
+/// Naslov koji se **pretopi** kad se pređe na drugu numeru.
+///
+/// Traje 200 ms, koliko i piše u pravilima za pokret: animira se samo ono što
+/// nosi informaciju. Ovde je informacija baš to da se numera promenila.
+class _FadingTitle extends StatelessWidget {
+  const _FadingTitle({required this.text, required this.style});
+
+  final String text;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+
+    return AnimatedSwitcher(
+      duration: reduceMotion
+          ? Duration.zero
+          : const Duration(milliseconds: 200),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeOut,
+      child: Text(
+        text,
+        // Ključ po tekstu: bez njega se pretapanje ne bi ni okinulo.
+        key: ValueKey(text),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: style,
       ),
     );
   }

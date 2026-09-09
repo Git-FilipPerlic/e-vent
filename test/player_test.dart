@@ -523,4 +523,29 @@ void main() {
       controller.dispose();
     });
   });
+
+  group('pretapanje naslova', () {
+    testWidgets('pri prelasku na drugu numeru oba naslova nakratko stoje',
+        (WidgetTester tester) async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
+      await tester.pumpAndSettle();
+      expect(find.text('Uvodna špica'), findsOneWidget);
+
+      await controller.onTrackTapped(_tracks[1]);
+      await tester.pump();
+      // Usred pretapanja se vide oba naslova — stari izlazi, novi ulazi.
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Uvodna špica'), findsOneWidget);
+      expect(find.text('Igre za decu'), findsOneWidget);
+
+      await tester.pumpAndSettle();
+      expect(find.text('Uvodna špica'), findsNothing);
+      expect(find.text('Igre za decu'), findsOneWidget);
+
+      controller.dispose();
+    });
+  });
 }

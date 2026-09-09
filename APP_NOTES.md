@@ -847,6 +847,20 @@ Kad se izabrana razlikuje od one koja svira, i traka i nastupni ekran pišu
 
 ---
 
+## 9. septembar 2026 — MUSIC-020: pretapanje naslova
+
+- Naslov numere se **pretapa** pri prelasku na drugu pesmu, 200 ms — i u
+  nastupnom ekranu i u traci uz spisak. Naglo prebacivanje teksta se ne
+  primeti, a pretapanje kaže da se nešto promenilo. Ostatak ekrana miruje,
+  po pravilima za pokret.
+- Poštuje se sistemsko podešavanje za smanjen pokret.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 137/137.
+
+**Sledeće čeka odluku:** MUSIC-016 (talasni oblik) traži paket za izvlačenje
+amplituda iz audio fajla. Po `CLAUDE.md` ta odluka se donosi sa korisnikom.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.
