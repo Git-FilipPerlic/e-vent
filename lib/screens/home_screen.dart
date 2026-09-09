@@ -10,6 +10,7 @@ import '../services/mock_event_service.dart';
 import '../services/weather_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/edit_text_sheet.dart';
+import '../widgets/common/event_when_sheet.dart';
 import '../widgets/common/error_retry.dart';
 import '../widgets/home/event_address.dart';
 import '../widgets/home/event_categories.dart';
@@ -117,20 +118,81 @@ class _HomeScreenState extends State<HomeScreen> {
     if (text == null) return;
     if (!mounted) return;
 
-    final updated = apply(event, text);
+    await _saveEdited(apply(event, text), previous: event);
+  }
+
+  /// Upisuje izmenjen događaj: prvo na ekran, pa u servis.
+  ///
+  /// Ako upis pukne, vraća se staro stanje i javi porukom — bolje nego da
+  /// korisnik ostane sa podatkom koji misli da je sačuvan.
+  Future<void> _saveEdited(Event updated, {required Event previous}) async {
     setState(() => _event = updated);
 
     try {
       await _service.saveEvent(updated);
     } catch (_) {
       if (!mounted) return;
-      setState(() => _event = event);
+      setState(() => _event = previous);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
           const SnackBar(content: Text('Izmena nije sačuvana.')),
         );
     }
+  }
+
+  /// Datum, sat početka i trajanje — sve troje kroz jedan list.
+  Future<void> _editWhen() async {
+    final event = _event;
+    if (event == null) return;
+
+    final picked = await showEventWhenSheet(
+      context,
+      value: EventWhen(
+        start: event.eventDate,
+        durationMinutes: event.durationMinutes,
+      ),
+    );
+    if (picked == null) return;
+    if (!mounted) return;
+
+    await _saveEdited(
+      event.copyWith(
+        eventDate: picked.start,
+        durationMinutes: picked.durationMinutes,
+      ),
+      previous: event,
+    );
+  }
+
+  /// Vreme polaska. Dan se uzima od događaja — polazi se na dan nastupa.
+  Future<void> _editDeparture() async {
+    final event = _event;
+    if (event == null) return;
+
+    final current = event.departureTime;
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: current != null
+          ? TimeOfDay(hour: current.hour, minute: current.minute)
+          : const TimeOfDay(hour: 14, minute: 0),
+    );
+    if (picked == null) return;
+    if (!mounted) return;
+
+    final day = current ?? event.eventDate ?? DateTime.now();
+    await _saveEdited(
+      event.copyWith(
+        departureTime: DateTime(
+          day.year,
+          day.month,
+          day.day,
+          picked.hour,
+          picked.minute,
+        ),
+      ),
+      previous: event,
+    );
   }
 
   Future<void> _loadEvent() async {
@@ -345,6 +407,7 @@ class _HomeScreenState extends State<HomeScreen> {
             date: _event?.eventDate,
             durationMinutes: _event?.durationMinutes,
             type: _event?.type,
+            onEditWhen: !_canEdit ? null : _editWhen,
             onEdit: !_canEdit
                 ? null
                 : () => _editField(
@@ -397,6 +460,7 @@ class _HomeScreenState extends State<HomeScreen> {
           DepartureTime(
             departure: _event?.departureTime,
             travelMinutes: _event?.travelDurationMinutes,
+            onEdit: !_canEdit ? null : _editDeparture,
           ),
           VehiclePicker(
             vehicles: _vehicles,

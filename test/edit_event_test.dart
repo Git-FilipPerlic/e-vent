@@ -5,12 +5,19 @@ import 'package:event_app/services/event_service.dart';
 import 'package:event_app/services/mock_event_service.dart';
 import 'package:event_app/theme/app_theme.dart';
 import 'package:event_app/utils/date_format.dart';
+import 'package:event_app/widgets/common/edit_text_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Widget _wrap(Widget child) {
   return MaterialApp(theme: AppTheme.dark, home: child);
 }
+
+/// Olovka koja menja baš to polje. Traži se po nazivu polja, ne po broju
+/// olovaka — spisak se gradi u koracima, pa broj zavisi od skrolovanja.
+Finder _pencil(String label) => find.byWidgetPredicate(
+  (widget) => widget is EditFieldButton && widget.label == label,
+);
 
 void main() {
   setUpAll(() => AppDate.init());
@@ -81,7 +88,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // Naziv, organizator, telefon i adresa.
-      expect(find.byIcon(Icons.edit_rounded), findsNWidgets(4));
+      // Ne broji se koliko ih ima — spisak se gradi u koracima, pa broj
+      // zavisi od toga dokle je skrolovano. Proverava se da su prave tu.
+      expect(_pencil('Naziv događaja'), findsOneWidget);
+      expect(_pencil('Datum, sat i trajanje'), findsOneWidget);
+      expect(_pencil('Organizator'), findsOneWidget);
     });
 
     testWidgets('izvođač bez dozvole nema olovke',
@@ -103,7 +114,7 @@ void main() {
       await tester.pumpWidget(_wrap(HomeScreen(auth: auth)));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.edit_rounded).first);
+      await tester.tap(_pencil('Naziv događaja'));
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), '9 Petar');

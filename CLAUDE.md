@@ -458,7 +458,7 @@ popunjavanje tabele koja se posle deli timu.
 | ADMIN-001 | Prijava i odjava, uloge `glavni` i `user` | gotovo |
 | ADMIN-002 | Bez prijave je aplikacija samo za čitanje | gotovo |
 | ADMIN-003 | Prijavljeni korisnik i dugmad u headeru | gotovo |
-| ADMIN-004 | Polja na Home tabu se popunjavaju kad ima dozvole | tekstualna gotova; datum, sat, trajanje i polazak sledeći |
+| ADMIN-004 | Polja na Home tabu se popunjavaju kad ima dozvole | gotovo |
 | ADMIN-005 | Izbor kategorija opreme za događaj + dodela vozila | gotovo |
 | ADMIN-006 | Izmena delova kategorije iz konzole | gotovo |
 | ADMIN-007 | „Create and share" — dodela događaja timu | sledeće |

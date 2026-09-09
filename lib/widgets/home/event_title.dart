@@ -36,7 +36,14 @@ class EventTitle extends StatelessWidget {
     this.durationMinutes,
     this.type,
     this.onEdit,
+    this.onEditWhen,
   });
+
+  /// Otvara izbor datuma, sata i trajanja. `null` kad nema dozvole.
+  ///
+  /// Sve troje ide kroz **jednu** olovku jer se zajedno i misli:
+  /// „dvanaesti, u četiri, dva sata".
+  final VoidCallback? onEditWhen;
 
   /// Vrsta događaja. Stoji umesto reči „Događaj" — isti prostor, a odmah se
   /// zna ide li se na rođendan, krštenje, svadbu, nastup ili festival.
@@ -99,8 +106,6 @@ class EventTitle extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (onEdit != null)
-                  EditFieldButton(label: 'Naziv događaja', onTap: onEdit!),
                 if (when != null) ...[
                   // Datum se skuplja do pune širine, pa mu treba razmak da se
                   // ne slepi sa satom u "12. septembar16:00".
@@ -113,10 +118,18 @@ class EventTitle extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (onEditWhen != null)
+                  EditFieldButton(
+                    label: 'Datum, sat i trajanje',
+                    onTap: onEditWhen!,
+                  ),
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text.rich(
+            Row(
+              children: [
+                Expanded(
+                  child: Text.rich(
               TextSpan(
                 text: hasTitle ? title!.trim() : 'Naziv događaja nije unet',
                 children: [
@@ -137,6 +150,14 @@ class EventTitle extends StatelessWidget {
                 fontWeight: hasTitle ? FontWeight.w600 : FontWeight.w400,
                 height: 1.2,
               ),
+                  ),
+                ),
+                // Olovka za naziv stoji uz sam naziv. Ranije je stajala u
+                // gornjem redu, između datuma i sata, pa je delovalo kao da
+                // menja vreme.
+                if (onEdit != null)
+                  EditFieldButton(label: 'Naziv događaja', onTap: onEdit!),
+              ],
             ),
           ],
         ),

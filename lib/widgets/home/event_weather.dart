@@ -112,11 +112,16 @@ class EventWeather extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(start.condition.icon, color: AppColors.accent, size: 28),
+            // Ikonica je bledosiva, a ne tirkizna: tirkiz u ovoj aplikaciji
+            // znači „ovo se dodiruje", a oblak se ne dodiruje.
+            Icon(start.condition.icon, color: AppColors.textSecondary,
+                size: 22),
             const SizedBox(width: AppSpacing.md),
+            // Ceo red je iste veličine slova — temperatura i opis se čitaju
+            // zajedno, pa nema razloga da jedno skače nad drugim.
             Text(
               '${start.temperature.round()}°',
-              style: theme.textTheme.headlineSmall?.copyWith(
+              style: theme.textTheme.titleMedium?.copyWith(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w700,
               ),
@@ -126,7 +131,7 @@ class EventWeather extends StatelessWidget {
               child: Text(
                 start.condition.label,
                 maxLines: 2,
-                style: theme.textTheme.bodyMedium?.copyWith(
+                style: theme.textTheme.titleMedium?.copyWith(
                   color: AppColors.textSecondary,
                 ),
               ),

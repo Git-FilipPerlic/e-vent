@@ -1187,6 +1187,40 @@ Rešenje nije duži naziv nego zaseban podatak.
 - Sledeće: ADMIN-007 — „Create and share", pravljenje događaja i dodela timu.
   Uz to ide i izbor vrste pri pravljenju.
 
+## 9. septembar 2026 — ADMIN-004 dovršen: biranje datuma, sata i trajanja
+
+Ovo je poslednji deo ADMIN-004 koji je stajao nedovršen, a morao je pre
+ADMIN-007: nov događaj se ne može napraviti bez biranja datuma.
+
+- Urađeno:
+  - Nov `lib/widgets/common/event_when_sheet.dart` — **datum, sat početka i
+    trajanje u jednom listu**, jer se tako i misli: „dvanaesti, u četiri, dva
+    sata". Tri odvojena lista bi značila tri otvaranja za jednu odluku.
+    Datum i sat idu kroz sistemske birače, trajanje kroz ponuđene vrednosti
+    (45min, 1h, 1h30, 2h, 3h, 4h) plus „Drugo" za unos u minutima.
+  - Sat se podrazumeva na **16:00** kad se bira samo datum — nastupi su
+    popodne i uveče, pa je to bliže istini nego ponoć.
+  - `DepartureTime` je dobio olovku; dan polaska se uzima od događaja.
+  - `HomeScreen._saveEdited` je izdvojen iz `_editField`, pa svi načini
+    izmene (tekst, datum, polazak) dele isto optimističko čuvanje sa
+    vraćanjem unazad kad upis pukne.
+  - **Olovka za naziv je premeštena** iz gornjeg reda uz sam naziv. Ranije je
+    stajala između datuma i sata, pa je delovalo kao da menja vreme.
+  - Ikonica vremenske prognoze je iz tirkizne prešla u bledosivu, a ceo taj
+    red je izjednačen po veličini slova — tirkiz u ovoj aplikaciji znači
+    „ovo se dodiruje", a oblak se ne dodiruje. (Primedba korisnika.)
+- Provereno:
+  - `flutter analyze` čist, `flutter test` 264/264.
+  - Nov `test/event_when_test.dart` (9 testova): prikaz postojeće vrednosti,
+    prazno stanje, odustajanje, izbor trajanja, „Drugo", odbijanje besmislenog
+    broja minuta, i dozvole na Home tabu.
+  - `test/edit_event_test.dart` više **ne broji olovke** nego ih traži po
+    nazivu polja — spisak se gradi u koracima, pa je broj zavisio od
+    skrolovanja.
+- Otvoreni problemi:
+  - Vizuelna provera na telefonu — telefon se zaključao.
+- Sledeće: ADMIN-007 — pravljenje događaja i dodela timu.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

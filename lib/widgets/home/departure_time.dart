@@ -2,12 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
 import '../../utils/date_format.dart';
+import '../common/edit_text_sheet.dart';
 
 /// HOME-007 — vreme polaska na događaj.
 ///
 /// Widget je "glup": prima gotovo vreme kroz konstruktor.
 class DepartureTime extends StatelessWidget {
-  const DepartureTime({super.key, required this.departure, this.travelMinutes});
+  const DepartureTime({
+    super.key,
+    required this.departure,
+    this.travelMinutes,
+    this.onEdit,
+  });
+
+  /// Otvara izbor vremena polaska. `null` kad nema dozvole.
+  final VoidCallback? onEdit;
 
   /// Planirano vreme kretanja. Može da bude `null`.
   final DateTime? departure;
@@ -77,6 +86,8 @@ class DepartureTime extends StatelessWidget {
                 ],
               ),
             ),
+            if (onEdit != null)
+              EditFieldButton(label: 'Vreme polaska', onTap: onEdit!),
           ],
         ),
       ),
