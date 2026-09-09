@@ -47,6 +47,12 @@ class JustAudioPlayback implements AudioPlayback {
   /// Koliko traje fade-in kad je uključen.
   static const Duration fadeInDuration = Duration(seconds: 10);
 
+  /// Koliko se najduže čeka da se numera otvori.
+  ///
+  /// Bez ovoga plejer ume da ostane zauvek na "učitava se": kad putanja ne
+  /// postoji ili je fajl nedostupan, `just_audio` ne vrati ni grešku.
+  static const Duration loadTimeout = Duration(seconds: 15);
+
   /// Na koliko koraka se pojačava zvuk. Sitniji koraci se ne čuju bolje,
   /// a troše bateriju.
   static const Duration _fadeStep = Duration(milliseconds: 200);
@@ -66,9 +72,9 @@ class JustAudioPlayback implements AudioPlayback {
       // Na Androidu birač fajlova vraća `content://` adresu, ne putanju
       // na disku — plejer mora da primi i jedno i drugo.
       if (path.contains('://')) {
-        return await _player.setUrl(path);
+        return await _player.setUrl(path).timeout(loadTimeout);
       }
-      return await _player.setFilePath(path);
+      return await _player.setFilePath(path).timeout(loadTimeout);
     } catch (_) {
       throw AudioLoadException(path);
     }
