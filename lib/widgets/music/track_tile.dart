@@ -44,10 +44,13 @@ class TrackTile extends StatelessWidget {
   }
 
   /// Izvor se prepoznaje po ikonici, jer za tekst nema mesta u zbijenom redu.
+  ///
+  /// Obe ikonice su muzičke: ikonica foldera u spisku pesama izgleda kao da je
+  /// red folder, a ne numera.
   static IconData iconForSource(TrackSource source) {
     return source == TrackSource.playlist
         ? Icons.queue_music_rounded
-        : Icons.folder_rounded;
+        : Icons.audiotrack_rounded;
   }
 
   @override

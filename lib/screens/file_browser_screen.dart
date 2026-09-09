@@ -137,11 +137,20 @@ class _FileBrowserScreenState extends State<FileBrowserScreen> {
 
   int get _audioCount => _entries.where((e) => !e.isFolder).length;
 
+  /// Naziv otvorenog foldera. Unutrašnja memorija se zove svojim imenom, a ne
+  /// "0" — koliko god tako stajalo u putanji.
+  String get _title {
+    final path = _path;
+    if (path == null) return 'Izaberi muziku';
+    if (path == FileBrowser.internalStorage) return 'Memorija telefona';
+    return path.split('/').last;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_path == null ? 'Izaberi muziku' : _path!.split('/').last),
+        title: Text(_title),
         leading: IconButton(
           onPressed: () {
             final parent = _parentPath;

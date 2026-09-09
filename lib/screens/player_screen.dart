@@ -139,23 +139,27 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Widget _controls(ThemeData theme, MusicPlayerController controller) {
     final ready = controller.isReady;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _SkipButton(
-          icon: Icons.replay_10_rounded,
-          label: '10 sekundi unazad',
-          onPressed: ready ? () => controller.skip(-skipStep) : null,
-        ),
-        const SizedBox(width: AppSpacing.lg),
-        _playButton(theme, controller),
-        const SizedBox(width: AppSpacing.lg),
-        _SkipButton(
-          icon: Icons.forward_10_rounded,
-          label: '10 sekundi unapred',
-          onPressed: ready ? () => controller.skip(skipStep) : null,
-        ),
-      ],
+    // Na užim ekranima se ceo red skuplja umesto da se prelije preko ivice.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _SkipButton(
+            icon: Icons.replay_10_rounded,
+            label: '10 sekundi unazad',
+            onPressed: ready ? () => controller.skip(-skipStep) : null,
+          ),
+          const SizedBox(width: AppSpacing.md),
+          _playButton(theme, controller),
+          const SizedBox(width: AppSpacing.md),
+          _SkipButton(
+            icon: Icons.forward_10_rounded,
+            label: '10 sekundi unapred',
+            onPressed: ready ? () => controller.skip(skipStep) : null,
+          ),
+        ],
+      ),
     );
   }
 

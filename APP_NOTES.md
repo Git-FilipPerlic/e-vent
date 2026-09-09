@@ -743,6 +743,31 @@ bi nastavak ostao tih.
 
 ---
 
+## 9. septembar 2026 — provera na telefonu i tri popravke
+
+Prsten je potvrđen na uređaju: gornja linija ide ispod headera, kreće iz levog
+ugla i pomera se tačno srazmerno vremenu. Pregled fajlova otvara prave foldere
+(`Music` sa 14 numera), spisak ih učita, traka sa kontrolama radi.
+
+Nađeno i popravljeno u toj proveri:
+
+- **Red sa kontrolama se prelivao preko ivice** ("RIGHT OVERFLOWED BY 16
+  PIXELS") — dugme "+10" je ispadalo sa ekrana. Red sada ide kroz `FittedBox`,
+  pa se skuplja umesto da se prelije.
+- **Numere su nosile ikonicu foldera.** U spisku pesama to izgleda kao da je
+  red folder, a ne numera. Sada su obe ikonice muzičke: nota za folder,
+  spisak za plejlistu.
+- **Naslov pregleda je pisao „0"** za unutrašnju memoriju, jer se u putanji
+  `/storage/emulated/0` poslednji deo tako zove. Sada piše
+  "Memorija telefona".
+
+Otvoreno: numere iz pregleda nemaju trajanje dok se ne otvore (`--:--`) —
+to rešava MUSIC-017, čitanje podataka iz fajla.
+
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 131/131.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.

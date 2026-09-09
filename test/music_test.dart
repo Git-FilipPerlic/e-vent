@@ -127,7 +127,8 @@ void main() {
       );
 
       expect(find.text('Vatreni show'), findsOneWidget);
-      expect(find.byIcon(Icons.folder_rounded), findsOneWidget);
+      // Obe ikonice su muzičke: folder u spisku pesama zbunjuje.
+      expect(find.byIcon(Icons.audiotrack_rounded), findsOneWidget);
     });
   });
 
