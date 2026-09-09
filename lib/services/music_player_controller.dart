@@ -74,6 +74,10 @@ class MusicPlayerController extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  /// Dok prst vuče po prstenu, pozicija sa plejera se ne upisuje u prsten —
+  /// inače bi linija skakala napred-nazad ispod prsta.
+  bool _isScrubbing = false;
+
   /// Red čekanja, redom kojim će se svirati.
   List<Track> get queue => List.unmodifiable(_queue);
 
@@ -104,10 +108,42 @@ class MusicPlayerController extends ChangeNotifier {
   bool get isReady => selected != null && !_isLoading && _errorMessage == null;
 
   void _updateProgress() {
+    if (_isScrubbing) return;
     final total = _duration?.inMilliseconds ?? 0;
     progress.value = total == 0
         ? 0
         : (_position.inMilliseconds / total).clamp(0.0, 1.0);
+  }
+
+  /// Prst je spušten na prsten.
+  void beginScrub() {
+    if (!isReady) return;
+    _isScrubbing = true;
+  }
+
+  /// Prst se pomera po prstenu: linija ga prati odmah, zvuk još ne.
+  void updateScrub(double fraction) {
+    if (!_isScrubbing) return;
+    progress.value = fraction.clamp(0.0, 1.0);
+  }
+
+  /// Prst je podignut — tek tada se pesma zaista premota.
+  ///
+  /// Premotavanje se ne radi u toku vučenja: svako pomeranje bi tražilo novo
+  /// otvaranje mesta u fajlu, pa bi zvuk krčao.
+  Future<void> endScrub(double fraction) async {
+    if (!_isScrubbing) return;
+    _isScrubbing = false;
+
+    final total = _duration;
+    if (total == null || total == Duration.zero) return;
+
+    final target = total * fraction.clamp(0.0, 1.0);
+    await playback.seek(target);
+    _position = target;
+    _isFadingOut = false;
+    _updateProgress();
+    notifyListeners();
   }
 
   /// Pred kraj numere zvuk se sam spusti do tišine, ako je pretapanje

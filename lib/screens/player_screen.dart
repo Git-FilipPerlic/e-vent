@@ -86,6 +86,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
           return SafeArea(
             child: EdgeProgressRing(
               progress: controller.progress,
+              onSeekStart: controller.beginScrub,
+              onSeekUpdate: controller.updateScrub,
+              onSeekEnd: controller.endScrub,
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(

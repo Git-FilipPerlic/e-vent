@@ -269,8 +269,8 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-012 | Skip napred / skip nazad | gotovo |
 | MUSIC-013 | Fade-out na kraju i pri pauzi | gotovo |
 | MUSIC-014 | Crossfade između dve numere | gotovo |
-| MUSIC-015 | Prevlačenje po prstenu premotava pesmu | sledeće |
-| MUSIC-016 | Talasni oblik u prstenu (traži paket) | |
+| MUSIC-015 | Prevlačenje po prstenu premotava pesmu | gotovo |
+| MUSIC-016 | Talasni oblik u prstenu (traži paket) | sledeće |
 | MUSIC-017 | Podaci iz fajla: izvođač, album, trajanje | |
 | MUSIC-018 | ~~Pregled foldera sa ulaskom u podfoldere~~ — urađeno uz MUSIC-007 | gotovo |
 | MUSIC-019 | Rad u pozadini + kontrole u notifikaciji (traži paket) | |

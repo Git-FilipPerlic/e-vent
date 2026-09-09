@@ -461,4 +461,66 @@ void main() {
       controller.dispose();
     });
   });
+
+  group('premotavanje prstom po prstenu', () {
+    test('dok prst vuče, prsten prati prst a zvuk se ne dira', () async {
+      final playback = FakePlayback(
+        trackDuration: const Duration(seconds: 200),
+      );
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      controller.beginScrub();
+      controller.updateScrub(0.75);
+
+      // Linija je odmah otišla za prstom...
+      expect(controller.progress.value, closeTo(0.75, 0.001));
+      // ...a pesma još nije premotana: premotavanje u toku vučenja bi krčalo.
+      expect(playback.lastSeek, isNull);
+      controller.dispose();
+    });
+
+    test('pozicija sa plejera ne pomera prsten dok prst vuče', () async {
+      final playback = FakePlayback(
+        trackDuration: const Duration(seconds: 200),
+      );
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      controller.beginScrub();
+      controller.updateScrub(0.75);
+      playback.emitPosition(const Duration(seconds: 10));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.progress.value, closeTo(0.75, 0.001));
+      controller.dispose();
+    });
+
+    test('kad se prst podigne, pesma se premota na to mesto', () async {
+      final playback = FakePlayback(
+        trackDuration: const Duration(seconds: 200),
+      );
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      controller.beginScrub();
+      controller.updateScrub(0.5);
+      await controller.endScrub(0.5);
+
+      expect(playback.lastSeek, const Duration(seconds: 100));
+      expect(controller.position, const Duration(seconds: 100));
+      controller.dispose();
+    });
+
+    test('bez spremne numere prevlačenje ne radi ništa', () async {
+      final playback = FakePlayback(failsToLoad: true);
+      final controller = await _controllerWith(playback);
+
+      controller.beginScrub();
+      await controller.endScrub(0.5);
+
+      expect(playback.lastSeek, isNull);
+      controller.dispose();
+    });
+  });
 }

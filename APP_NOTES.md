@@ -824,6 +824,29 @@ Kad se izabrana razlikuje od one koja svira, i traka i nastupni ekran pišu
 
 ---
 
+## 9. septembar 2026 — MUSIC-015: prsten na plejlisti i premotavanje prstom
+
+- **Prsten sada obilazi i spisak numera**, ne samo nastupni ekran. Obilazi
+  baš spisak, a ne ceo ekran — dugmad iznad i traka ispod ostaju van njega,
+  da ih linija ne seče.
+- **Premotavanje prevlačenjem (MUSIC-015).** Prevlačenjem uz ivicu se pesma
+  premota dok svira.
+  - Dodir se hvata samo u **četiri uske trake (30 dp) uz ivice**. Gornja i
+    donja primaju vodoravno prevlačenje, leva i desna uspravno — u smeru u
+    kome linija i ide. Tako spisak u sredini normalno skroluje.
+  - Mesto pod prstom se prevodi u deo pesme **uzorkovanjem putanje** i
+    traženjem najbliže tačke: jednostavnije i sigurnije od računanja po
+    uglovima, a dovoljno tačno za prst.
+  - **Dok prst vuče, linija ga prati odmah, a zvuk se ne dira.** Premotavanje
+    se izvršava tek kad se prst podigne — svako pomeranje bi tražilo novo
+    otvaranje mesta u fajlu, pa bi zvuk krčao.
+  - Dok traje vučenje, pozicija sa plejera se ne upisuje u prsten, inače bi
+    linija skakala napred-nazad ispod prsta.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 136/136
+  (4 nova testa za premotavanje); provereno na telefonu sa 14 pravih numera.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.

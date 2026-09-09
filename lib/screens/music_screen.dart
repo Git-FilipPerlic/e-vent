@@ -6,6 +6,7 @@ import '../services/music_player_controller.dart';
 import '../services/music_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
+import '../widgets/music/edge_progress_ring.dart';
 import '../widgets/music/playback_bar.dart';
 import '../widgets/music/track_tile.dart';
 import 'file_browser_screen.dart';
@@ -154,7 +155,16 @@ class _MusicScreenState extends State<MusicScreen> {
           ),
         ),
         Expanded(
-          child: _tracks.isEmpty
+          // Prsten obilazi **spisak**, ne ceo ekran: dokle je pesma stigla
+          // vidi se i ovde, a prevlačenjem uz ivicu se premota dok svira.
+          // Dugmad iznad i traka ispod ostaju van prstena, da ih linija ne seče.
+          child: EdgeProgressRing(
+            progress: _player.progress,
+            topInset: EdgeProgressRing.inset,
+            onSeekStart: _player.beginScrub,
+            onSeekUpdate: _player.updateScrub,
+            onSeekEnd: _player.endScrub,
+            child: _tracks.isEmpty
               ? _emptyList(context)
               : RefreshIndicator(
                   onRefresh: _loadTracks,
@@ -162,7 +172,11 @@ class _MusicScreenState extends State<MusicScreen> {
                   backgroundColor: AppColors.surface,
                   child: ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.zero,
+                    // Spisak stoji unutar prstena, da ga linija ne preseca.
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: EdgeProgressRing.inset + AppSpacing.sm,
+                      vertical: EdgeProgressRing.inset + AppSpacing.xs,
+                    ),
                     itemExtent: TrackTile.height,
                     itemCount: _tracks.length,
                     itemBuilder: (context, index) {
@@ -175,6 +189,7 @@ class _MusicScreenState extends State<MusicScreen> {
                     },
                   ),
                 ),
+          ),
         ),
         // Prvi nivo: kontrole uz sam spisak, bez izlaska iz njega.
         // Trake nema dok se numera ne izabere — prazna traka samo zauzima red.
