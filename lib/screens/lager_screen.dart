@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/checklist.dart';
+import '../models/event.dart';
 import '../services/event_service.dart';
 import '../services/mock_event_service.dart';
 import '../theme/app_theme.dart';
@@ -24,13 +25,20 @@ enum LagerMode {
   final String progressLabel;
 }
 
-/// Lager tab — checklist opreme po sekcijama.
+/// Lager tab — checklist opreme po kategorijama.
+///
+/// Prikazuju se **samo kategorije koje je manager izabrao za taj događaj**, sa
+/// svim delovima koji im pripadaju. Ono što se ne nosi se ne prikazuje — na
+/// nastupu nema vremena za prelistavanje opreme koja nije ni ponesena.
 ///
 /// Ista lista služi dvaput: **pre** događaja se čekira šta je spakovano, a
 /// **posle** događaja šta se vratilo. Zato svaki režim ima svoje kvačice —
 /// pakovanje se ne poništava kad se posle raspakuje.
 class LagerScreen extends StatefulWidget {
-  const LagerScreen({super.key});
+  const LagerScreen({super.key, this.eventId = 'evt-001'});
+
+  /// Događaj čije se kategorije prikazuju.
+  final String eventId;
 
   @override
   State<LagerScreen> createState() => _LagerScreenState();
@@ -40,7 +48,11 @@ class _LagerScreenState extends State<LagerScreen> {
   /// Jedino mesto gde se bira izvor podataka.
   final EventService _service = MockEventService();
 
-  List<ChecklistSection> _sections = const [];
+  /// Ceo katalog kategorija koje firma ima.
+  List<ChecklistSection> _catalog = const [];
+
+  /// Kategorije izabrane za ovaj događaj.
+  List<String> _selectedCategoryIds = const [];
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -74,10 +86,16 @@ class _LagerScreenState extends State<LagerScreen> {
     });
 
     try {
-      final sections = await _service.loadChecklistTemplate();
+      // Treba i katalog i događaj: katalog kaže šta firma ima, događaj kaže
+      // šta se na njega nosi.
+      final results = await Future.wait([
+        _service.loadChecklistTemplate(),
+        _service.loadEvent(widget.eventId),
+      ]);
       if (!mounted) return;
       setState(() {
-        _sections = sections;
+        _catalog = results[0] as List<ChecklistSection>;
+        _selectedCategoryIds = (results[1] as Event).categoryIds;
         _isLoading = false;
       });
     } catch (_) {
@@ -88,6 +106,12 @@ class _LagerScreenState extends State<LagerScreen> {
       });
     }
   }
+
+  /// Kategorije koje se prikazuju: samo one izabrane za ovaj događaj.
+  List<ChecklistSection> get _sections => [
+    for (final section in _catalog)
+      if (_selectedCategoryIds.contains(section.id)) section,
+  ];
 
   int get _totalItems =>
       _sections.fold(0, (sum, section) => sum + section.items.length);
@@ -133,8 +157,8 @@ class _LagerScreenState extends State<LagerScreen> {
     final id = 'dodato-${_nextAddedNumber++}';
     setState(() {
       _addedItemIds.add(id);
-      _sections = [
-        for (final section in _sections)
+      _catalog = [
+        for (final section in _catalog)
           if (section.id == sectionId)
             ChecklistSection(
               id: section.id,
@@ -153,8 +177,8 @@ class _LagerScreenState extends State<LagerScreen> {
       for (final checked in _checked.values) {
         checked.remove(itemId);
       }
-      _sections = [
-        for (final section in _sections)
+      _catalog = [
+        for (final section in _catalog)
           if (section.id == sectionId)
             ChecklistSection(
               id: section.id,
@@ -210,6 +234,18 @@ class _LagerScreenState extends State<LagerScreen> {
             total: _totalItems,
             label: _mode.progressLabel,
           ),
+          if (_sections.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Text(
+                'Za ovaj događaj nije izabrana nijedna kategorija opreme. '
+                'Bira ih manager na Home tabu.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
           for (final section in _sections)
             ChecklistSectionTile(
               section: section,

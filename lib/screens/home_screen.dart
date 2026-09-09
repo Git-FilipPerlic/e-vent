@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/checklist.dart';
 import '../models/event.dart';
 import '../models/vehicle.dart';
 import '../models/weather.dart';
@@ -11,6 +12,7 @@ import '../theme/app_theme.dart';
 import '../widgets/common/edit_text_sheet.dart';
 import '../widgets/common/error_retry.dart';
 import '../widgets/home/event_address.dart';
+import '../widgets/home/event_categories.dart';
 import '../widgets/home/departure_time.dart';
 import '../widgets/home/data_readiness.dart';
 import '../widgets/home/event_reminder.dart';
@@ -56,6 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Event? _event;
   List<Vehicle> _vehicles = const [];
+
+  /// Sve kategorije opreme koje firma ima — iz njih manager bira.
+  List<ChecklistSection> _catalog = const [];
 
   EventForecast? _forecast;
   bool _isForecastLoading = false;
@@ -140,12 +145,14 @@ class _HomeScreenState extends State<HomeScreen> {
       final results = await Future.wait([
         _service.loadEvent(_eventId),
         _service.loadVehicles(),
+        _service.loadChecklistTemplate(),
       ]);
       if (!mounted) return;
       final event = results[0] as Event;
       setState(() {
         _event = event;
         _vehicles = results[1] as List<Vehicle>;
+        _catalog = results[2] as List<ChecklistSection>;
         _isLoading = false;
       });
       // Prognoza se učitava odvojeno: ekran se ne čeka zbog mreže, a ako
@@ -199,6 +206,36 @@ class _HomeScreenState extends State<HomeScreen> {
         _forecastError = 'Prognoza nije dostupna (${e.reason}).';
         _isForecastLoading = false;
       });
+    }
+  }
+
+  /// Otvara izbor kategorija opreme i pamti ga.
+  Future<void> _editCategories() async {
+    final event = _event;
+    if (event == null) return;
+
+    final chosen = await showCategoryPicker(
+      context,
+      catalog: _catalog,
+      selectedIds: event.categoryIds,
+    );
+    // Korisnik je odustao.
+    if (chosen == null) return;
+    if (!mounted) return;
+
+    final updated = event.copyWith(categoryIds: chosen);
+    setState(() => _event = updated);
+
+    try {
+      await _service.saveEvent(updated);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _event = event);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Izbor kategorija nije sačuvan.')),
+        );
     }
   }
 
@@ -332,6 +369,13 @@ class _HomeScreenState extends State<HomeScreen> {
             selectedVehicleId: _event?.vehicleId,
             onSelected: _selectVehicle,
             onAdd: _addVehicle,
+            // Vozilo bira manager; bez prijave se samo vidi koje je izabrano.
+            canEdit: _canEdit,
+          ),
+          EventCategories(
+            catalog: _catalog,
+            selectedIds: _event?.categoryIds ?? const [],
+            onEdit: _canEdit ? _editCategories : null,
           ),
           ParticipantsList(participants: participants),
           TeamStatus(participants: participants),

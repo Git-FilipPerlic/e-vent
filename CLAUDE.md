@@ -125,6 +125,29 @@ korisnik može da doda svoju stavku, traka napretka i limit od 90 stavki.
 *Raspakivanje* posle. Odvojeni su namerno — kad se posle događaja proverava
 šta se vratilo, ne sme da se poništi ono što je pre bilo spakovano.
 
+#### Kategorije opreme (dogovoreno 9. septembra 2026)
+
+Lager ne prikazuje **sve** što firma poseduje, nego samo ono što ide na taj
+događaj. Veza ide ovako:
+
+1. **Manager u konzoli bira kategorije** za događaj — na primer *Vatra*,
+   *LED*, *Ring*. Bira ih iz spiska kategorija koje firma ima.
+2. **Lager tab prikazuje izabrane kategorije i sve delove koji im pripadaju.**
+   Kategorija je sekcija u checklisti, a njeni delovi su stavke u njoj.
+   Ono što nije izabrano se ne prikazuje — na nastupu ne treba prelistavati
+   opremu koja se ne nosi.
+3. **Delovi kategorije se takođe menjaju iz manager konzole** — kad se u
+   *Vatru* doda nov rekvizit, on se pojavi na svakom događaju koji ima tu
+   kategoriju.
+
+Iz toga sledi:
+
+- `Event` nosi **spisak izabranih kategorija**, ne kopiju stavki. Kopija bi
+  značila da se izmena u katalogu ne vidi na već napravljenim događajima.
+- Katalog kategorija sa stavkama je **po firmi**, ne po događaju.
+- **Izbor vozila i izbor kategorija su obe funkcije managera** — bez prijave
+  se samo vide.
+
 **Sekcije i stavke nisu ugrađene u aplikaciju** (odluka od 8. septembra 2026).
 Šest sekcija koje sada stoje su samo početni šablon. Različite firme imaju
 različit lager, pa i **sekcije i stavke unutar njih određuje admin iz login
@@ -386,14 +409,15 @@ popunjavanje tabele koja se posle deli timu.
 | ADMIN-002 | Bez prijave je aplikacija samo za čitanje | gotovo |
 | ADMIN-003 | Prijavljeni korisnik i dugmad u headeru | gotovo |
 | ADMIN-004 | Polja na Home tabu se popunjavaju kad ima dozvole | tekstualna gotova; datum, sat, trajanje i polazak sledeći |
-| ADMIN-005 | „Create and share" — dodela događaja timu | |
-| ADMIN-006 | Lager šablon (sekcije i stavke) po firmi | |
-| ADMIN-007 | Zamena lokalne prijave Firebase Auth-om | |
+| ADMIN-005 | Izbor kategorija opreme za događaj + dodela vozila | gotovo |
+| ADMIN-006 | Izmena delova kategorije iz konzole | sledeće |
+| ADMIN-007 | „Create and share" — dodela događaja timu | |
+| ADMIN-008 | Zamena lokalne prijave Firebase Auth-om | |
 
 **Nalozi za probu** (upisani u kodu, samo za razvoj):
 `filip` / `1234` — uloga `glavni`; `ana` / `1111` — uloga `user`.
 Ovo nije zaštita podataka nego **prekidač između čitanja i unosa**; prava
-provera identiteta je posao backenda (ADMIN-007).
+provera identiteta je posao backenda (ADMIN-008).
 
 ### Uloge i dozvole
 
@@ -620,6 +644,7 @@ class Event {
   final int? travelDurationMinutes;
   final int? durationMinutes;   // ugovoreno trajanje nastupa
   final String? vehicleId;
+  final List<String> categoryIds; // izabrane kategorije opreme
   final List<Participant> participants;
 }
 

@@ -1050,6 +1050,33 @@ Prvi deo: **tekstualna polja** — naziv događaja, organizator, telefon, adresa
 
 ---
 
+## 9. septembar 2026 — ADMIN-005: kategorije opreme i dodela vozila
+
+Novo pravilo iz razgovora, upisano i u `CLAUDE.md`: **manager bira kategorije
+opreme za događaj, a Lager prikazuje te kategorije sa svim delovima koji im
+pripadaju.** Ono što se ne nosi se na pakovanju ne prikazuje.
+
+- `Event.categoryIds` — pamte se **samo id-jevi kategorija, ne kopije stavki**.
+  Kopija bi značila da se izmena u katalogu ne vidi na već napravljenim
+  događajima, a upravo to je poenta: kad se u *Vatru* doda nov rekvizit, on se
+  pojavi na svakom događaju koji ima tu kategoriju.
+- `lib/widgets/home/event_categories.dart` — kartica sa izabranim kategorijama
+  i brojem delova, plus izbor u listi odozdo. Kao i ostale kartice: ista je i
+  za čitanje, samo dobije olovku kad ima dozvole.
+- **Lager sada prikazuje samo izabrane kategorije.** Ranije je prikazivao ceo
+  katalog. Kad nijedna nije izabrana, ekran kaže zašto je prazan i ko to bira.
+- **Popravljena rupa: vozilo je mogao da menja svako.** `VehiclePicker` je od
+  početka imao `canEdit`, ali mu se nikad nije prosleđivala prava vrednost, pa
+  je stajalo podrazumevano `true`. Sada traži dozvolu, kao i sve ostalo.
+- Test događaji nose različite kategorije, da se filtriranje vidi: rođendan
+  ima tehniku i animaciju, svadba sve, `evt-004` nijednu.
+- `test/categories_test.dart` — 8 testova.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 196/196.
+  Vizuelna provera na telefonu nije stigla — ekran se ugasio.
+- Sledeće: ADMIN-006 — izmena delova kategorije iz konzole.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

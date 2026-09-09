@@ -42,6 +42,7 @@ class Event {
     this.travelDurationMinutes,
     this.durationMinutes,
     this.vehicleId,
+    this.categoryIds = const [],
     this.participants = const [],
   });
 
@@ -81,6 +82,13 @@ class Event {
   }
 
   final String? vehicleId;
+
+  /// Kategorije opreme izabrane za ovaj događaj (Vatra, LED, Ring...).
+  ///
+  /// Pamte se **samo id-jevi kategorija, ne kopije stavki** — inače se izmena
+  /// u katalogu ne bi videla na već napravljenim događajima.
+  final List<String> categoryIds;
+
   final List<Participant> participants;
 
   /// Isti događaj, sa izmenjenim poljima. Model je nepromenljiv, pa svaka
@@ -101,6 +109,7 @@ class Event {
     int? travelDurationMinutes,
     int? durationMinutes,
     String? vehicleId,
+    List<String>? categoryIds,
     List<Participant>? participants,
   }) {
     return Event(
@@ -118,6 +127,7 @@ class Event {
           travelDurationMinutes ?? this.travelDurationMinutes,
       durationMinutes: durationMinutes ?? this.durationMinutes,
       vehicleId: vehicleId ?? this.vehicleId,
+      categoryIds: categoryIds ?? this.categoryIds,
       participants: participants ?? this.participants,
     );
   }
@@ -145,6 +155,7 @@ class Event {
       travelDurationMinutes: travelDurationMinutes,
       durationMinutes: durationMinutes,
       vehicleId: newVehicleId,
+      categoryIds: categoryIds,
       participants: participants,
     );
   }
@@ -204,6 +215,7 @@ class Event {
       travelDurationMinutes: (map['travelDurationMinutes'] as num?)?.toInt(),
       durationMinutes: (map['durationMinutes'] as num?)?.toInt(),
       vehicleId: _emptyToNull(map['vehicleId'] as String?),
+      categoryIds: ((map['categoryIds'] as List?) ?? const []).cast<String>(),
       participants: participants,
     );
   }

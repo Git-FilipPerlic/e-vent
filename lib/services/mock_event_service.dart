@@ -114,6 +114,8 @@ const Map<String, Map<String, dynamic>> _events = {
     'travelDurationMinutes': 35,
     'durationMinutes': 120,
     'vehicleId': 'vehicle-001',
+    // Rođendan: samo animacija i tehnika, bez vatre.
+    'categoryIds': ['sec-tehnika', 'sec-animacija'],
     'participants': [
       {'name': 'Filip', 'role': 'glavni'},
       {'name': 'Ana', 'role': 'vozač'},
@@ -135,6 +137,7 @@ const Map<String, Map<String, dynamic>> _events = {
     'travelDurationMinutes': 25,
     'durationMinutes': 90,
     'vehicleId': 'vehicle-002',
+    'categoryIds': ['sec-tehnika', 'sec-specijalni-efekti'],
     'participants': [
       {'name': 'Filip', 'role': 'glavni'},
     ],
@@ -153,6 +156,15 @@ const Map<String, Map<String, dynamic>> _events = {
     'departureTime': '2026-10-03T18:30:00',
     'travelDurationMinutes': 40,
     'durationMinutes': 180,
+    // Svadba: ide sve, uključujući vatru, svilu i hoop.
+    'categoryIds': [
+      'sec-tehnika',
+      'sec-animacija',
+      'sec-specijalni-efekti',
+      'sec-vatreni-rekviziti',
+      'sec-svila',
+      'sec-hoop',
+    ],
     'participants': [
       {'name': 'Filip'},
       {'name': 'Ana'},
