@@ -21,7 +21,14 @@ class ChecklistSectionTile extends StatelessWidget {
     required this.onAddItem,
     required this.onRemoveItem,
     required this.addedItemIds,
+    this.canEditItems = false,
   });
+
+  /// Da li korisnik sme da dodaje i briše delove.
+  ///
+  /// Delovi pripadaju **katalogu firme**, pa ih menja samo manager. Čekiranje
+  /// na pakovanju ne traži nikakvu dozvolu.
+  final bool canEditItems;
 
   final ChecklistSection section;
 
@@ -99,11 +106,11 @@ class ChecklistSectionTile extends StatelessWidget {
               _ItemRow(
                 item: item,
                 isChecked: checkedIds.contains(item.id),
-                canRemove: addedItemIds.contains(item.id),
+                canRemove: canEditItems && addedItemIds.contains(item.id),
                 onToggle: () => onToggleItem(item.id),
                 onRemove: () => onRemoveItem(item.id),
               ),
-            _AddItemRow(onAdd: onAddItem),
+            if (canEditItems) _AddItemRow(onAdd: onAddItem),
           ],
         ],
       ),

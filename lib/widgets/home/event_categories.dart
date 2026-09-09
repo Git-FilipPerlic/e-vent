@@ -51,22 +51,17 @@ class EventCategories extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text(
-                  'Oprema za događaj',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const Spacer(),
-                if (selected.isNotEmpty)
-                  Text(
-                    // Broj delova je ono što se zaista pakuje.
-                    '${selected.length} · $_itemCount delova',
+                Expanded(
+                  child: Text(
+                    'Oprema za događaj',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: AppColors.textSecondary,
+                      letterSpacing: 0.5,
                     ),
                   ),
+                ),
                 if (onEdit != null)
                   IconButton(
                     onPressed: onEdit,
@@ -85,7 +80,7 @@ class EventCategories extends StatelessWidget {
                   color: AppColors.textSecondary,
                 ),
               )
-            else
+            else ...[
               Wrap(
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
@@ -97,6 +92,17 @@ class EventCategories extends StatelessWidget {
                     ),
                 ],
               ),
+              const SizedBox(height: AppSpacing.sm),
+              // Zbir stoji ispod, ne u zaglavlju: gore se red sa naslovom,
+              // brojem i olovkom prelivao na užem telefonu.
+              Text(
+                // Broj delova je ono što se zaista pakuje.
+                'Ukupno $_itemCount delova',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -142,22 +148,33 @@ Future<List<String>?> showCategoryPicker(
   BuildContext context, {
   required List<ChecklistSection> catalog,
   required List<String> selectedIds,
+  ValueChanged<ChecklistSection>? onEditItems,
 }) {
   return showModalBottomSheet<List<String>>(
     context: context,
     backgroundColor: AppColors.surface,
     showDragHandle: true,
     isScrollControlled: true,
-    builder: (context) =>
-        _CategoryPicker(catalog: catalog, selectedIds: selectedIds),
+    builder: (context) => _CategoryPicker(
+      catalog: catalog,
+      selectedIds: selectedIds,
+      onEditItems: onEditItems,
+    ),
   );
 }
 
 class _CategoryPicker extends StatefulWidget {
-  const _CategoryPicker({required this.catalog, required this.selectedIds});
+  const _CategoryPicker({
+    required this.catalog,
+    required this.selectedIds,
+    this.onEditItems,
+  });
 
   final List<ChecklistSection> catalog;
   final List<String> selectedIds;
+
+  /// Otvara delove kategorije. `null` kad korisnik nema dozvolu.
+  final ValueChanged<ChecklistSection>? onEditItems;
 
   @override
   State<_CategoryPicker> createState() => _CategoryPickerState();
@@ -230,6 +247,20 @@ class _CategoryPickerState extends State<_CategoryPicker> {
                   ),
                   activeColor: AppColors.accent,
                   controlAffinity: ListTileControlAffinity.leading,
+                  secondary: widget.onEditItems == null
+                      ? null
+                      : IconButton(
+                          onPressed: () {
+                            // Izmena delova otvara svoj ekran, pa se ovaj
+                            // list zatvara sa dosad izabranim kategorijama.
+                            Navigator.of(context).pop(_selected.toList());
+                            widget.onEditItems!(section);
+                          },
+                          icon: const Icon(Icons.edit_rounded),
+                          iconSize: 18,
+                          color: AppColors.accent,
+                          tooltip: 'Izmeni delove',
+                        ),
                 );
               },
             ),

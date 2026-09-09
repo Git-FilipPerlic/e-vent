@@ -1077,6 +1077,37 @@ pripadaju.** Ono što se ne nosi se na pakovanju ne prikazuje.
 
 ---
 
+## 9. septembar 2026 — ADMIN-006: izmena delova kategorije iz konzole
+
+- Urađeno:
+  - `EventService.saveCategory(ChecklistSection)` — upis u **katalog firme**,
+    ne u jedan događaj. `MockEventService` pamti izmenjene kategorije u
+    `_editedCategories` i vraća ih iz `loadChecklistTemplate()`.
+  - Nov ekran `lib/screens/category_items_screen.dart`: spisak delova jedne
+    kategorije, dodavanje, preimenovanje i brisanje. Prazan naziv briše deo —
+    isto pravilo kao svuda u aplikaciji. Gore stoji rečenica „Izmene važe za
+    sve događaje koji nose ovu kategoriju." da se ne pomeša sa čekiranjem na
+    pakovanju. Ekran vraća izmenjenu kategoriju kroz `pop`, ili `null` ako se
+    ništa nije promenilo.
+  - U izboru kategorija (`showCategoryPicker`) svaki red je dobio olovku
+    „Izmeni delove". Olovke nema kad korisnik nema dozvolu.
+  - `HomeScreen._editCategoryItems` upisuje izmenu odmah u prikaz pa zove
+    servis; ako upis pukne, vraća staro stanje i javi porukom.
+  - **Lager je zaključan:** dodavanje i brisanje delova traži dozvolu
+    `editEvent`, jer i to menja katalog cele firme. Čekiranje na pakovanju
+    ostaje svima — to je posao na terenu, ne izmena podataka. Ranije je svako
+    mogao da doda ili obriše deo iz zajedničkog kataloga.
+- Provereno:
+  - `flutter analyze` — bez ijedne primedbe.
+  - `flutter test` — 206/206 prolazi. Nov `test/category_items_test.dart`
+    (10 testova) pokriva prikaz, dodavanje, brisanje, brisanje praznim
+    nazivom, prazno stanje, upis u katalog i dozvole.
+  - `test/lager_test.dart` dopunjen: sekcija sada dobija `canEditItems`, a
+    test dodavanja stavke prijavljuje managera.
+- Otvoreni problemi:
+  - Vizuelna provera na telefonu.
+- Sledeće: ADMIN-007 — „Create and share", dodela događaja timu.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

@@ -25,6 +25,7 @@ import '../widgets/home/participants_list.dart';
 import '../widgets/home/scenario_list.dart';
 import '../widgets/home/team_status.dart';
 import '../widgets/home/vehicle_picker.dart';
+import 'category_items_screen.dart';
 
 /// Home tab — priprema i polazak na događaj.
 ///
@@ -218,6 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       catalog: _catalog,
       selectedIds: event.categoryIds,
+      onEditItems: _editCategoryItems,
     );
     // Korisnik je odustao.
     if (chosen == null) return;
@@ -235,6 +237,38 @@ class _HomeScreenState extends State<HomeScreen> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           const SnackBar(content: Text('Izbor kategorija nije sačuvan.')),
+        );
+    }
+  }
+
+  /// Otvara delove kategorije i čuva izmenu u katalog firme.
+  Future<void> _editCategoryItems(ChecklistSection category) async {
+    final updated = await Navigator.of(context).push<ChecklistSection>(
+      MaterialPageRoute(
+        builder: (_) => CategoryItemsScreen(category: category),
+      ),
+    );
+    // Ništa se nije promenilo.
+    if (updated == null) return;
+    if (!mounted) return;
+
+    final previous = _catalog;
+    setState(() {
+      _catalog = [
+        for (final section in _catalog)
+          if (section.id == updated.id) updated else section,
+      ];
+    });
+
+    try {
+      await _service.saveCategory(updated);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _catalog = previous);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Izmena kategorije nije sačuvana.')),
         );
     }
   }

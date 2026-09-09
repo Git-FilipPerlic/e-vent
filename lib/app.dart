@@ -73,7 +73,7 @@ class _RootNavigationState extends State<RootNavigation> {
     HomeScreen(auth: _auth),
     MusicScreen(audioHandler: widget.audioHandler),
     const LedScreen(),
-    const LagerScreen(),
+    LagerScreen(auth: _auth),
   ];
 
   static const List<TopTab> _destinations = [

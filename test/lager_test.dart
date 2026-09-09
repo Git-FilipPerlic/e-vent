@@ -1,5 +1,6 @@
 import 'package:event_app/models/checklist.dart';
 import 'package:event_app/screens/lager_screen.dart';
+import 'package:event_app/services/auth_service.dart';
 import 'package:event_app/theme/app_theme.dart';
 import 'package:event_app/widgets/lager/checklist_progress.dart';
 import 'package:event_app/widgets/lager/checklist_section_tile.dart';
@@ -57,6 +58,7 @@ void main() {
             checkedIds: const {'zvucnik'},
             addedItemIds: const {},
             isExpanded: false,
+            canEditItems: true,
             onToggleExpanded: () {},
             onToggleItem: (_) {},
             onAddItem: (_) {},
@@ -79,6 +81,7 @@ void main() {
             checkedIds: const {},
             addedItemIds: const {},
             isExpanded: true,
+            canEditItems: true,
             onToggleExpanded: () {},
             onToggleItem: (_) {},
             onAddItem: (_) {},
@@ -102,6 +105,7 @@ void main() {
             checkedIds: const {},
             addedItemIds: const {},
             isExpanded: true,
+            canEditItems: true,
             onToggleExpanded: () {},
             onToggleItem: (id) => toggled = id,
             onAddItem: (_) {},
@@ -125,6 +129,7 @@ void main() {
             checkedIds: const {},
             addedItemIds: const {'mikrofon'},
             isExpanded: true,
+            canEditItems: true,
             onToggleExpanded: () {},
             onToggleItem: (_) {},
             onAddItem: (_) {},
@@ -145,6 +150,7 @@ void main() {
             checkedIds: const {},
             addedItemIds: const {},
             isExpanded: true,
+            canEditItems: true,
             onToggleExpanded: () {},
             onToggleItem: (_) {},
             onAddItem: (_) => calls++,
@@ -200,7 +206,11 @@ void main() {
 
     testWidgets('dodata stavka ulazi u sekciju i u brojač',
         (WidgetTester tester) async {
-      await tester.pumpWidget(_wrap(const LagerScreen()));
+      // Dodavanje menja katalog firme, pa traži prijavljenog managera.
+      final auth = MockAuthService();
+      await auth.signIn(name: 'Filip', pin: '1234');
+
+      await tester.pumpWidget(_wrap(LagerScreen(auth: auth)));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Tehnika'));
@@ -215,6 +225,9 @@ void main() {
       expect(find.text('Rezervni kabl'), findsOneWidget);
       // I može da se obriše, jer ju je korisnik dodao.
       expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+
+      // Upis u katalog ide u pozadini; sačekaj ga da test ne ostavi tajmer.
+      await tester.pump(const Duration(milliseconds: 500));
     });
   });
 }

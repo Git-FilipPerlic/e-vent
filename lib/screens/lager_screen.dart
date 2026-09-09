@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/checklist.dart';
 import '../models/event.dart';
+import '../services/auth_service.dart';
 import '../services/event_service.dart';
 import '../services/mock_event_service.dart';
 import '../theme/app_theme.dart';
@@ -35,10 +36,14 @@ enum LagerMode {
 /// **posle** događaja šta se vratilo. Zato svaki režim ima svoje kvačice —
 /// pakovanje se ne poništava kad se posle raspakuje.
 class LagerScreen extends StatefulWidget {
-  const LagerScreen({super.key, this.eventId = 'evt-001'});
+  const LagerScreen({super.key, this.eventId = 'evt-001', this.auth});
 
   /// Događaj čije se kategorije prikazuju.
   final String eventId;
+
+  /// Ko je prijavljen. Dodavanje i brisanje delova menja **katalog firme**,
+  /// pa traži dozvolu; čekiranje na pakovanju ne traži ništa.
+  final AuthService? auth;
 
   @override
   State<LagerScreen> createState() => _LagerScreenState();
@@ -73,10 +78,23 @@ class _LagerScreenState extends State<LagerScreen> {
 
   int _nextAddedNumber = 1;
 
+  /// Da li prijavljeni korisnik sme da menja katalog opreme.
+  bool get _canEditCatalog =>
+      widget.auth?.can(AppPermission.editEvent) ?? false;
+
   @override
   void initState() {
     super.initState();
+    widget.auth?.addListener(_onAuthChanged);
     _loadTemplate();
+  }
+
+  void _onAuthChanged() => setState(() {});
+
+  @override
+  void dispose() {
+    widget.auth?.removeListener(_onAuthChanged);
+    super.dispose();
   }
 
   Future<void> _loadTemplate() async {
@@ -169,6 +187,27 @@ class _LagerScreenState extends State<LagerScreen> {
             section,
       ];
     });
+    _saveCategory(sectionId);
+  }
+
+  /// Upisuje izmenjenu kategoriju u katalog firme.
+  ///
+  /// Ide u pozadini; ako pukne, javi se porukom. Spisak se ne vraća unazad —
+  /// usred pakovanja je gore izgubiti upisanu stavku nego imati je dvaput.
+  Future<void> _saveCategory(String sectionId) async {
+    final section = _catalog.where((s) => s.id == sectionId).firstOrNull;
+    if (section == null) return;
+
+    try {
+      await _service.saveCategory(section);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Izmena opreme nije sačuvana.')),
+        );
+    }
   }
 
   void _removeItem(String sectionId, String itemId) {
@@ -189,6 +228,7 @@ class _LagerScreenState extends State<LagerScreen> {
             section,
       ];
     });
+    _saveCategory(sectionId);
   }
 
   @override
@@ -254,6 +294,8 @@ class _LagerScreenState extends State<LagerScreen> {
               isExpanded: _expanded.contains(section.id),
               onToggleExpanded: () => _toggleSection(section.id),
               onToggleItem: _toggleItem,
+              // Katalog firme menja samo manager; ostali samo čekiraju.
+              canEditItems: _canEditCatalog,
               onAddItem: (name) => _addItem(section.id, name),
               onRemoveItem: (itemId) => _removeItem(section.id, itemId),
             ),

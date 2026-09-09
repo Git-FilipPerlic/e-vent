@@ -34,6 +34,10 @@ class MockEventService implements EventService {
   /// pamte sa strane — dok ne dođe prava baza.
   final Map<String, Event> _edited = {};
 
+  /// Izmenjene kategorije opreme, po id-ju. Katalog je `const`, pa izmene
+  /// stoje sa strane — dok ne dođe prava baza.
+  final Map<String, ChecklistSection> _editedCategories = {};
+
   @override
   Future<Event> loadEvent(String eventId) async {
     await Future<void>.delayed(_delay);
@@ -90,9 +94,16 @@ class MockEventService implements EventService {
   @override
   Future<List<ChecklistSection>> loadChecklistTemplate() async {
     await Future<void>.delayed(_delay);
-    return _checklistTemplate
-        .map((map) => ChecklistSection.fromMap(map))
-        .toList();
+    return [
+      for (final map in _checklistTemplate)
+        _editedCategories[map['id'] as String] ?? ChecklistSection.fromMap(map),
+    ];
+  }
+
+  @override
+  Future<void> saveCategory(ChecklistSection category) async {
+    await Future<void>.delayed(_delay);
+    _editedCategories[category.id] = category;
   }
 }
 

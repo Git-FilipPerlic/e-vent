@@ -1,3 +1,4 @@
+import 'package:event_app/models/checklist.dart';
 import 'package:event_app/models/track.dart';
 import 'package:event_app/screens/lager_screen.dart';
 import 'package:event_app/screens/music_screen.dart';
@@ -6,6 +7,7 @@ import 'package:event_app/services/music_player_controller.dart';
 import 'package:event_app/services/music_service.dart';
 import 'package:event_app/theme/app_theme.dart';
 import 'package:event_app/utils/date_format.dart';
+import 'package:event_app/widgets/home/event_categories.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -41,6 +43,27 @@ final List<Track> _sample = [
       artist: 'Izvođač sa dugačkim imenom $i',
       path: '/muzika/$i.mp3',
     ),
+];
+
+/// Katalog sa dugačkim nazivima — najgori slučaj za širinu reda.
+const List<ChecklistSection> _catalog = [
+  ChecklistSection(
+    id: 'sec-tehnika',
+    name: 'Tehnika',
+    items: [
+      ChecklistItem(id: 't1', name: 'Zvučnik'),
+      ChecklistItem(id: 't2', name: 'Mikrofon'),
+      ChecklistItem(id: 't3', name: 'Produžni kabl'),
+    ],
+  ),
+  ChecklistSection(
+    id: 'sec-animacija',
+    name: 'Animacija',
+    items: [
+      ChecklistItem(id: 'a1', name: 'Kostimi'),
+      ChecklistItem(id: 'a2', name: 'Baloni'),
+    ],
+  ),
 ];
 
 class _FakeMusicService implements MusicService {
@@ -104,6 +127,29 @@ void main() {
         await _atSize(tester, size, scale, () async {
           await tester.pumpWidget(
             _wrap(_scaled(scale, PlayerScreen(controller: controller))),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+        });
+      });
+
+      testWidgets('kartica opreme staje $label', (WidgetTester tester) async {
+        // Naslov, broj delova i olovka moraju da stanu u isti red. Na uskom
+        // telefonu se to jednom već prelilo za 22 piksela.
+        await _atSize(tester, size, scale, () async {
+          await tester.pumpWidget(
+            _wrap(
+              _scaled(
+                scale,
+                Scaffold(
+                  body: EventCategories(
+                    catalog: _catalog,
+                    selectedIds: const ['sec-tehnika', 'sec-animacija'],
+                    onEdit: () {},
+                  ),
+                ),
+              ),
+            ),
           );
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);

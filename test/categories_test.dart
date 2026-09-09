@@ -48,8 +48,8 @@ void main() {
       expect(find.text('LED · 1'), findsOneWidget);
       // Ono što nije izabrano se ne prikazuje.
       expect(find.text('Ring · 1'), findsNothing);
-      // Dve kategorije, tri dela ukupno.
-      expect(find.text('2 · 3 delova'), findsOneWidget);
+      // Tri dela ukupno.
+      expect(find.text('Ukupno 3 delova'), findsOneWidget);
     });
 
     testWidgets('bez izabranih kategorija to i piše',

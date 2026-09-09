@@ -410,8 +410,8 @@ popunjavanje tabele koja se posle deli timu.
 | ADMIN-003 | Prijavljeni korisnik i dugmad u headeru | gotovo |
 | ADMIN-004 | Polja na Home tabu se popunjavaju kad ima dozvole | tekstualna gotova; datum, sat, trajanje i polazak sledeći |
 | ADMIN-005 | Izbor kategorija opreme za događaj + dodela vozila | gotovo |
-| ADMIN-006 | Izmena delova kategorije iz konzole | sledeće |
-| ADMIN-007 | „Create and share" — dodela događaja timu | |
+| ADMIN-006 | Izmena delova kategorije iz konzole | gotovo |
+| ADMIN-007 | „Create and share" — dodela događaja timu | sledeće |
 | ADMIN-008 | Zamena lokalne prijave Firebase Auth-om | |
 
 **Nalozi za probu** (upisani u kodu, samo za razvoj):

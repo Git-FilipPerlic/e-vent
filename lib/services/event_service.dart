@@ -25,8 +25,14 @@ abstract interface class EventService {
   /// Baca [EventNotFoundException] ako događaja nema.
   Future<void> saveEvent(Event event);
 
-  /// Prazan šablon checkliste opreme, po sekcijama.
+  /// Katalog kategorija opreme koje firma ima, sa delovima.
   Future<List<ChecklistSection>> loadChecklistTemplate();
+
+  /// Čuva izmenjenu kategoriju (delove koji joj pripadaju).
+  ///
+  /// Menja **katalog firme**, pa se izmena vidi na svim događajima koji tu
+  /// kategoriju nose — to je i poenta: dodat rekvizit se ne unosi po događaju.
+  Future<void> saveCategory(ChecklistSection category);
 }
 
 /// Traženi događaj ne postoji.
