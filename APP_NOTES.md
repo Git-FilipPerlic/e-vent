@@ -1326,6 +1326,13 @@ zapisan onako kako ga je opisao.
 
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
+- **Uhvatiti pad Bluetooth veze sa mikseta.** Zvuk ide preko Bluetooth-a do
+  risivera u mikseti; ako veza padne, Android vraća reprodukciju na zvučnik
+  telefona — usred nastupa muzika odjednom svira iz telefona u ruci voditelja.
+  Trebalo bi prepoznati da izlaz više nije Bluetooth uređaj i **zaustaviti
+  reprodukciju uz jasnu poruku**. Traži čitanje audio izlaza sa Androida
+  (platform channel ili paket), pa je zaseban feature.
+
 - **Spisak numera se ne pamti.** Živi samo u memoriji `MusicScreen`-a, pa se
   gubi svaki put kad se aplikacija zatvori — ne samo pri novom build-u.
   Izvođač bi pred svaki nastup ponovo dodavao isti folder. Treba sačuvati

@@ -198,6 +198,39 @@ dugmetom.
    zbog gustine spiska na nastupu. Red je preko cele širine ekrana, pa je meta
    i dalje široka. Ovo je jedini izuzetak u aplikaciji.
 
+#### Kuda ide zvuk: Bluetooth do miksete (razjašnjeno 9. septembra 2026)
+
+**Telefon se preko Bluetooth-a povezuje sa risiverom u mikseti.** To je
+standardni način rada: voditelj drži telefon u ruci i kreće se po prostoru,
+daleko od miksete, a zvuk ide bežično do razglasa.
+
+Ovo je **drugi sloj od LED-a** i ne treba ih mešati:
+
+| | Čime se povezuje | Šta aplikacija radi |
+|---|---|---|
+| Zvuk → mikseta | **Bluetooth** (A2DP) | ništa posebno — Android sam usmerava zvuk na povezani uređaj |
+| LED kontroler | **Wi-Fi** | aplikacija sama priča sa kontrolerom preko mreže |
+
+Aplikacija **ne implementira Bluetooth za zvuk** — to radi sistem. Ali iz
+ovakvog rada slede tri stvari koje se moraju poštovati:
+
+1. **Jačina u aplikaciji (L / E / F) je ovde bitnija nego što izgleda.**
+   Mikseta je daleko, ne prilazi joj se usred programa. Zato mora da postoji
+   način da se muzika stiša iz same aplikacije, a ne samo na razglasu.
+2. **Ako Bluetooth veza padne, Android vraća zvuk na zvučnik telefona.**
+   Usred nastupa to znači da muzika odjednom svira iz telefona u ruci
+   voditelja, umesto iz razglasa. To je najgori mogući ishod i vredi ga
+   kasnije uhvatiti: prepoznati da izlaz više nije Bluetooth uređaj i
+   **zaustaviti reprodukciju uz jasnu poruku**, umesto da nastavi da svira
+   „u prazno".
+3. **Bluetooth unosi kašnjenje** (obično 100–200 ms). Sve što se meri na uho
+   — kada tačno krene pretapanje, koliko traje fade — dešava se na razglasu
+   nešto kasnije nego na ekranu. Nema šta da se popravi u kodu, ali se ne
+   sme praviti feature koji zavisi od preciznog poklapanja sa ekranom.
+
+Uz to, LED i zvuk rade **istovremeno**: Wi-Fi ka kontroleru i Bluetooth ka
+mikseti stoje uporedo, pa se ni jedno ni drugo ne sme gasiti radi onog drugog.
+
 #### Prsten talasnog oblika (glavni vizuelni element)
 
 Prikaz dokle je stigla reprodukcija ne radi se klasičnom trakom, nego
@@ -407,9 +440,11 @@ preko lokalne mreže.
 
 Šta iz toga sledi:
 
-- **`flutter_blue_plus` verovatno ne treba.** Umesto Bluetooth-a ide obična
+- **`flutter_blue_plus` ne treba za LED.** Umesto Bluetooth-a ide obična
   mrežna veza (TCP/UDP soket) ka kontroleru na lokalnoj adresi. Paket se bira
   tek kad se zna tačan model.
+  **Pažnja:** ovo ne znači da Bluetooth nije u igri — on nosi **zvuk** do
+  miksete (vidi „Kuda ide zvuk" u Muzika delu). Dva različita sloja.
 - **Bluetooth dozvole otpadaju**, a s njima i najmučniji deo dozvola na
   Androidu.
 - Zato dobija na značaju sasvim drugo pitanje: **šta se dešava kad telefon
