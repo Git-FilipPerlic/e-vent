@@ -24,6 +24,7 @@ import '../widgets/home/organizer_name.dart';
 import '../widgets/home/organizer_phone.dart';
 import '../widgets/home/participants_list.dart';
 import '../widgets/home/scenario_list.dart';
+import '../widgets/home/team_assignment.dart';
 import '../widgets/home/team_status.dart';
 import '../widgets/home/vehicle_picker.dart';
 import 'category_items_screen.dart';
@@ -201,6 +202,30 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       previous: event,
     );
+  }
+
+  /// Kome je događaj dodeljen — „share" iz „create and share".
+  Future<void> _editAssignment() async {
+    final event = _event;
+    if (event == null) return;
+
+    List<String> team;
+    try {
+      team = await _service.loadTeamMembers();
+    } catch (_) {
+      team = const [];
+    }
+    if (!mounted) return;
+
+    final picked = await showAssignPicker(
+      context,
+      team: team,
+      assignedTo: event.assignedTo,
+    );
+    if (picked == null) return;
+    if (!mounted) return;
+
+    await _saveEdited(event.copyWith(assignedTo: picked), previous: event);
   }
 
   Future<void> _loadEvent() async {
@@ -482,6 +507,10 @@ class _HomeScreenState extends State<HomeScreen> {
             catalog: _catalog,
             selectedIds: _event?.categoryIds ?? const [],
             onEdit: _canEdit ? _editCategories : null,
+          ),
+          TeamAssignment(
+            assignedTo: _event?.assignedTo ?? const [],
+            onEdit: _canEdit ? _editAssignment : null,
           ),
           ParticipantsList(participants: participants),
           TeamStatus(participants: participants),

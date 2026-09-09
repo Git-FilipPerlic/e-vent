@@ -24,6 +24,24 @@ abstract interface class EventService {
   /// gleda; sa pravim backendom spisak i tada ograničava baza.
   Future<List<Event>> loadEvents({String? assignedTo, String? createdBy});
 
+  /// Pravi nov događaj i vraća ga sa dodeljenim `id`-jem.
+  ///
+  /// Sve sem [createdBy] može da nedostaje — događaj se često otvori sa
+  /// samo datumom i imenom, a ostalo se popunjava kad stigne dogovor.
+  Future<Event> createEvent({
+    required String createdBy,
+    String? title,
+    EventType? type,
+    DateTime? eventDate,
+    int? durationMinutes,
+    List<String> assignedTo,
+  });
+
+  /// Ko sve postoji u ekipi — iz toga se bira kome se događaj dodeljuje.
+  ///
+  /// Za sada su to imena; sa Firebase Auth-om ovde stižu nalozi tima.
+  Future<List<String>> loadTeamMembers();
+
   /// Spisak vozila koja ekipa može da izabere.
   Future<List<Vehicle>> loadVehicles();
 

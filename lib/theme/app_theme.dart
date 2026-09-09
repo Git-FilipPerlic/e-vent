@@ -150,6 +150,13 @@ abstract final class AppTheme {
           side: const BorderSide(color: AppColors.border),
         ),
       ),
+      // Plutajuće dugme je isto što i svako drugo: dodiruje se, pa ide u
+      // `accent`. Podrazumevana Material boja je bila tamna i čitala se kao
+      // neaktivno.
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppColors.accent,
+        foregroundColor: AppColors.background,
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.accent,

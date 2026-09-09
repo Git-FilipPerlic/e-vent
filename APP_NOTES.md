@@ -1254,7 +1254,43 @@ videlo jer podrazumevani `MaterialApp` sam donosi engleske prevode.
 Usput: datum u listu „Kada i koliko" ispisuje godinu **samo kad nije tekuća**,
 jer je na uskom telefonu ispadalo „12. septembar …".
 
+## 9. septembar 2026 — ADMIN-007: „Create and share"
+
+- Urađeno:
+  - `EventService.createEvent(...)` i `loadTeamMembers()`. Mock pamti nove
+    događaje u `_created`; `loadEvent`, `loadEvents`, `saveEvent` i
+    `setEventVehicle` sada rade i sa njima (izdvojen `_exists`).
+  - Nov `lib/screens/new_event_screen.dart` — vrsta, naziv, „kada i koliko"
+    (isti list kao na Home tabu) i **ko radi**. Ništa više: ostalo se
+    popunjava na Home tabu, olovkama koje već postoje.
+  - Dugme **„Nov događaj"** na spisku, samo uz dozvolu `editEvent`. Posle
+    pravljenja se događaj odmah otvara.
+  - Nova kartica `TeamAssignment` („Ko radi") na Home tabu, sa listom za
+    izbor ekipe. Namerno odvojena od **Učesnika**: učesnici kažu ko šta radi
+    na nastupu, a ova kartica kome se događaj pojavljuje u aplikaciji.
+  - Onaj ko pravi događaj je unapred čekiran — gotovo uvek i ide na njega.
+    Može da se otčekira.
+- Provereno:
+  - `flutter analyze` čist, `flutter test` 279/279.
+  - Nov `test/new_event_test.dart` (12 testova): servis, ekran, dugme na
+    spisku i izmena dodele sa Home taba.
+  - Testovi koji čekaju podatke sada rade `pump(500ms)` pre `pumpAndSettle`
+    — `pumpAndSettle` ne čeka tajmere, pa je spisak ekipe stizao prekasno.
+  - **Provereno na telefonu, ceo put:** dugme → vrsta *Nastup* → naziv
+    „Firma XY" → 10. septembar, 16:00, 2h → Filip i Ana → „Napravi i podeli".
+    Događaj se odmah otvorio sa praznim poljima spremnim za dopunu, a po
+    povratku stoji na spisku pod **SUTRA**.
+  - Plutajuće dugme je dobilo boju `accent` kroz temu. Podrazumevana Material
+    boja je bila tamna i čitala se kao neaktivno, a po paleti sve što se
+    dodiruje ide u `accent`.
+- Sledeće: ADMIN-008 — zamena lokalne prijave Firebase Auth-om.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
+
+- **Spisak numera se ne pamti.** Živi samo u memoriji `MusicScreen`-a, pa se
+  gubi svaki put kad se aplikacija zatvori — ne samo pri novom build-u.
+  Izvođač bi pred svaki nastup ponovo dodavao isti folder. Treba sačuvati
+  putanje (`shared_preferences`, kao logotip) i učitati ih pri pokretanju.
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`
   i `android/key.properties` nisu u gitu. Ako se izgube, **nova verzija

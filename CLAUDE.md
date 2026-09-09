@@ -451,6 +451,23 @@ Iz toga slede dva pravila:
 Login ekran izgleda kao Home ekran; razlika je samo u tome što on ima
 popunjavanje tabele koja se posle deli timu.
 
+**Kako je izvedeno „create and share" (9. septembar 2026):**
+
+- na spisku događaja stoji dugme **„Nov događaj"**, vidljivo samo onome ko
+  ima dozvolu `editEvent`
+- ekran za nov događaj traži **samo ono bez čega događaj nema smisla**:
+  vrsta, naziv, kada i koliko, i **ko radi**. Adresa, organizator, telefon i
+  oprema se popunjavaju na Home tabu olovkama koje već postoje — isti unos se
+  ne pravi dvaput
+- **dodela ekipe je deo pravljenja, ne poseban korak** — događaj koji niko ne
+  radi je samo beleška. Onaj ko pravi događaj je unapred čekiran, jer gotovo
+  uvek i ide na njega
+- posle pravljenja se događaj **odmah otvara**, da se posao nastavi u njemu
+- dodela se menja i kasnije, karticom **„Ko radi"** na Home tabu. Ta kartica
+  se razlikuje od **Učesnika**: *Učesnici* kažu ko šta radi na nastupu
+  (glavni, vozač, pomoćni), a *Ko radi* kome se događaj uopšte pojavljuje u
+  aplikaciji
+
 #### Spisak feature-a za prijavu i admin konzolu
 
 | ID | Šta | Status |
@@ -461,8 +478,8 @@ popunjavanje tabele koja se posle deli timu.
 | ADMIN-004 | Polja na Home tabu se popunjavaju kad ima dozvole | gotovo |
 | ADMIN-005 | Izbor kategorija opreme za događaj + dodela vozila | gotovo |
 | ADMIN-006 | Izmena delova kategorije iz konzole | gotovo |
-| ADMIN-007 | „Create and share" — dodela događaja timu | sledeće |
-| ADMIN-008 | Zamena lokalne prijave Firebase Auth-om | |
+| ADMIN-007 | „Create and share" — dodela događaja timu | gotovo |
+| ADMIN-008 | Zamena lokalne prijave Firebase Auth-om | sledeće |
 
 **Nalozi za probu** (upisani u kodu, samo za razvoj):
 `filip` / `1234` — uloga `glavni`; `ana` / `1111` — uloga `user`.

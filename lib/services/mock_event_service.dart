@@ -38,11 +38,52 @@ class MockEventService implements EventService {
   /// stoje sa strane — dok ne dođe prava baza.
   final Map<String, ChecklistSection> _editedCategories = {};
 
+  /// Događaji napravljeni u aplikaciji. Test podaci su `const`, pa novi idu
+  /// ovde — dok ne dođe prava baza.
+  final Map<String, Event> _created = {};
+
+  int _nextEventNumber = 5;
+
+  /// Ekipa iz koje se bira kome se događaj dodeljuje.
+  static const List<String> _team = ['Filip', 'Ana', 'Marko'];
+
+  @override
+  Future<List<String>> loadTeamMembers() async {
+    await Future<void>.delayed(_delay);
+    return const [..._team];
+  }
+
+  @override
+  Future<Event> createEvent({
+    required String createdBy,
+    String? title,
+    EventType? type,
+    DateTime? eventDate,
+    int? durationMinutes,
+    List<String> assignedTo = const [],
+  }) async {
+    await Future<void>.delayed(_delay);
+
+    final id = 'evt-${(_nextEventNumber++).toString().padLeft(3, '0')}';
+    final event = Event(
+      id: id,
+      title: title?.trim().isEmpty ?? true ? null : title!.trim(),
+      type: type,
+      eventDate: eventDate,
+      durationMinutes: durationMinutes,
+      createdBy: createdBy,
+      assignedTo: assignedTo,
+    );
+
+    _created[id] = event;
+    return event;
+  }
+
   @override
   Future<Event> loadEvent(String eventId) async {
     await Future<void>.delayed(_delay);
 
-    if (!_events.containsKey(eventId)) throw EventNotFoundException(eventId);
+    if (!_exists(eventId)) throw EventNotFoundException(eventId);
 
     return _resolve(eventId);
   }
@@ -54,7 +95,9 @@ class MockEventService implements EventService {
   }) async {
     await Future<void>.delayed(_delay);
 
-    final events = [for (final id in _events.keys) _resolve(id)];
+    final events = [
+      for (final id in [..._events.keys, ..._created.keys]) _resolve(id),
+    ];
 
     final matching = [
       for (final event in events)
@@ -83,12 +126,20 @@ class MockEventService implements EventService {
     return assignedTo == null && createdBy == null;
   }
 
+  /// Da li događaj uopšte postoji — bilo iz test podataka, bilo napravljen
+  /// u aplikaciji.
+  bool _exists(String eventId) =>
+      _events.containsKey(eventId) || _created.containsKey(eventId);
+
   /// Događaj sa uračunatim izmenama i izabranim vozilom.
   Event _resolve(String eventId) {
-    final map = _events[eventId]!;
-
     final edited = _edited[eventId];
     if (edited != null) return edited;
+
+    final created = _created[eventId];
+    if (created != null) return created;
+
+    final map = _events[eventId]!;
 
     final chosenVehicle = _selectedVehicles[eventId];
     if (chosenVehicle != null) {
@@ -121,7 +172,7 @@ class MockEventService implements EventService {
   Future<void> setEventVehicle(String eventId, String vehicleId) async {
     await Future<void>.delayed(_delay);
 
-    if (!_events.containsKey(eventId)) throw EventNotFoundException(eventId);
+    if (!_exists(eventId)) throw EventNotFoundException(eventId);
     _selectedVehicles[eventId] = vehicleId;
   }
 
@@ -129,7 +180,7 @@ class MockEventService implements EventService {
   Future<void> saveEvent(Event event) async {
     await Future<void>.delayed(_delay);
 
-    if (!_events.containsKey(event.id)) throw EventNotFoundException(event.id);
+    if (!_exists(event.id)) throw EventNotFoundException(event.id);
     _edited[event.id] = event;
   }
 

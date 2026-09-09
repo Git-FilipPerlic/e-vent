@@ -20,6 +20,17 @@ class _FailingService implements EventService {
   @override
   Future<Event> loadEvent(String eventId) => throw UnimplementedError();
   @override
+  Future<Event> createEvent({
+    required String createdBy,
+    String? title,
+    EventType? type,
+    DateTime? eventDate,
+    int? durationMinutes,
+    List<String> assignedTo = const [],
+  }) => throw UnimplementedError();
+  @override
+  Future<List<String>> loadTeamMembers() => throw UnimplementedError();
+  @override
   Future<List<Vehicle>> loadVehicles() => throw UnimplementedError();
   @override
   Future<Vehicle> addVehicle(String name) => throw UnimplementedError();

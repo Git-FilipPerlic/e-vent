@@ -4,6 +4,7 @@ import '../models/event.dart';
 import '../services/auth_service.dart';
 import '../services/event_service.dart';
 import '../services/mock_event_service.dart';
+import 'new_event_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_format.dart';
 import '../utils/event_grouping.dart';
@@ -127,6 +128,26 @@ class _EventsScreenState extends State<EventsScreen> {
     }
   }
 
+  /// Pravi nov događaj i odmah ga otvara — posao se nastavlja u njemu.
+  Future<void> _newEvent() async {
+    final name = _userName;
+    if (name == null) return;
+
+    final created = await Navigator.of(context).push<Event>(
+      MaterialPageRoute(
+        builder: (_) =>
+            NewEventScreen(service: _service, createdBy: name),
+      ),
+    );
+    if (created == null) return;
+    if (!mounted) return;
+
+    // Spisak se osvežava jer je nov događaj možda dodeljen i meni.
+    await _load();
+    if (!mounted) return;
+    widget.onOpen(created.id);
+  }
+
   void _setScope(EventScope scope) {
     if (_scope == scope) return;
     setState(() => _scope = scope);
@@ -135,7 +156,18 @@ class _EventsScreenState extends State<EventsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: _buildBody());
+    return Scaffold(
+      body: _buildBody(),
+      // Pravljenje događaja je funkcija managementa — bez dozvole dugmeta
+      // nema, kao ni olovaka na karticama.
+      floatingActionButton: _canDelegate
+          ? FloatingActionButton.extended(
+              onPressed: _newEvent,
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Nov događaj'),
+            )
+          : null,
+    );
   }
 
   Widget _buildBody() {
