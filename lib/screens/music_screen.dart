@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../models/track.dart';
+import '../services/music_folder.dart';
 import '../services/music_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
@@ -14,9 +15,10 @@ import 'player_screen.dart';
 /// dugmetom. Zato ekran ima dva koraka: prvo se numera izabere iz spiska, pa
 /// se otvori plejer.
 ///
-/// Spisak čine test numere i **fajlovi koje korisnik doda sa telefona**.
-/// Biranje ide kroz sistemski birač, pa ne treba posebna dozvola za čitanje
-/// memorije — korisnik sam pokazuje šta sme da se čita.
+/// Numere se dodaju na dva načina: **izborom pojedinačnih fajlova** ili
+/// **izborom celog foldera**. Oba idu kroz sistemski birač, pa ne treba
+/// posebna dozvola za čitanje memorije — korisnik sam pokazuje šta sme da se
+/// čita.
 class MusicScreen extends StatefulWidget {
   const MusicScreen({super.key});
 
@@ -35,6 +37,9 @@ class _MusicScreenState extends State<MusicScreen> {
   final List<Track> _pickedTracks = [];
 
   int _nextPickedNumber = 1;
+
+  /// Naziv foldera koji je izabran, ako je izabran — stoji iznad spiska.
+  String? _folderName;
   String? _selectedTrackId;
   bool _isLoading = true;
   String? _errorMessage;
@@ -64,6 +69,67 @@ class _MusicScreenState extends State<MusicScreen> {
         _errorMessage = 'Spisak numera nije učitan.';
         _isLoading = false;
       });
+    }
+  }
+
+  /// Otvara sistemski birač foldera i učitava sve numere iz njega.
+  ///
+  /// Folder zamenjuje dotadašnji spisak — to je i poenta: bira se folder
+  /// koji se pušta na tom nastupu.
+  Future<void> _pickFolder() async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    final String? folder;
+    try {
+      folder = await FilePicker.getDirectoryPath(
+        dialogTitle: 'Izaberi folder sa muzikom',
+      );
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Biranje foldera nije uspelo.')),
+        );
+      return;
+    }
+
+    // Korisnik je odustao.
+    if (folder == null) return;
+
+    try {
+      final tracks = await MusicFolder.tracksIn(folder);
+      if (!mounted) return;
+
+      if (tracks.isEmpty) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('U folderu nema numera.')),
+          );
+        return;
+      }
+
+      setState(() {
+        _pickedTracks
+          ..clear()
+          ..addAll(tracks);
+        _tracks = tracks;
+        _folderName = folder!.split(RegExp(r'[/\\]')).last;
+        _selectedTrackId = null;
+      });
+    } on FolderNotReadableException {
+      if (!mounted) return;
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Ovaj folder telefon ne da da se čita. '
+              'Izaberi same numere preko "Dodaj numere".',
+            ),
+            duration: Duration(seconds: 5),
+          ),
+        );
     }
   }
 
@@ -143,17 +209,56 @@ class _MusicScreenState extends State<MusicScreen> {
             AppSpacing.md,
             AppSpacing.sm,
             AppSpacing.md,
-            0,
+            AppSpacing.sm,
           ),
-          child: SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _pickTracks,
-              icon: const Icon(Icons.library_music_rounded, size: 20),
-              label: const Text('Dodaj numere sa telefona'),
-            ),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _pickFolder,
+                  icon: const Icon(Icons.folder_open_rounded, size: 20),
+                  label: const Text('Folder'),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _pickTracks,
+                  icon: const Icon(Icons.library_music_rounded, size: 20),
+                  label: const Text('Numere'),
+                ),
+              ),
+            ],
           ),
         ),
+        if (_folderName != null)
+          Padding(
+            padding: const EdgeInsets.only(
+              left: AppSpacing.md,
+              right: AppSpacing.md,
+              bottom: AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.folder_rounded,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    '$_folderName · ${_tracks.length}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         Expanded(
           child: _tracks.isEmpty
               ? _emptyList(context)
@@ -163,9 +268,8 @@ class _MusicScreenState extends State<MusicScreen> {
                   backgroundColor: AppColors.surface,
                   child: ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.sm,
-                    ),
+                    padding: EdgeInsets.zero,
+                    itemExtent: TrackTile.height,
                     itemCount: _tracks.length,
                     itemBuilder: (context, index) {
                       final track = _tracks[index];

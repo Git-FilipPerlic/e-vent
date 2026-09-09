@@ -49,7 +49,7 @@ void main() {
   });
 
   group('red u spisku', () {
-    testWidgets('prikazuje naziv, izvođača, izvor i trajanje',
+    testWidgets('u jednom redu: naziv sa izvođačem, ikonica izvora, trajanje',
         (WidgetTester tester) async {
       await tester.pumpWidget(
         _wrap(
@@ -67,12 +67,13 @@ void main() {
         ),
       );
 
-      expect(find.text('Uvodna špica'), findsOneWidget);
-      expect(find.text('Miks za doček · Playlista'), findsOneWidget);
+      expect(find.text('Uvodna špica · Miks za doček'), findsOneWidget);
+      // Izvor se vidi po ikonici, jer za tekst u zbijenom redu nema mesta.
+      expect(find.byIcon(Icons.queue_music_rounded), findsOneWidget);
       expect(find.text('2:34'), findsOneWidget);
     });
 
-    testWidgets('bez izvođača se prikazuje samo izvor',
+    testWidgets('bez izvođača stoji samo naziv',
         (WidgetTester tester) async {
       await tester.pumpWidget(
         _wrap(
@@ -84,7 +85,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Folder'), findsOneWidget);
+      expect(find.text('Vatreni show'), findsOneWidget);
+      expect(find.byIcon(Icons.folder_rounded), findsOneWidget);
     });
   });
 
@@ -93,10 +95,10 @@ void main() {
       await tester.pumpWidget(_wrap(const MusicScreen()));
       await tester.pumpAndSettle();
 
-      expect(find.text('Uvodna špica'), findsOneWidget);
-      expect(find.text('Igre za decu'), findsOneWidget);
+      expect(find.textContaining('Uvodna špica'), findsOneWidget);
+      expect(find.textContaining('Igre za decu'), findsOneWidget);
       // Numera bez naziva pada na naziv fajla.
-      expect(find.text('bez-naziva-04.mp3'), findsOneWidget);
+      expect(find.textContaining('bez-naziva-04.mp3'), findsOneWidget);
     });
 
     testWidgets('dodir bira numeru, ali ne pokreće reprodukciju',
@@ -107,7 +109,7 @@ void main() {
       // Dok ništa nije izabrano, nema ni dugmeta za plejer.
       expect(find.textContaining('Otvori plejer'), findsNothing);
 
-      await tester.tap(find.text('Igre za decu'));
+      await tester.tap(find.textContaining('Igre za decu'));
       await tester.pumpAndSettle();
 
       // Izbor samo otvara put do plejera — muzika ne kreće sama.
@@ -122,9 +124,9 @@ void main() {
       await tester.pumpWidget(_wrap(const MusicScreen()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Igre za decu'));
+      await tester.tap(find.textContaining('Igre za decu'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Vatreni show'));
+      await tester.tap(find.textContaining('Vatreni show'));
       await tester.pumpAndSettle();
 
       expect(

@@ -5,11 +5,16 @@ import '../../theme/app_theme.dart';
 
 /// Jedan red u spisku numera.
 ///
+/// **Namerno je zbijen** — jedan red, visine minimalne dodirne mete (48 dp),
+/// bez kartice i bez razmaka oko sebe. Na nastupu se traži pesma u spisku od
+/// nekoliko desetina numera, pa je gustina važnija od prostora.
+///
+/// Da bi sve stalo u jedan red, **izvor se vidi po ikonici** (folder ili
+/// plejlista) umesto po tekstu, a izvođač ide uz naziv kad ima mesta.
+///
 /// **Dodir ne pušta muziku** — samo bira numeru. Reprodukcija kreće tek u
 /// plejeru, velikim dugmetom. Tako se ne desi da usred programa krene pogrešna
 /// pesma zato što je prst okrznuo ekran.
-///
-/// Widget je "glup": prima numeru i stanje izbora kroz konstruktor.
 class TrackTile extends StatelessWidget {
   const TrackTile({
     super.key,
@@ -22,6 +27,10 @@ class TrackTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
+  /// Visina jednog reda. Ne ide ispod ovoga — to je minimalna dodirna meta
+  /// iz pravila projekta.
+  static const double height = kMinTouchTarget;
+
   /// `3:24` — trajanje numere; `--:--` dok se ne pročita iz fajla.
   static String formatDuration(Duration? duration) {
     if (duration == null) return '--:--';
@@ -30,62 +39,63 @@ class TrackTile extends StatelessWidget {
     return '$minutes:$seconds';
   }
 
+  /// Izvor se prepoznaje po ikonici, jer za tekst nema mesta u zbijenom redu.
+  static IconData iconForSource(TrackSource source) {
+    return source == TrackSource.playlist
+        ? Icons.queue_music_rounded
+        : Icons.folder_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      color: isSelected ? AppColors.surfaceAlt : null,
+    return Material(
+      color: isSelected ? AppColors.surfaceAlt : Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(kCardRadius),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
+        child: Container(
+          height: height,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: AppColors.border)),
+          ),
           child: Row(
             children: [
-              Icon(
-                isSelected
-                    ? Icons.graphic_eq_rounded
-                    : Icons.audiotrack_rounded,
-                color: isSelected ? AppColors.accent : AppColors.textSecondary,
-                size: 22,
+              Tooltip(
+                message: track.source.label,
+                child: Icon(
+                  isSelected
+                      ? Icons.graphic_eq_rounded
+                      : iconForSource(track.source),
+                  color: isSelected
+                      ? AppColors.accent
+                      : AppColors.textSecondary,
+                  size: 18,
+                ),
               ),
-              const SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      track.displayTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      // Izvor uvek stoji uz numeru: u žurbi se lako pomeša
-                      // pesma iz telefona sa pesmom iz plejliste za nastup.
-                      track.hasArtist
-                          ? '${track.artist} · ${track.source.label}'
-                          : track.source.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  track.hasArtist
+                      ? '${track.displayTitle} · ${track.artist}'
+                      : track.displayTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isSelected
+                        ? AppColors.accent
+                        : AppColors.textPrimary,
+                    fontWeight: isSelected
+                        ? FontWeight.w700
+                        : FontWeight.w400,
+                  ),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
                 formatDuration(track.duration),
-                style: theme.textTheme.bodyMedium?.copyWith(
+                style: theme.textTheme.bodySmall?.copyWith(
                   color: AppColors.textSecondary,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),

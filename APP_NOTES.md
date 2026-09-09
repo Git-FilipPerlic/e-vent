@@ -551,6 +551,30 @@ Dodati paketi: **`just_audio`** (^0.10.6) i **`file_picker`** (^12.2.0).
 
 ---
 
+## 9. septembar 2026 — pregled foldera i zbijen spisak numera
+
+- **Dva dugmeta iznad spiska: „Folder" i „Numere".**
+  - „Folder" otvara sistemski birač foldera i učita sve numere iz njega
+    (`lib/services/music_folder.dart`). Ne ulazi se u podfoldere — spisak za
+    nastup je jedan folder, a ne cela biblioteka. Iznad spiska piše naziv
+    foldera i broj numera.
+  - „Numere" i dalje bira pojedinačne fajlove.
+- **Ograničenje koje treba znati:** Android često vrati `content://` adresu
+  foldera (SAF), a takva adresa se ne može čitati običnim listanjem foldera.
+  Tada se javlja jasna poruka da se biraju same numere. Bolje to nego prazan
+  spisak bez objašnjenja.
+- **Spisak je zbijen.** Red je sada jedan red visine 48 dp (minimalna dodirna
+  meta), bez kartice i bez razmaka: naziv sa izvođačem, trajanje desno, a
+  **izvor se vidi po ikonici** (folder / plejlista) jer za tekst nema mesta.
+  Ranije je jedan red zauzimao oko 110 dp.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 110/110;
+  provereno na telefonu.
+- **Otvoreno:** traženo je da stane 30 numera po ekranu. Uz sadašnjih 48 dp
+  po redu staje oko 10–11. Za 30 redova bi red morao da bude ~17 dp, što je
+  ispod minimalne dodirne mete iz `CLAUDE.md`. Čeka odluku korisnika.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.
