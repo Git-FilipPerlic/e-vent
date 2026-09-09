@@ -172,24 +172,36 @@ class MusicPlayerController extends ChangeNotifier {
 
   /// Šta se dešava na dodir numere u spisku.
   ///
-  /// - numera koja nije u redu, a ništa se ne svira → postaje trenutna
-  /// - numera koja nije trenutna → ubacuje se kao **sledeća**, bez prekidanja
-  /// - trenutna numera → vraća se na početak
+  /// Zavisi od toga da li nešto **svira u tom trenutku**:
+  ///
+  /// - ništa ne svira → dodirnuta numera **postaje trenutna**, spremna za
+  ///   puštanje. To je uobičajen tok: gledaš spisak, izabereš pesmu, pustiš je.
+  /// - nešto svira → dodirnuta numera se ubacuje **kao sledeća**, a ono što
+  ///   svira se ne prekida. Usred programa se pesma ne seče dodirom.
+  /// - dodir na trenutnu numeru → vraća je na početak.
+  ///
+  /// Zvuk ni u jednom slučaju ne kreće sam.
   Future<void> onTrackTapped(Track track) async {
     if (current?.id == track.id) {
       await restartCurrent();
       return;
     }
 
-    if (current == null) {
-      _queue
-        ..clear()
-        ..add(track);
-      await _loadAt(0);
+    if (_isPlaying) {
+      enqueueNext(track);
       return;
     }
 
-    enqueueNext(track);
+    final index = _queue.indexWhere((t) => t.id == track.id);
+    if (index >= 0) {
+      await _loadAt(index);
+      return;
+    }
+
+    // Numera koja nije u redu se ubacuje odmah iza trenutne i odmah bira.
+    final at = _currentIndex + 1;
+    _queue.insert(at.clamp(0, _queue.length), track);
+    await _loadAt(at.clamp(0, _queue.length - 1));
   }
 
   /// Stavlja numeru odmah iza trenutne.

@@ -45,18 +45,43 @@ void main() {
       controller.dispose();
     });
 
-    test('dodir na drugu numeru je ubacuje kao sledeću, bez prekidanja',
-        () async {
+    test('dok ništa ne svira, dodir bira tu numeru', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
 
+      // Gledaš spisak, izabereš pesmu — ona postaje ta koja će se pustiti.
       await controller.onTrackTapped(_tracks[2]);
 
-      // Trenutna numera se nije promenila...
-      expect(controller.current?.id, 'trk-001');
-      // ...a Finale je sada odmah iza nje.
-      expect(controller.queue[1].id, 'trk-003');
+      expect(controller.current?.id, 'trk-003');
+      expect(playback.loadedPath, '/muzika/finale.mp3');
+      // Izbor i dalje ne pokreće zvuk.
       expect(playback.playCalls, 0);
+      controller.dispose();
+    });
+
+    test('dok nešto svira, dodir ubacuje numeru kao sledeću, bez prekidanja',
+        () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      await controller.onTrackTapped(_tracks[2]);
+
+      // Ono što svira se ne seče...
+      expect(controller.current?.id, 'trk-001');
+      // ...a izabrana numera je sada odmah iza nje.
+      expect(controller.queue[1].id, 'trk-003');
+      controller.dispose();
+    });
+
+    test('numera van reda se dodirom ubacuje i odmah bira', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback, queue: [_tracks.first]);
+
+      await controller.onTrackTapped(_tracks[1]);
+
+      expect(controller.current?.id, 'trk-002');
+      expect(controller.queue.length, 2);
       controller.dispose();
     });
 

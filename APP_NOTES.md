@@ -768,6 +768,31 @@ to rešava MUSIC-017, čitanje podataka iz fajla.
 
 ---
 
+## 9. septembar 2026 — ispravka toka: dodir bira numeru
+
+Korisnik je prijavio da tok nije dobar, i bio je u pravu — greška je bila gora
+nego što deluje.
+
+**Šta se dešavalo:** kad se učita folder, prva numera odmah postane trenutna.
+Posle toga je **svaki dodir samo ubacivao numeru u red**, a trenutna je ostajala
+prva. Znači: dodirneš petu pesmu, pritisneš play — krene prva. Spisak je izgledao
+kao da bira, a nije birao ništa.
+
+**Ispravka:** dodir sada zavisi od toga da li nešto svira:
+
+- ništa ne svira → dodirnuta numera **postaje izabrana** (uobičajen tok:
+  gledaš spisak, izabereš pesmu, pustiš je)
+- nešto svira → dodirnuta numera ide **kao sledeća**, a ono što svira se ne
+  prekida
+- dodir na već izabranu → vraća je na početak
+
+Zvuk ni u jednom slučaju ne kreće od dodira — to pravilo ostaje.
+
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 133/133
+  (tri nova testa baš za ovaj tok).
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.

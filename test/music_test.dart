@@ -183,7 +183,7 @@ void main() {
       expect(find.byIcon(Icons.pause_circle_filled_rounded), findsNothing);
     });
 
-    testWidgets('dodir na drugu numeru je ubacuje u red, ne menja trenutnu',
+    testWidgets('dok ništa ne svira, dodir menja izabranu numeru',
         (WidgetTester tester) async {
       final controller = MusicPlayerController(
         playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
@@ -204,11 +204,11 @@ void main() {
       await tester.tap(find.textContaining('Vatreni show'));
       await tester.pumpAndSettle();
 
-      // U traci i dalje stoji prva izabrana numera.
+      // U traci stoji poslednja dodirnuta numera — ona koja će se pustiti.
       expect(
         find.descendant(
           of: find.byType(PlaybackBar),
-          matching: find.textContaining('Igre za decu'),
+          matching: find.textContaining('Vatreni show'),
         ),
         findsOneWidget,
       );

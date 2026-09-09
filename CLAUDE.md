@@ -207,12 +207,22 @@ pokretima. Uz to plejer radi bez sistemskih traka, kao druga brana.
 
 #### Red čekanja i kretanje kroz spisak (dogovoreno 9. septembra 2026)
 
-Plejer ne pušta jednu po jednu pesmu — vodi **red čekanja**:
+Osnovni tok je jednostavan i njega ne treba komplikovati:
 
-- **dodir na numeru koja nije aktivna** je ubacuje kao **sledeću** u redu;
-  trenutna pesma se ne prekida
-- **dodir na numeru koja je već aktivna** je ponavlja od početka
+1. gledaš spisak numera
+2. **dodirneš pesmu koju hoćeš da pustiš** — ona postaje izabrana
+3. pritisneš **play**
+
+Dodir znači različitu stvar zavisno od toga da li nešto svira u tom trenutku:
+
+- **ništa ne svira** → dodirnuta numera **postaje izabrana**, spremna za
+  puštanje. Ovo je uobičajen slučaj i on ima prednost nad svime ostalim.
+- **nešto svira** → dodirnuta numera se ubacuje **kao sledeća** u redu, a ono
+  što svira se ne prekida. Usred programa se pesma ne seče dodirom.
+- **dodir na numeru koja je već izabrana** je vraća na početak
 - **skip napred / nazad** pomeraju red za jedno mesto
+
+Zvuk ni u jednom slučaju ne kreće od dodira.
 - prelazak sa pesme na pesmu ide uz **kratko pretapanje naslova** (do 200 ms);
   ostatak ekrana se ne animira, po opštim pravilima za pokret
 
