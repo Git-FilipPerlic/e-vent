@@ -1022,6 +1022,34 @@ kao interfejs — kasnija zamena Firebase Auth-om ne dira ekrane.
 
 ---
 
+## 9. septembar 2026 — ADMIN-004: Home tab se popunjava posle prijave
+
+Prvi deo: **tekstualna polja** — naziv događaja, organizator, telefon, adresa.
+
+- `Event.copyWith` zamenjuje raniji `withVehicle`. Pravilo: **`null` ne dira
+  polje, a prazan tekst ga briše.** Bez te razlike se podatak ne bi mogao
+  obrisati, samo menjati.
+- `EventService.saveEvent` — mock pamti izmenu i vraća je pri sledećem
+  učitavanju.
+- `lib/widgets/common/edit_text_sheet.dart` — unos jednog podatka u listu
+  odozdo, plus `EditFieldButton` (olovka). Kartice se **ne prave dvaput**:
+  ista kartica, samo se pojavi olovka kad ima dozvole.
+- U listu piše „Prazno polje briše podatak" — ljudi se inače plaše da obrišu
+  polje pa ostavljaju stare podatke.
+- Izmena se **odmah vidi**, a upis ide u pozadini; ako upis pukne, stanje se
+  vraća i javi porukom. Isti obrazac kao kod izbora vozila.
+- Telefon prima samo cifre, `+`, razmak i zagrade.
+- **Header je prepravljen:** zatamnjenje sada ide ispod same grupe dugmadi, a
+  ne preko pola trake. Sa prijavljenim korisnikom se u headeru nađe pet stvari
+  (ime, dva dugmeta za logotip, odjava), i ime se gubilo u baneru.
+- `test/edit_event_test.dart` — 9 testova, uključujući proveru da izvođač
+  (uloga `user`) **nema nijednu olovku**, a `glavni` ima četiri.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 188/188;
+  provereno na telefonu (prijava kao `filip`, olovke se pojave).
+- Sledeće: datum, sat, trajanje i vreme polaska — traže birače, ne tekst.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

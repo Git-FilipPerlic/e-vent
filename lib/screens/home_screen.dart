@@ -4,9 +4,11 @@ import '../models/event.dart';
 import '../models/vehicle.dart';
 import '../models/weather.dart';
 import '../services/event_service.dart';
+import '../services/auth_service.dart';
 import '../services/mock_event_service.dart';
 import '../services/weather_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/common/edit_text_sheet.dart';
 import '../widgets/common/error_retry.dart';
 import '../widgets/home/event_address.dart';
 import '../widgets/home/departure_time.dart';
@@ -31,7 +33,10 @@ import '../widgets/home/vehicle_picker.dart';
 /// naziv sa datumom, satom i trajanjem (HOME-001/005) → organizator (HOME-002) → telefon (HOME-004) → adresa (HOME-003) → polazak (HOME-007) → vozilo → učesnici (HOME-012) → status tima (HOME-013) → spremnost (HOME-011) →
 /// status događaja (HOME-018) → podsetnik (HOME-019) → scenario (HOME-025).
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.auth});
+
+  /// Ko je prijavljen. Bez prijave su kartice samo za čitanje.
+  final AuthService? auth;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -62,10 +67,65 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  /// Da li prijavljeni korisnik sme da menja podatke o događaju.
+  bool get _canEdit =>
+      widget.auth?.can(AppPermission.editEvent) ?? false;
+
   @override
   void initState() {
     super.initState();
+    // Prijava i odjava menjaju kartice iz čitanja u unos i nazad.
+    widget.auth?.addListener(_onAuthChanged);
     _loadEvent();
+  }
+
+  void _onAuthChanged() => setState(() {});
+
+  @override
+  void dispose() {
+    widget.auth?.removeListener(_onAuthChanged);
+    super.dispose();
+  }
+
+  /// Otvara unos jednog podatka i čuva izmenu.
+  ///
+  /// Izmena se odmah vidi, a upis ide u pozadini; ako upis pukne, stanje se
+  /// vraća i javi porukom, da ekran ne laže. Isto kao kod izbora vozila.
+  Future<void> _editField({
+    required String label,
+    required String? value,
+    required Event Function(Event event, String text) apply,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+  }) async {
+    final event = _event;
+    if (event == null) return;
+
+    final text = await showEditTextSheet(
+      context,
+      label: label,
+      value: value,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+    );
+    // Korisnik je odustao.
+    if (text == null) return;
+    if (!mounted) return;
+
+    final updated = apply(event, text);
+    setState(() => _event = updated);
+
+    try {
+      await _service.saveEvent(updated);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _event = event);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Izmena nije sačuvana.')),
+        );
+    }
   }
 
   Future<void> _loadEvent() async {
@@ -214,13 +274,48 @@ class _HomeScreenState extends State<HomeScreen> {
             title: _event?.title,
             date: _event?.eventDate,
             durationMinutes: _event?.durationMinutes,
+            onEdit: !_canEdit
+                ? null
+                : () => _editField(
+                    label: 'Naziv događaja',
+                    value: _event?.title,
+                    apply: (event, text) => event.copyWith(title: text),
+                  ),
           ),
-          OrganizerName(name: _event?.organizerName),
-          OrganizerPhone(phone: _event?.organizerPhone),
+          OrganizerName(
+            name: _event?.organizerName,
+            onEdit: !_canEdit
+                ? null
+                : () => _editField(
+                    label: 'Organizator',
+                    value: _event?.organizerName,
+                    apply: (event, text) => event.copyWith(organizerName: text),
+                  ),
+          ),
+          OrganizerPhone(
+            phone: _event?.organizerPhone,
+            onEdit: !_canEdit
+                ? null
+                : () => _editField(
+                    label: 'Telefon organizatora',
+                    value: _event?.organizerPhone,
+                    keyboardType: TextInputType.phone,
+                    apply: (event, text) =>
+                        event.copyWith(organizerPhone: text),
+                  ),
+          ),
           EventAddress(
             address: _event?.address,
             latitude: _event?.latitude,
             longitude: _event?.longitude,
+            onEdit: !_canEdit
+                ? null
+                : () => _editField(
+                    label: 'Adresa',
+                    value: _event?.address,
+                    maxLines: 2,
+                    apply: (event, text) => event.copyWith(address: text),
+                  ),
           ),
           EventWeather(
             weather: _forecast,

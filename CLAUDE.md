@@ -369,6 +369,9 @@ Iz toga slede dva pravila:
 
 - **Isti widgeti služe oba lica.** Kartice na Home tabu se ne prave dvaput;
   posle logina dobijaju polja za unos, bez logina su samo za čitanje.
+  Izvedeno tako da se na kartici pojavi **olovka** koja otvara unos u listu
+  odozdo — ekran se time ne pretvara u obrazac, a podatak se menja jednim
+  dodirom. Bez dozvole je kartica ista, samo bez olovke.
 - **Menjanje logotipa u headeru traži login** — to je funkcija managementa,
   ne obična podešavanja.
 
@@ -382,7 +385,7 @@ popunjavanje tabele koja se posle deli timu.
 | ADMIN-001 | Prijava i odjava, uloge `glavni` i `user` | gotovo |
 | ADMIN-002 | Bez prijave je aplikacija samo za čitanje | gotovo |
 | ADMIN-003 | Prijavljeni korisnik i dugmad u headeru | gotovo |
-| ADMIN-004 | Polja na Home tabu se popunjavaju kad ima dozvole | sledeće |
+| ADMIN-004 | Polja na Home tabu se popunjavaju kad ima dozvole | tekstualna gotova; datum, sat, trajanje i polazak sledeći |
 | ADMIN-005 | „Create and share" — dodela događaja timu | |
 | ADMIN-006 | Lager šablon (sekcije i stavke) po firmi | |
 | ADMIN-007 | Zamena lokalne prijave Firebase Auth-om | |

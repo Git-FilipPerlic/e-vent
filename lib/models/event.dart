@@ -83,8 +83,53 @@ class Event {
   final String? vehicleId;
   final List<Participant> participants;
 
-  /// Ista podaci o događaju, samo sa drugim vozilom. Model je nepromenljiv,
-  /// pa se pri izboru vozila pravi kopija.
+  /// Isti događaj, sa izmenjenim poljima. Model je nepromenljiv, pa svaka
+  /// izmena pravi kopiju.
+  ///
+  /// **Prazan tekst briše podatak.** Zato se za brisanje šalje prazan string,
+  /// a ne `null` — `null` znači „ovo polje ne diraj".
+  Event copyWith({
+    String? title,
+    List<String>? scenario,
+    String? organizerName,
+    String? organizerPhone,
+    String? address,
+    double? latitude,
+    double? longitude,
+    DateTime? eventDate,
+    DateTime? departureTime,
+    int? travelDurationMinutes,
+    int? durationMinutes,
+    String? vehicleId,
+    List<Participant>? participants,
+  }) {
+    return Event(
+      id: id,
+      title: _edited(title, this.title),
+      scenario: scenario ?? this.scenario,
+      organizerName: _edited(organizerName, this.organizerName),
+      organizerPhone: _edited(organizerPhone, this.organizerPhone),
+      address: _edited(address, this.address),
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      eventDate: eventDate ?? this.eventDate,
+      departureTime: departureTime ?? this.departureTime,
+      travelDurationMinutes:
+          travelDurationMinutes ?? this.travelDurationMinutes,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      vehicleId: vehicleId ?? this.vehicleId,
+      participants: participants ?? this.participants,
+    );
+  }
+
+  /// Nova vrednost teksta: `null` ne dira polje, prazan tekst ga briše.
+  static String? _edited(String? incoming, String? existing) {
+    if (incoming == null) return existing;
+    final trimmed = incoming.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  /// Isti događaj, samo sa drugim vozilom.
   Event withVehicle(String? newVehicleId) {
     return Event(
       id: id,

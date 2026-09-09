@@ -70,7 +70,7 @@ class _RootNavigationState extends State<RootNavigation> {
   // IndexedStack čuva stanje svakog taba pri prebacivanju
   // (npr. plejer u Muzici ostaje kako je bio).
   late final List<Widget> _tabs = [
-    const HomeScreen(),
+    HomeScreen(auth: _auth),
     MusicScreen(audioHandler: widget.audioHandler),
     const LedScreen(),
     const LagerScreen(),

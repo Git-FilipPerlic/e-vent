@@ -69,69 +69,74 @@ class AppHeader extends StatelessWidget {
           else
             _Wordmark(theme: theme),
 
-          // Zatamnjenje uz desnu ivicu, da se ikonice vide i na svetloj slici.
-          if (image != null)
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerRight,
-                  end: Alignment.center,
-                  colors: [AppColors.background, Colors.transparent],
-                ),
-              ),
-            ),
-
           Align(
             alignment: Alignment.centerRight,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Ko je prijavljen — da se ne greši čiji su podaci na ekranu.
-                if (signedInAs != null)
-                  Flexible(
-                    child: Text(
-                      signedInAs!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: AppColors.textPrimary,
+            child: DecoratedBox(
+              // Zatamnjenje ide **ispod same grupe dugmadi**, a ne preko pola
+              // trake: logotip ostaje vidljiv, a ikonice se čitaju i na
+              // svetloj slici. Ranije se ime korisnika gubilo u baneru.
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.transparent,
+                    AppColors.background,
+                    AppColors.background,
+                  ],
+                  stops: const [0, 0.35, 1],
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                  children: [
+                  // Ko je prijavljen — da se ne greši čiji su podaci na ekranu.
+                  if (signedInAs != null)
+                    Flexible(
+                      child: Text(
+                        signedInAs!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                if (canEdit && onRemoveLogo != null)
-                  IconButton(
-                    onPressed: onRemoveLogo,
-                    icon: const Icon(Icons.hide_image_outlined),
-                    iconSize: 22,
-                    color: AppColors.textSecondary,
-                    tooltip: 'Ukloni logotip',
-                  ),
-                if (canEdit)
-                  IconButton(
-                    onPressed: onEditLogo,
-                    icon: const Icon(Icons.image_outlined),
-                    iconSize: 22,
-                    color: AppColors.accent,
-                    tooltip: 'Promeni logotip tima',
-                  ),
-                if (onSignIn != null)
-                  IconButton(
-                    onPressed: onSignIn,
-                    icon: const Icon(Icons.login_rounded),
-                    iconSize: 22,
-                    color: AppColors.accent,
-                    tooltip: 'Prijava',
-                  ),
-                if (onSignOut != null)
-                  IconButton(
-                    onPressed: onSignOut,
-                    icon: const Icon(Icons.logout_rounded),
-                    iconSize: 22,
-                    color: AppColors.textSecondary,
-                    tooltip: 'Odjava',
-                  ),
-                const SizedBox(width: AppSpacing.xs),
-              ],
+                  if (canEdit && onRemoveLogo != null)
+                    IconButton(
+                      onPressed: onRemoveLogo,
+                      icon: const Icon(Icons.hide_image_outlined),
+                      iconSize: 22,
+                      color: AppColors.textSecondary,
+                      tooltip: 'Ukloni logotip',
+                    ),
+                  if (canEdit)
+                    IconButton(
+                      onPressed: onEditLogo,
+                      icon: const Icon(Icons.image_outlined),
+                      iconSize: 22,
+                      color: AppColors.accent,
+                      tooltip: 'Promeni logotip tima',
+                    ),
+                  if (onSignIn != null)
+                    IconButton(
+                      onPressed: onSignIn,
+                      icon: const Icon(Icons.login_rounded),
+                      iconSize: 22,
+                      color: AppColors.accent,
+                      tooltip: 'Prijava',
+                    ),
+                  if (onSignOut != null)
+                    IconButton(
+                      onPressed: onSignOut,
+                      icon: const Icon(Icons.logout_rounded),
+                      iconSize: 22,
+                      color: AppColors.textSecondary,
+                      tooltip: 'Odjava',
+                    ),
+                  const SizedBox(width: AppSpacing.xs),
+                ],
+              ),
             ),
           ),
 

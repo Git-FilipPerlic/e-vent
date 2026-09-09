@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_theme.dart';
 import '../common/copy_button.dart';
+import '../common/edit_text_sheet.dart';
 
 /// HOME-004 — telefon organizatora sa tri akcije: pozovi, SMS, kopiraj.
 ///
@@ -17,7 +18,10 @@ import '../common/copy_button.dart';
 /// podaci nego radnje nad telefonom, pa ih widget pokreće sam preko
 /// `url_launcher` — ni ovde se ne dira servis ni baza.
 class OrganizerPhone extends StatelessWidget {
-  const OrganizerPhone({super.key, required this.phone});
+  const OrganizerPhone({super.key, required this.phone, this.onEdit});
+
+  /// Otvara izmenu broja. `null` kad korisnik nema dozvolu.
+  final VoidCallback? onEdit;
 
   /// Broj telefona. Može da bude `null` ili prazan — tada se prikazuje
   /// objašnjenje, bez ikonica.
@@ -115,6 +119,8 @@ class OrganizerPhone extends StatelessWidget {
               ),
               CopyButton(value: value, label: 'Telefon'),
             ],
+            if (onEdit != null)
+              EditFieldButton(label: 'Telefon', onTap: onEdit!),
           ],
         ),
       ),

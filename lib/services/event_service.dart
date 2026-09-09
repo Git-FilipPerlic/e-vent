@@ -21,6 +21,10 @@ abstract interface class EventService {
   /// Baca [EventNotFoundException] ako događaja nema.
   Future<void> setEventVehicle(String eventId, String vehicleId);
 
+  /// Čuva izmenjene podatke o događaju (admin konzola).
+  /// Baca [EventNotFoundException] ako događaja nema.
+  Future<void> saveEvent(Event event);
+
   /// Prazan šablon checkliste opreme, po sekcijama.
   Future<List<ChecklistSection>> loadChecklistTemplate();
 }

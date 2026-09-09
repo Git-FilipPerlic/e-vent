@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
 import '../common/copy_button.dart';
+import '../common/edit_text_sheet.dart';
 
 /// HOME-002 — ime organizatora (roditelja) i dugme za kopiranje.
 ///
 /// Widget je "glup": prima gotov tekst kroz konstruktor, ne zna ništa
 /// o servisu ni o bazi.
 class OrganizerName extends StatelessWidget {
-  const OrganizerName({super.key, required this.name});
+  const OrganizerName({super.key, required this.name, this.onEdit});
+
+  /// Otvara izmenu imena. `null` kad korisnik nema dozvolu.
+  final VoidCallback? onEdit;
 
   /// Ime organizatora. Može da bude `null` ili prazno — tada se prikazuje
   /// objašnjenje, a dugme za kopiranje se ne prikazuje (nema šta da se kopira).
@@ -57,6 +61,8 @@ class OrganizerName extends StatelessWidget {
             ),
             if (hasName)
               CopyButton(value: value, label: 'Ime organizatora'),
+            if (onEdit != null)
+              EditFieldButton(label: 'Organizator', onTap: onEdit!),
           ],
         ),
       ),

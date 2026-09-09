@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
 import '../../utils/date_format.dart';
+import '../common/edit_text_sheet.dart';
 
 /// HOME-001 — kartica događaja: datum i sat u gornjem redu, naziv i trajanje
 /// u donjem.
@@ -29,7 +30,12 @@ class EventTitle extends StatelessWidget {
     required this.title,
     this.date,
     this.durationMinutes,
+    this.onEdit,
   });
+
+  /// Otvara izmenu naziva. `null` kad korisnik nema dozvolu — kartica je tada
+  /// ista, samo bez olovke.
+  final VoidCallback? onEdit;
 
   /// Naziv događaja. Može da bude `null` ili prazan.
   final String? title;
@@ -83,6 +89,8 @@ class EventTitle extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (onEdit != null)
+                  EditFieldButton(label: 'Naziv događaja', onTap: onEdit!),
                 if (when != null) ...[
                   // Datum se skuplja do pune širine, pa mu treba razmak da se
                   // ne slepi sa satom u "12. septembar16:00".

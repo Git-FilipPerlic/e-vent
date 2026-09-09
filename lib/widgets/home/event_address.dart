@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_theme.dart';
 import '../common/copy_button.dart';
+import '../common/edit_text_sheet.dart';
 
 /// HOME-003 — adresa događaja: grad, tekst adrese i dugme "Navigacija".
 ///
@@ -18,7 +19,11 @@ class EventAddress extends StatelessWidget {
     required this.address,
     this.latitude,
     this.longitude,
+    this.onEdit,
   });
+
+  /// Otvara izmenu adrese. `null` kad korisnik nema dozvolu.
+  final VoidCallback? onEdit;
 
   /// Tekst adrese. Može da bude `null` ili prazan.
   final String? address;
@@ -139,6 +144,8 @@ class EventAddress extends StatelessWidget {
                   ),
                 ),
                 if (hasAddress) CopyButton(value: value, label: 'Adresa'),
+                if (onEdit != null)
+                  EditFieldButton(label: 'Adresa', onTap: onEdit!),
               ],
             ),
             if (hasAddress || _hasCoordinates) ...[
