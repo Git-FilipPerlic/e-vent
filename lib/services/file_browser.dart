@@ -24,7 +24,15 @@ class BrowserEntry {
 /// Bez nje se ne vidi ništa — zato pregled prvo proverava dozvolu, pa tek onda
 /// čita.
 abstract final class FileBrowser {
-  /// Nastavci koje plejer ume da pusti.
+  /// Nastavci koje plejer **zaista** ume da pusti na Androidu (MUSIC-021).
+  ///
+  /// Spisak prati ono što Androidov plejer podržava, a ne ono što bi bilo
+  /// lepo da podržava. Nastavak koji se ovde nađe a ne može da se pusti je
+  /// gori od nastavka koji fali: korisnik izabere pesmu, a ona ne radi.
+  ///
+  /// **`wma` je namerno izostavljen** — Android nikad nije podržavao Windows
+  /// Media Audio. Ranije je stajao u spisku, pa bi se takav fajl ponudio a
+  /// zatim odbio da se otvori.
   static const Set<String> audioExtensions = {
     'mp3',
     'm4a',
@@ -32,8 +40,10 @@ abstract final class FileBrowser {
     'wav',
     'flac',
     'ogg',
+    'oga',
     'opus',
-    'wma',
+    'amr',
+    'mka',
   };
 
   /// Unutrašnja memorija telefona. Odatle kreće pregled.

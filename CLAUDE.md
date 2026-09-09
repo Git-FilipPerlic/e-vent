@@ -78,7 +78,7 @@ celini.
    pokretanje velikim dugmetom, tajmer, fade-in/fade-out, red čekanja,
    crossfade, prsten talasnog oblika po ivici ekrana
 3. **LED** — kontrola LED rasvete preko Bluetooth-a: boje, scene, efekti,
-   kasnije sinhronizacija sa muzikom
+   kasnije sinhronizacija sa muzikom (kako tačno — nije dogovoreno)
 4. **Lager** — checklist opreme po sekcijama (Tehnika, Animacija, Specijalni
    efekti, Vatreni rekviziti, Svila, Hoop), pakovanje pre i raspakivanje posle
    događaja, limit 90 stavki
@@ -280,7 +280,7 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-018 | ~~Pregled foldera sa ulaskom u podfoldere~~ — urađeno uz MUSIC-007 | gotovo |
 | MUSIC-019 | Rad u pozadini + kontrole u notifikaciji | gotovo (`audio_service`) |
 | MUSIC-020 | Pretapanje naslova pri prelasku na sledeću numeru | gotovo |
-| MUSIC-021 | Provera podrške za formate (mp3, m4a, aac, wav, flac, ogg, opus, wma) | sledeće |
+| MUSIC-021 | Provera podrške za formate | gotovo |
 | MUSIC-022 | Provera rasporeda na različitim veličinama ekrana | gotovo |
 
 **Napomene uz pojedine stavke:**
@@ -320,6 +320,13 @@ Iz spiska stare muzičke aplikacije **ne prenosi se**:
 
 Nije započet. Pre prvog feature-a treba potvrditi koji hardver/protokol se
 koristi i šta se dešava kada Bluetooth nije dostupan.
+
+**Otvoreno pitanje (9. septembar 2026):** pominjana je *analiza akorda* radi
+sinhronizacije svetla sa muzikom. **Toga nema u specifikaciji** — dosad je
+zapisano samo „kasnije sinhronizacija sa muzikom", bez ijedne reči o tome
+kako. Ako se ide na to, treba unapred rešiti: da li se analizira unapred
+(jednom po pesmi, kao talasni oblik) ili u realnom vremenu, i šta se dešava
+sa pesmama koje nemaju jasnu harmoniju. Odluka se donosi sa korisnikom.
 
 ### Admin konzola i login (dogovoreno 8. septembra 2026)
 

@@ -24,7 +24,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
-        android:label="event_app"
+        android:label="e-vent"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

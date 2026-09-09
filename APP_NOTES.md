@@ -967,8 +967,40 @@ Naš plejer drži **dva** plejera zbog preklapanja numera (MUSIC-014), pa bi
 
 ---
 
+## 9. septembar 2026 — MUSIC-021, ime aplikacije i potpisan release APK
+
+**MUSIC-021 — podrška za formate.** Spisak nastavaka je prošao proveru i
+**nađena je prava greška: `wma`**. Stajao je u spisku, a Android nikad nije
+podržavao Windows Media Audio — fajl bi se ponudio u pregledu, pa bi plejer
+odbio da ga otvori. Izbačen je, a dodati su `oga`, `amr` i `mka` koje Android
+zaista ume. `test/formats_test.dart` čuva to od povratka.
+
+**Ime aplikacije na telefonu je konačno „e-vent"**, a ne `event_app`
+(`AndroidManifest.xml` i `ios/Runner/Info.plist`). Stajalo je u TODO-u od
+prvog dana.
+
+**Potpisan release APK.**
+
+- Napravljen ključ `android/app/e-vent-release.jks`, važi do 2053.
+- Lozinka i putanja stoje u `android/key.properties`. **Taj fajl i ključ nisu
+  u gitu** (`android/.gitignore` ih već isključuje) i **ne smeju biti** —
+  ko ima ključ, može da objavi izmenjenu verziju aplikacije pod istim imenom.
+- `android/app/build.gradle.kts` potpisuje release **pravim ključem kad
+  `key.properties` postoji, a debug ključem kad ga nema** — da build ne pukne
+  kod nekoga ko ključ nema.
+- Provereno `apksigner`-om: potpisnik je `CN=e-vent, O=Dvonoge Stonoge`.
+- `build/app/outputs/flutter-apk/app-release.apk`, 53,7 MB.
+
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 172/172.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
+- **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`
+  i `android/key.properties` nisu u gitu. Ako se izgube, **nova verzija
+  aplikacije ne može da se objavi pod istim potpisom** — korisnici bi morali
+  da obrišu staru pa instaliraju novu.
 - **Ručno proveriti notifikaciju.** Pustiti pesmu, izaći iz aplikacije i
   zaključati telefon: muzika treba da svira dalje, a u notifikaciji da stoje
   naziv numere i dugmad (prethodna, pusti/pauza, sledeća).
