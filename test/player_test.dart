@@ -38,7 +38,7 @@ void main() {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
 
-      expect(controller.current?.id, 'trk-001');
+      expect(controller.selected?.id, 'trk-001');
       expect(playback.loadedPath, '/muzika/uvodna-spica.mp3');
       // Dodir i učitavanje nikad ne pokreću zvuk.
       expect(playback.playCalls, 0);
@@ -52,14 +52,14 @@ void main() {
       // Gledaš spisak, izabereš pesmu — ona postaje ta koja će se pustiti.
       await controller.onTrackTapped(_tracks[2]);
 
-      expect(controller.current?.id, 'trk-003');
+      expect(controller.selected?.id, 'trk-003');
       expect(playback.loadedPath, '/muzika/finale.mp3');
       // Izbor i dalje ne pokreće zvuk.
       expect(playback.playCalls, 0);
       controller.dispose();
     });
 
-    test('dok nešto svira, dodir ubacuje numeru kao sledeću, bez prekidanja',
+    test('dok nešto svira, dodir bira novu numeru a staru ne prekida',
         () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
@@ -67,10 +67,11 @@ void main() {
 
       await controller.onTrackTapped(_tracks[2]);
 
-      // Ono što svira se ne seče...
-      expect(controller.current?.id, 'trk-001');
-      // ...a izabrana numera je sada odmah iza nje.
-      expect(controller.queue[1].id, 'trk-003');
+      // Izabrana je nova numera...
+      expect(controller.selected?.id, 'trk-003');
+      // ...a stara i dalje svira, sve dok se ne pritisne veliko dugme.
+      expect(controller.sounding?.id, 'trk-001');
+      expect(playback.playCalls, 1);
       controller.dispose();
     });
 
@@ -80,7 +81,7 @@ void main() {
 
       await controller.onTrackTapped(_tracks[1]);
 
-      expect(controller.current?.id, 'trk-002');
+      expect(controller.selected?.id, 'trk-002');
       expect(controller.queue.length, 2);
       controller.dispose();
     });
@@ -103,11 +104,11 @@ void main() {
       final controller = await _controllerWith(playback);
 
       await controller.next();
-      expect(controller.current?.id, 'trk-002');
+      expect(controller.selected?.id, 'trk-002');
 
       // Unazad na samom početku numere ide na prethodnu.
       await controller.previous();
-      expect(controller.current?.id, 'trk-001');
+      expect(controller.selected?.id, 'trk-001');
       controller.dispose();
     });
 
@@ -120,7 +121,7 @@ void main() {
 
       await controller.previous();
 
-      expect(controller.current?.id, 'trk-002');
+      expect(controller.selected?.id, 'trk-002');
       expect(playback.lastSeek, Duration.zero);
       controller.dispose();
     });
@@ -128,12 +129,14 @@ void main() {
     test('kraj numere sam prelazi na sledeću i pušta je', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
+      await controller.play();
 
       playback.emitCompleted();
       await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
 
-      expect(controller.current?.id, 'trk-002');
-      expect(playback.playCalls, 1);
+      expect(controller.selected?.id, 'trk-002');
+      expect(controller.sounding?.id, 'trk-002');
       controller.dispose();
     });
 
@@ -144,7 +147,7 @@ void main() {
       playback.emitCompleted();
       await Future<void>.delayed(Duration.zero);
 
-      expect(controller.current?.id, 'trk-001');
+      expect(controller.selected?.id, 'trk-001');
       expect(playback.pauseCalls, 1);
       expect(playback.lastSeek, Duration.zero);
       controller.dispose();
@@ -310,7 +313,7 @@ void main() {
     test('pauza uz fade-out stišava zvuk pre nego što stane', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
-      controller.setFadeOut(true);
+      controller.setFade(true);
 
       await controller.play();
       await controller.toggle();
@@ -335,7 +338,7 @@ void main() {
         trackDuration: const Duration(seconds: 120),
       );
       final controller = await _controllerWith(playback);
-      controller.setFadeOut(true);
+      controller.setFade(true);
       await controller.play();
 
       // Još je rano — ništa se ne stišava.
@@ -365,7 +368,7 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('nastupni ekran ima oba prekidača',
+    testWidgets('nastupni ekran ima jedan prekidač za pretapanje',
         (WidgetTester tester) async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
@@ -373,116 +376,88 @@ void main() {
       await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
       await tester.pumpAndSettle();
 
-      expect(find.text('Fade in'), findsOneWidget);
-      expect(find.text('Fade out'), findsOneWidget);
+      expect(find.text('Fade'), findsOneWidget);
 
-      await tester.tap(find.text('Fade out'));
+      await tester.tap(find.text('Fade'));
       await tester.pumpAndSettle();
+      expect(controller.fade, isTrue);
       controller.dispose();
     });
   });
 
-  group('preklapanje (crossfade)', () {
-    test('uključeno preklapanje odmah sprema sledeću numeru', () async {
+  group('preklapanje', () {
+    test('dodir dok nešto svira sprema numeru, bez prekidanja', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
-
-      controller.setCrossfade(true);
-      await Future<void>.delayed(Duration.zero);
-
-      expect(playback.preloadedPath, '/muzika/igre.mp3');
-      controller.dispose();
-    });
-
-    test('pred kraj numere preklapanje prelazi na sledeću', () async {
-      final playback = FakePlayback(
-        trackDuration: const Duration(seconds: 120),
-      );
-      final controller = await _controllerWith(playback);
-      controller.setCrossfade(true);
-      await Future<void>.delayed(Duration.zero);
       await controller.play();
 
-      // Još je rano.
-      playback.emitPosition(const Duration(seconds: 60));
-      await Future<void>.delayed(Duration.zero);
-      expect(playback.crossfadeCalls, 0);
-      expect(controller.current?.id, 'trk-001');
+      await controller.onTrackTapped(_tracks[2]);
 
-      // Ušlo se u poslednjih šest sekundi.
-      playback.emitPosition(const Duration(seconds: 116));
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
-
-      expect(playback.crossfadeCalls, 1);
-      expect(playback.lastCrossfade, const Duration(seconds: 4));
-      // Sledeća numera je sada trenutna...
-      expect(controller.current?.id, 'trk-002');
-      // ...a ona posle nje se već sprema.
+      // Bira se nova numera, a stara i dalje svira.
+      expect(controller.selected?.id, 'trk-003');
+      expect(controller.sounding?.id, 'trk-001');
+      expect(controller.isAnotherSounding, isTrue);
+      // Nova je spremna u drugom plejeru.
       expect(playback.preloadedPath, '/muzika/finale.mp3');
-
       controller.dispose();
     });
 
-    test('bez preklapanja se ništa ne sprema unapred', () async {
-      final playback = FakePlayback(
-        trackDuration: const Duration(seconds: 120),
-      );
+    test('veliko dugme uz pretapanje preklapa dve numere', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
+      controller.setFade(true);
+      await controller.play();
+      await controller.onTrackTapped(_tracks[2]);
+
       await controller.play();
 
-      playback.emitPosition(const Duration(seconds: 116));
-      await Future<void>.delayed(Duration.zero);
-
-      expect(playback.preloadedPath, isNull);
-      expect(playback.crossfadeCalls, 0);
-      controller.dispose();
-    });
-
-    test('na poslednjoj numeri nema šta da se preklopi', () async {
-      final playback = FakePlayback(
-        trackDuration: const Duration(seconds: 120),
-      );
-      final controller = await _controllerWith(playback, queue: [_tracks.first]);
-      controller.setCrossfade(true);
-      await Future<void>.delayed(Duration.zero);
-      await controller.play();
-
-      playback.emitPosition(const Duration(seconds: 118));
-      await Future<void>.delayed(Duration.zero);
-
-      expect(playback.crossfadeCalls, 0);
-      controller.dispose();
-    });
-
-    test('preklapanje ima prednost nad stišavanjem pred kraj', () async {
-      final playback = FakePlayback(
-        trackDuration: const Duration(seconds: 120),
-      );
-      final controller = await _controllerWith(playback);
-      controller.setCrossfade(true);
-      controller.setFadeOut(true);
-      await Future<void>.delayed(Duration.zero);
-      await controller.play();
-
-      playback.emitPosition(const Duration(seconds: 116));
-      await Future<void>.delayed(Duration.zero);
-
-      // Ne sme prvo da ode u tišinu pa da nastane rupa pred sledeću numeru.
       expect(playback.crossfadeCalls, 1);
-      expect(playback.lastFadeToSilence, isNull);
+      expect(controller.selected?.id, 'trk-003');
+      expect(controller.sounding?.id, 'trk-003');
+      expect(controller.isAnotherSounding, isFalse);
       controller.dispose();
     });
 
-    testWidgets('nastupni ekran ima i prekidač za preklapanje',
+    test('bez pretapanja veliko dugme prelazi odmah', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+      await controller.onTrackTapped(_tracks[2]);
+
+      await controller.play();
+
+      expect(playback.crossfadeCalls, 0);
+      expect(controller.sounding?.id, 'trk-003');
+      expect(playback.loadedPath, '/muzika/finale.mp3');
+      controller.dispose();
+    });
+
+    test('dodir na već izabranu numeru dok druga svira ništa ne prekida',
+        () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+      await controller.onTrackTapped(_tracks[2]);
+
+      await controller.onTrackTapped(_tracks[2]);
+
+      expect(controller.sounding?.id, 'trk-001');
+      expect(playback.lastSeek, isNull);
+      controller.dispose();
+    });
+
+    testWidgets('nastupni ekran kaže šta svira kad je izabrana druga numera',
         (WidgetTester tester) async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
+      await controller.play();
+      await controller.onTrackTapped(_tracks[2]);
 
       await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
       await tester.pumpAndSettle();
 
-      expect(find.text('Preklapanje'), findsOneWidget);
+      expect(find.text('Finale'), findsOneWidget);
+      expect(find.text('svira: Uvodna špica'), findsOneWidget);
       controller.dispose();
     });
   });

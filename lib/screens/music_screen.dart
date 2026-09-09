@@ -169,7 +169,7 @@ class _MusicScreenState extends State<MusicScreen> {
                       final track = _tracks[index];
                       return TrackTile(
                         track: track,
-                        isSelected: track.id == _player.current?.id,
+                        isSelected: track.id == _player.selected?.id,
                         onTap: () => _player.onTrackTapped(track),
                       );
                     },
@@ -178,7 +178,7 @@ class _MusicScreenState extends State<MusicScreen> {
         ),
         // Prvi nivo: kontrole uz sam spisak, bez izlaska iz njega.
         // Trake nema dok se numera ne izabere — prazna traka samo zauzima red.
-        if (_player.current != null)
+        if (_player.selected != null)
           PlaybackBar(controller: _player, onOpenPlayer: _openPlayer),
       ],
     );

@@ -25,7 +25,7 @@ class PlaybackBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final track = controller.current;
+    final track = controller.selected;
     if (track == null) return const SizedBox.shrink();
 
     final ready = controller.isReady;
@@ -72,6 +72,22 @@ class PlaybackBar extends StatelessWidget {
                   ),
                 ],
               ),
+              if (controller.isAnotherSounding)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      // Izabrana numera čeka na dugme, a čuje se druga.
+                      'svira: ${controller.sounding!.displayTitle}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
               if (error != null)
                 Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.xs),

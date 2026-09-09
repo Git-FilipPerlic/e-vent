@@ -9,8 +9,15 @@ import '../widgets/music/track_tile.dart';
 /// Nastupni ekran — drugi nivo plejera.
 ///
 /// Na njemu je samo ono što treba u trenutku izvođenja: prsten po ivici
-/// ekrana, vreme, ogromno dugme i fade in. Kontroler se **pozajmljuje** iz
-/// Muzika taba, pa zvuk ne prestaje kad se odavde izađe nazad na spisak.
+/// ekrana, vreme, **ogromno dugme** i **jedan prekidač za pretapanje**.
+/// Kontroler se **pozajmljuje** iz Muzika taba, pa zvuk ne prestaje kad se
+/// odavde izađe nazad na spisak.
+///
+/// Dugme je namerno preveliko: traži se prstom, u mraku, bez gledanja u ekran.
+///
+/// Kad nešto svira a izabrana je druga numera, veliko dugme **prelazi na
+/// izabranu**: uz pretapanje obe sviraju u preklopu — jedna izlazi, druga
+/// ulazi — a bez pretapanja prelaz je odmah.
 ///
 /// **Veliko dugme pusti numeru i odmah vrati na spisak.** Tako radi nastup:
 /// pesma krene, a ruke su ti već slobodne da pripremiš sledeću. Nazad se
@@ -32,6 +39,9 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen> {
   /// Koliko se preskače jednim dodirom.
   static const Duration skipStep = Duration(seconds: 10);
+
+  /// Prečnik velikog dugmeta. Namerno ogroman — pogađa se bez gledanja.
+  static const double _playButtonSize = 200;
 
   @override
   void initState() {
@@ -71,7 +81,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
         listenable: widget.controller,
         builder: (context, _) {
           final controller = widget.controller;
-          final track = controller.current;
+          final track = controller.selected;
 
           return SafeArea(
             child: EdgeProgressRing(
@@ -99,10 +109,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (track != null && track.hasArtist) ...[
+                    // Kad svira jedna numera a izabrana je druga, mora da se
+                    // vidi šta se čuje a šta čeka na dugme.
+                    if (controller.isAnotherSounding) ...[
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        track.artist!,
+                        'svira: ${controller.sounding!.displayTitle}',
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -121,9 +136,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    _controls(theme, controller),
+                    _playButton(theme, controller),
+                    const SizedBox(height: AppSpacing.md),
+                    _skips(controller),
                     const SizedBox(height: AppSpacing.lg),
-                    _fadeSwitches(theme, controller),
+                    _fadeSwitch(theme, controller),
                     const Spacer(),
                   ],
                 ),
@@ -135,39 +152,34 @@ class _PlayerScreenState extends State<PlayerScreen> {
     );
   }
 
-  /// Preskakanje unazad, veliko dugme, preskakanje unapred.
-  Widget _controls(ThemeData theme, MusicPlayerController controller) {
+  /// Preskakanje po 10 sekundi — ispod velikog dugmeta, da mu ne otimaju
+  /// prostor.
+  Widget _skips(MusicPlayerController controller) {
     final ready = controller.isReady;
 
-    // Na užim ekranima se ceo red skuplja umesto da se prelije preko ivice.
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _SkipButton(
-            icon: Icons.replay_10_rounded,
-            label: '10 sekundi unazad',
-            onPressed: ready ? () => controller.skip(-skipStep) : null,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          _playButton(theme, controller),
-          const SizedBox(width: AppSpacing.md),
-          _SkipButton(
-            icon: Icons.forward_10_rounded,
-            label: '10 sekundi unapred',
-            onPressed: ready ? () => controller.skip(skipStep) : null,
-          ),
-        ],
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _SkipButton(
+          icon: Icons.replay_10_rounded,
+          label: '10 sekundi unazad',
+          onPressed: ready ? () => controller.skip(-skipStep) : null,
+        ),
+        const SizedBox(width: AppSpacing.xl),
+        _SkipButton(
+          icon: Icons.forward_10_rounded,
+          label: '10 sekundi unapred',
+          onPressed: ready ? () => controller.skip(skipStep) : null,
+        ),
+      ],
     );
   }
 
   Widget _playButton(ThemeData theme, MusicPlayerController controller) {
     if (controller.isLoading) {
       return const SizedBox(
-        width: 128,
-        height: 128,
+        width: _playButtonSize,
+        height: _playButtonSize,
         child: Center(child: CircularProgressIndicator()),
       );
     }
@@ -175,7 +187,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
     final error = controller.errorMessage;
     if (error != null) {
       return SizedBox(
-        width: 160,
+        width: _playButtonSize,
         child: Column(
           children: [
             const Icon(Icons.error_outline_rounded, color: AppColors.danger),
@@ -198,8 +210,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
       button: true,
       label: controller.isPlaying ? 'Pauza' : 'Pusti',
       child: Container(
-        width: 128,
-        height: 128,
+        width: _playButtonSize,
+        height: _playButtonSize,
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
           color: AppColors.accent,
@@ -221,7 +233,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
               controller.isPlaying
                   ? Icons.pause_rounded
                   : Icons.play_arrow_rounded,
-              size: 72,
+              size: _playButtonSize * 0.55,
               color: AppColors.background,
             ),
           ),
@@ -230,30 +242,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
     );
   }
 
-  /// Prekidači za pretapanje: pesma izađe iz tišine, u tišinu se vrati, a
-  /// preklapanje spaja kraj jedne sa početkom sledeće.
-  Widget _fadeSwitches(ThemeData theme, MusicPlayerController controller) {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      children: [
-        _FadeToggle(
-          label: 'Fade in',
-          value: controller.fadeIn,
-          onChanged: controller.setFadeIn,
-        ),
-        const SizedBox(width: AppSpacing.md),
-        _FadeToggle(
-          label: 'Fade out',
-          value: controller.fadeOut,
-          onChanged: controller.setFadeOut,
-        ),
-        const SizedBox(width: AppSpacing.md),
-        _FadeToggle(
-          label: 'Preklapanje',
-          value: controller.crossfade,
-          onChanged: controller.setCrossfade,
-        ),
-      ],
+  /// Jedan prekidač umesto tri: na nastupu se ne bira između tri opcije.
+  ///
+  /// Uključen znači i ulazak iz tišine, i izlazak u tišinu, i **preklapanje**
+  /// sa numerom koja svira kad se pređe na izabranu.
+  Widget _fadeSwitch(ThemeData theme, MusicPlayerController controller) {
+    return _FadeToggle(
+      label: 'Fade',
+      value: controller.fade,
+      onChanged: controller.setFade,
     );
   }
 }
@@ -277,22 +274,32 @@ class _FadeToggle extends StatelessWidget {
     return Semantics(
       toggled: value,
       label: label,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: AppColors.accent,
+      child: InkWell(
+        // I natpis se dodiruje, ne samo prekidač — meta je time šira.
+        onTap: () => onChanged(!value),
+        borderRadius: BorderRadius.circular(kCardRadius),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Switch(
+                value: value,
+                onChanged: onChanged,
+                activeThumbColor: AppColors.accent,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                label,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: value
+                      ? AppColors.textPrimary
+                      : AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: AppSpacing.xs),
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: value ? AppColors.textPrimary : AppColors.textSecondary,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

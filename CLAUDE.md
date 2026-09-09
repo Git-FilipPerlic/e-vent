@@ -207,22 +207,29 @@ pokretima. Uz to plejer radi bez sistemskih traka, kao druga brana.
 
 #### Red čekanja i kretanje kroz spisak (dogovoreno 9. septembra 2026)
 
-Osnovni tok je jednostavan i njega ne treba komplikovati:
+**Razlikuju se dve stvari:** numera koju si **izabrao** dodirom i numera koja
+u tom trenutku **svira**. Dok ništa ne svira, to je ista pesma. Čim nešto
+svira, dodir na drugu pesmu je samo bira i priprema — ono što svira se ne seče.
+
+Osnovni tok:
 
 1. gledaš spisak numera
 2. **dodirneš pesmu koju hoćeš da pustiš** — ona postaje izabrana
-3. pritisneš **play**
+3. pritisneš **play** (u traci uz spisak ili veliko dugme u nastupnom ekranu)
 
-Dodir znači različitu stvar zavisno od toga da li nešto svira u tom trenutku:
+Prelazak na sledeću pesmu usred programa:
 
-- **ništa ne svira** → dodirnuta numera **postaje izabrana**, spremna za
-  puštanje. Ovo je uobičajen slučaj i on ima prednost nad svime ostalim.
-- **nešto svira** → dodirnuta numera se ubacuje **kao sledeća** u redu, a ono
-  što svira se ne prekida. Usred programa se pesma ne seče dodirom.
+1. dodirneš sledeću pesmu — ona je izabrana, a prethodna i dalje svira
+2. otvoriš nastupni ekran
+3. uključiš **Fade** ako hoćeš preklapanje
+4. pritisneš **veliko dugme** — pesma koja svira izlazi, izabrana ulazi, i
+   **obe sviraju u preklopu**. Bez `Fade` prelaz je odmah.
+
+Ostalo:
+
 - **dodir na numeru koja je već izabrana** je vraća na početak
 - **skip napred / nazad** pomeraju red za jedno mesto
-
-Zvuk ni u jednom slučaju ne kreće od dodira.
+- **zvuk nikad ne kreće od dodira**, samo od dugmeta
 - prelazak sa pesme na pesmu ide uz **kratko pretapanje naslova** (do 200 ms);
   ostatak ekrana se ne animira, po opštim pravilima za pokret
 
@@ -230,8 +237,13 @@ Zvuk ni u jednom slučaju ne kreće od dodira.
 
 1. **Kontrole uz spisak** — prethodna, −10 s, plej/pauza, +10 s, sledeća.
    Dovoljno da se upravlja bez izlaska iz spiska.
-2. **Nastupni ekran** — prsten, vreme, ogromno dugme i fade in. Do njega vodi
-   posebno dugme.
+2. **Nastupni ekran** — prsten, vreme, **ogromno dugme** (200 dp) i **jedan
+   prekidač: Fade**. Ništa više. Dugme je namerno preveliko: traži se prstom,
+   u mraku, bez gledanja u ekran. Jedan prekidač umesto tri — na nastupu se ne
+   bira između opcija.
+
+`Fade` znači sve troje odjednom: ulazak iz tišine, izlazak u tišinu i
+**preklapanje** kad se pređe sa numere koja svira na izabranu.
 
 Reprodukcija pripada **Muzika tabu**, ne nastupnom ekranu, pa muzika ne
 prestaje kad se sa njega izađe. **Veliko dugme pusti numeru i odmah vrati na

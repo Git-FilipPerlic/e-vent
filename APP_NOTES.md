@@ -793,6 +793,37 @@ Zvuk ni u jednom slučaju ne kreće od dodira — to pravilo ostaje.
 
 ---
 
+## 9. septembar 2026 — izabrana numera i ona koja svira su razdvojene
+
+Korisnik je opisao tok do kraja, i to je zahtevalo pravu izmenu modela.
+
+**Ranije** je postojala samo jedna "trenutna" numera, pa se izbor i zvuk nisu
+mogli razdvojiti. **Sada:**
+
+- `selected` — numera koju si dodirnuo; nju pušta veliko dugme
+- `sounding` — numera koja se u tom trenutku čuje
+
+Dok ništa ne svira, to je ista pesma. Čim nešto svira, dodir na drugu pesmu je
+samo bira i **priprema u drugom plejeru** — ono što svira se ne seče. Veliko
+dugme tada prelazi na izabranu: uz `Fade` obe numere sviraju u preklopu, bez
+njega prelaz je odmah.
+
+Kad se izabrana razlikuje od one koja svira, i traka i nastupni ekran pišu
+**„svira: <naziv>"** — inače se ne bi znalo šta se čuje a šta čeka na dugme.
+
+**Nastupni ekran je sveden:**
+
+- veliko dugme je sa 128 poraslo na **200 dp** — traži se prstom, bez gledanja
+- preskakanja su spuštena ispod dugmeta, da mu ne otimaju prostor
+- **tri prekidača su svedena na jedan: `Fade`**. Isti prekidač pokriva ulazak
+  iz tišine, izlazak u tišinu i preklapanje. Na nastupu se ne bira između tri
+  opcije.
+- i natpis prekidača se dodiruje, ne samo sam prekidač
+
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 132/132.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.
