@@ -31,6 +31,9 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+# Gradle ostavlja izveštaje u android/build; to je otpad iz builda, ne kod.
+android/build/
+android/app/build/
 /coverage/
 
 # Symbolication related

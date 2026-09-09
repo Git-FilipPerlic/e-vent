@@ -321,12 +321,34 @@ Iz spiska stare muzičke aplikacije **ne prenosi se**:
 Nije započet. Pre prvog feature-a treba potvrditi koji hardver/protokol se
 koristi i šta se dešava kada Bluetooth nije dostupan.
 
-**Otvoreno pitanje (9. septembar 2026):** pominjana je *analiza akorda* radi
-sinhronizacije svetla sa muzikom. **Toga nema u specifikaciji** — dosad je
-zapisano samo „kasnije sinhronizacija sa muzikom", bez ijedne reči o tome
-kako. Ako se ide na to, treba unapred rešiti: da li se analizira unapred
-(jednom po pesmi, kao talasni oblik) ili u realnom vremenu, i šta se dešava
-sa pesmama koje nemaju jasnu harmoniju. Odluka se donosi sa korisnikom.
+**Analiza konkurencije:** postoji zaseban dokument `LED_CHORD_ANALIZA.md` —
+pregled aplikacije *LED Chord* (spledapps, 500.000+ preuzimanja, 3,4★), koja
+radi isti posao: generički Bluetooth daljinski za jeftine LED kontrolere
+(SP107E i slični). Pročitati ga pre prvog LED feature-a.
+
+Ono što iz te analize već sada važi kao pravilo za naš LED tab:
+
+- **Redosled RGB kanala se ne pretpostavlja, nego proverava sa stvarnim
+  hardverom.** Najčešća pritužba kod konkurencije je da plavo daje zeleno —
+  greška koja se u razvoju bez uređaja na stolu lako previdi.
+- **Promena jačine ne sme da obori vezu.** Kod LED Chord-a aplikacija tu puca
+  i posle toga se uređaj više ne povezuje; taj put se testira izričito.
+- **Ponovno povezivanje posle gubitka Bluetooth signala je očekivan slučaj,
+  ne izuzetak** — po recenzijama je to glavni razlog zbog kog ljudi odustanu.
+- **Podešavanje uređaja (čipset, RGB redosled, broj piksela) stoji odvojeno
+  od svakodnevne kontrole** boja i efekata.
+- Ako se ikad doda zvučni režim, **osetljivost mora biti podesiva traka**, ne
+  fiksna vrednost.
+
+**Tri pitanja koja moraju da se odgovore pre prvog LED feature-a**
+(prepisana iz analize):
+
+1. jedan konkretan protokol (npr. SP107E) ili generički pristup sa spiskom
+   podržanih čipova?
+2. da li treba zvučni/reaktivni režim, i da li se napaja iz mikrofona telefona
+   ili iz onoga što svira na Muzika tabu?
+3. da li su u planu i 2D paneli (matrix), ili samo trake — to određuje da li
+   kontrolni ekran od početka treba prekidač tipa uređaja
 
 ### Admin konzola i login (dogovoreno 8. septembra 2026)
 
