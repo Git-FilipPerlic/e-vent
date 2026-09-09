@@ -228,10 +228,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
     );
   }
 
-  /// Dva prekidača u jednom redu: pesma izađe iz tišine i u tišinu se vrati.
+  /// Prekidači za pretapanje: pesma izađe iz tišine, u tišinu se vrati, a
+  /// preklapanje spaja kraj jedne sa početkom sledeće.
   Widget _fadeSwitches(ThemeData theme, MusicPlayerController controller) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Wrap(
+      alignment: WrapAlignment.center,
       children: [
         _FadeToggle(
           label: 'Fade in',
@@ -243,6 +244,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
           label: 'Fade out',
           value: controller.fadeOut,
           onChanged: controller.setFadeOut,
+        ),
+        const SizedBox(width: AppSpacing.md),
+        _FadeToggle(
+          label: 'Preklapanje',
+          value: controller.crossfade,
+          onChanged: controller.setCrossfade,
         ),
       ],
     );

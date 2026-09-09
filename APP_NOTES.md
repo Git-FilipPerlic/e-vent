@@ -702,6 +702,33 @@ folder — zato „Use this folder" nije dodavao pesme.
 
 ---
 
+## 9. septembar 2026 — MUSIC-013 fade-out i MUSIC-014 preklapanje
+
+**Fade-out (MUSIC-013).** Ogledalo fade-in-a: pesma izađe iz tišine i u tišinu
+se vrati. Pred kraj numere zvuk se sam spusti za 10 sekundi. **Pauza se
+stišava kratko, 1,2 sekunde** — deset sekundi čekanja da muzika stane nema
+smisla kad neko hoće tišinu odmah. Posle pauze se jačina vraća na punu, inače
+bi nastavak ostao tih.
+
+**Preklapanje (MUSIC-014).** Ovo je bila najavljena izmena arhitekture:
+
+- `JustAudioPlayback` sada **drži dva plejera**, ne jedan. Jedan svira, drugi
+  već ima učitanu sledeću numeru i čeka; posle preklapanja zamene uloge.
+  Spolja se i dalje vidi jedan plejer — `position`, `duration`, `playing` i
+  `completed` se prevezuju na onaj koji je aktivan.
+- Kontroler **unapred učitava sledeću numeru** čim se trenutna otvori. Bez toga
+  bi prelaz zapinjao dok se fajl otvara.
+- Preklapanje traje 6 sekundi i kreće samo ako je sledeća numera već spremna.
+- **Preklapanje ima prednost nad stišavanjem** pred kraj: nema smisla da
+  prethodna prvo ode u tišinu pa da nastane rupa.
+- Numera koja ne može da se otvori samo ostane bez preklapanja — red čekanja
+  se zbog toga ne prekida.
+- Nastupni ekran ima tri prekidača: **Fade in**, **Fade out**, **Preklapanje**.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 131/131
+  (11 novih testova za fade-out i preklapanje).
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.

@@ -356,4 +356,109 @@ void main() {
       controller.dispose();
     });
   });
+
+  group('preklapanje (crossfade)', () {
+    test('uključeno preklapanje odmah sprema sledeću numeru', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      controller.setCrossfade(true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(playback.preloadedPath, '/muzika/igre.mp3');
+      controller.dispose();
+    });
+
+    test('pred kraj numere preklapanje prelazi na sledeću', () async {
+      final playback = FakePlayback(
+        trackDuration: const Duration(seconds: 120),
+      );
+      final controller = await _controllerWith(playback);
+      controller.setCrossfade(true);
+      await Future<void>.delayed(Duration.zero);
+      await controller.play();
+
+      // Još je rano.
+      playback.emitPosition(const Duration(seconds: 60));
+      await Future<void>.delayed(Duration.zero);
+      expect(playback.crossfadeCalls, 0);
+      expect(controller.current?.id, 'trk-001');
+
+      // Ušlo se u poslednjih šest sekundi.
+      playback.emitPosition(const Duration(seconds: 116));
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(playback.crossfadeCalls, 1);
+      expect(playback.lastCrossfade, const Duration(seconds: 4));
+      // Sledeća numera je sada trenutna...
+      expect(controller.current?.id, 'trk-002');
+      // ...a ona posle nje se već sprema.
+      expect(playback.preloadedPath, '/muzika/finale.mp3');
+
+      controller.dispose();
+    });
+
+    test('bez preklapanja se ništa ne sprema unapred', () async {
+      final playback = FakePlayback(
+        trackDuration: const Duration(seconds: 120),
+      );
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      playback.emitPosition(const Duration(seconds: 116));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(playback.preloadedPath, isNull);
+      expect(playback.crossfadeCalls, 0);
+      controller.dispose();
+    });
+
+    test('na poslednjoj numeri nema šta da se preklopi', () async {
+      final playback = FakePlayback(
+        trackDuration: const Duration(seconds: 120),
+      );
+      final controller = await _controllerWith(playback, queue: [_tracks.first]);
+      controller.setCrossfade(true);
+      await Future<void>.delayed(Duration.zero);
+      await controller.play();
+
+      playback.emitPosition(const Duration(seconds: 118));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(playback.crossfadeCalls, 0);
+      controller.dispose();
+    });
+
+    test('preklapanje ima prednost nad stišavanjem pred kraj', () async {
+      final playback = FakePlayback(
+        trackDuration: const Duration(seconds: 120),
+      );
+      final controller = await _controllerWith(playback);
+      controller.setCrossfade(true);
+      controller.setFadeOut(true);
+      await Future<void>.delayed(Duration.zero);
+      await controller.play();
+
+      playback.emitPosition(const Duration(seconds: 116));
+      await Future<void>.delayed(Duration.zero);
+
+      // Ne sme prvo da ode u tišinu pa da nastane rupa pred sledeću numeru.
+      expect(playback.crossfadeCalls, 1);
+      expect(playback.lastFadeToSilence, isNull);
+      controller.dispose();
+    });
+
+    testWidgets('nastupni ekran ima i prekidač za preklapanje',
+        (WidgetTester tester) async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Preklapanje'), findsOneWidget);
+      controller.dispose();
+    });
+  });
 }

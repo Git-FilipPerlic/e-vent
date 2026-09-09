@@ -245,8 +245,8 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-011 | Dodir na aktivnu numeru je ponavlja | gotovo |
 | MUSIC-012 | Skip napred / skip nazad | gotovo |
 | MUSIC-013 | Fade-out na kraju i pri pauzi | gotovo |
-| MUSIC-014 | Crossfade između dve numere | sledeće |
-| MUSIC-015 | Prevlačenje po prstenu premotava pesmu | |
+| MUSIC-014 | Crossfade između dve numere | gotovo |
+| MUSIC-015 | Prevlačenje po prstenu premotava pesmu | sledeće |
 | MUSIC-016 | Talasni oblik u prstenu (traži paket) | |
 | MUSIC-017 | Podaci iz fajla: izvođač, album, trajanje | |
 | MUSIC-018 | ~~Pregled foldera sa ulaskom u podfoldere~~ — urađeno uz MUSIC-007 | gotovo |
@@ -257,9 +257,11 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 
 **Napomene uz pojedine stavke:**
 
-- **MUSIC-014 (crossfade)** traži da dve numere sviraju istovremeno, dakle
-  **dva plejera**, ne jedan. To je izmena arhitekture plejera i radi se tek
-  posle reda čekanja, ne pre.
+- **MUSIC-014 (crossfade) je urađen tako što plejer sada drži dva plejera.**
+  Jedan svira, drugi već ima učitanu sledeću numeru i čeka; posle preklapanja
+  zamene uloge. Sledeća numera se **učitava unapred**, inače prelaz zapne dok
+  se fajl otvara. Preklapanje ima prednost nad stišavanjem pred kraj, da ne
+  nastane rupa između numera.
 - **MUSIC-019 (rad u pozadini)** je najveća stavka: traži paket
   (`just_audio_background` ili `audio_service`), dozvolu za foreground servis
   na Androidu i posebno ponašanje na iOS-u. Radi se kad sve ostalo radi.

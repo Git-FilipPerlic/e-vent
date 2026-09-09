@@ -22,6 +22,9 @@ class FakePlayback implements AudioPlayback {
   bool? lastFadeIn;
   bool? lastFadeOut;
   Duration? lastFadeToSilence;
+  String? preloadedPath;
+  Duration? lastCrossfade;
+  int crossfadeCalls = 0;
   bool disposed = false;
 
   String? get loadedPath => loadedPaths.isEmpty ? null : loadedPaths.last;
@@ -41,6 +44,7 @@ class FakePlayback implements AudioPlayback {
   @override
   Future<Duration?> load(String path) async {
     if (failsToLoad) throw AudioLoadException(path);
+    preloadedPath = null;
     loadedPaths.add(path);
     return trackDuration;
   }
@@ -62,6 +66,24 @@ class FakePlayback implements AudioPlayback {
   @override
   Future<void> fadeToSilence(Duration over) async {
     lastFadeToSilence = over;
+  }
+
+  @override
+  Future<void> preload(String path) async {
+    if (failsToLoad) throw AudioLoadException(path);
+    preloadedPath = path;
+  }
+
+  @override
+  bool get hasPreloaded => preloadedPath != null;
+
+  @override
+  Future<void> crossfadeToPreloaded(Duration over) async {
+    if (preloadedPath == null) return;
+    crossfadeCalls++;
+    lastCrossfade = over;
+    loadedPaths.add(preloadedPath!);
+    preloadedPath = null;
   }
 
   @override

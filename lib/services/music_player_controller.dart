@@ -18,7 +18,7 @@ class MusicPlayerController extends ChangeNotifier {
     _subscriptions.addAll([
       playback.position.listen((value) {
         _position = value;
-        _maybeFadeOut();
+        _onPositionChanged();
         _updateProgress();
         notifyListeners();
       }),
@@ -52,9 +52,13 @@ class MusicPlayerController extends ChangeNotifier {
   bool _isPlaying = false;
   bool _fadeIn = false;
   bool _fadeOut = false;
+  bool _crossfade = false;
 
   /// Da stišavanje pred kraj numere ne krene dvaput za istu numeru.
   bool _isFadingOut = false;
+
+  /// Da preklapanje ne krene dvaput za isti prelaz.
+  bool _isCrossfading = false;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -73,6 +77,7 @@ class MusicPlayerController extends ChangeNotifier {
   bool get isPlaying => _isPlaying;
   bool get fadeIn => _fadeIn;
   bool get fadeOut => _fadeOut;
+  bool get crossfade => _crossfade;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -81,6 +86,65 @@ class MusicPlayerController extends ChangeNotifier {
 
   /// Da li se numera može puštati i premotavati.
   bool get isReady => current != null && !_isLoading && _errorMessage == null;
+
+  /// Šta se dešava pred kraj numere.
+  ///
+  /// Preklapanje ima prednost nad stišavanjem: ako sledeća numera treba da
+  /// se preklopi, nema smisla da prethodna prvo ode u tišinu pa da nastane
+  /// rupa.
+  void _onPositionChanged() {
+    if (_maybeCrossfade()) return;
+    _maybeFadeOut();
+  }
+
+  /// Pred kraj numere kreće preklapanje na sledeću, ako je uključeno i ako
+  /// je sledeća numera već učitana.
+  bool _maybeCrossfade() {
+    if (!_crossfade || _isCrossfading || !_isPlaying) return false;
+    if (!hasNext || !playback.hasPreloaded) return false;
+
+    final total = _duration;
+    if (total == null || total == Duration.zero) return false;
+
+    final left = total - _position;
+    if (left > JustAudioPlayback.crossfadeDuration) return false;
+
+    _isCrossfading = true;
+    _startCrossfade(left.isNegative ? Duration.zero : left);
+    return true;
+  }
+
+  Future<void> _startCrossfade(Duration over) async {
+    await playback.crossfadeToPreloaded(over);
+
+    // Sledeća numera je od ovog trenutka trenutna.
+    _currentIndex++;
+    _isCrossfading = false;
+    _isFadingOut = false;
+    _position = Duration.zero;
+    _duration = current?.duration;
+    _updateProgress();
+    notifyListeners();
+
+    // Odmah se sprema ona posle nje.
+    unawaited(_preloadNext());
+  }
+
+  /// Sledeća numera se otvara unapred, dok trenutna još svira — inače bi
+  /// prelaz zapinjao dok se fajl otvara.
+  Future<void> _preloadNext() async {
+    if (!_crossfade || !hasNext) return;
+
+    final path = _queue[_currentIndex + 1].path;
+    if (path == null) return;
+
+    try {
+      await playback.preload(path);
+    } on AudioLoadException {
+      // Numera koja ne može da se otvori samo neće imati preklapanje;
+      // red čekanja se zbog toga ne prekida.
+    }
+  }
 
   /// Pred kraj numere zvuk se sam spusti do tišine, ako je fade-out uključen.
   ///
@@ -200,6 +264,7 @@ class MusicPlayerController extends ChangeNotifier {
 
     _currentIndex = index;
     _isFadingOut = false;
+    _isCrossfading = false;
     _position = Duration.zero;
     _duration = _queue[index].duration;
     _errorMessage = null;
@@ -225,6 +290,9 @@ class MusicPlayerController extends ChangeNotifier {
     }
     _updateProgress();
     notifyListeners();
+
+    // Sledeća numera se sprema unapred, da preklapanje ne zapne.
+    unawaited(_preloadNext());
   }
 
   Future<void> play() async {
@@ -265,6 +333,13 @@ class MusicPlayerController extends ChangeNotifier {
   void setFadeOut(bool value) {
     _fadeOut = value;
     notifyListeners();
+  }
+
+  void setCrossfade(bool value) {
+    _crossfade = value;
+    notifyListeners();
+    // Uključeno preklapanje odmah sprema sledeću numeru.
+    if (value) unawaited(_preloadNext());
   }
 
   @override
