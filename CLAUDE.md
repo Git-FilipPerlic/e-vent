@@ -375,6 +375,23 @@ Iz toga slede dva pravila:
 Login ekran izgleda kao Home ekran; razlika je samo u tome što on ima
 popunjavanje tabele koja se posle deli timu.
 
+#### Spisak feature-a za prijavu i admin konzolu
+
+| ID | Šta | Status |
+|---|---|---|
+| ADMIN-001 | Prijava i odjava, uloge `glavni` i `user` | gotovo |
+| ADMIN-002 | Bez prijave je aplikacija samo za čitanje | gotovo |
+| ADMIN-003 | Prijavljeni korisnik i dugmad u headeru | gotovo |
+| ADMIN-004 | Polja na Home tabu se popunjavaju kad ima dozvole | sledeće |
+| ADMIN-005 | „Create and share" — dodela događaja timu | |
+| ADMIN-006 | Lager šablon (sekcije i stavke) po firmi | |
+| ADMIN-007 | Zamena lokalne prijave Firebase Auth-om | |
+
+**Nalozi za probu** (upisani u kodu, samo za razvoj):
+`filip` / `1234` — uloga `glavni`; `ana` / `1111` — uloga `user`.
+Ovo nije zaštita podataka nego **prekidač između čitanja i unosa**; prava
+provera identiteta je posao backenda (ADMIN-007).
+
 ### Uloge i dozvole
 
 - `glavni` — vodi ekipu; sme da menja logo tima, bira vozilo, upravlja checklistom

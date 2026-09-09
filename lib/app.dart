@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'screens/home_screen.dart';
+import 'screens/login_screen.dart';
 import 'screens/lager_screen.dart';
 import 'screens/led_screen.dart';
 import 'screens/music_screen.dart';
@@ -54,7 +55,8 @@ class RootNavigation extends StatefulWidget {
 class _RootNavigationState extends State<RootNavigation> {
   /// Jedina mesta gde se biraju servisi. Kad stigne pravi login i baza,
   /// menjaju se ove dve linije.
-  final AuthService _auth = const MockAuthService();
+  /// Ko je prijavljen. Bez prijave aplikacija radi, samo se ništa ne menja.
+  final AuthService _auth = MockAuthService();
   final TeamLogoService _logoService = const TeamLogoService();
 
   final ImagePicker _picker = ImagePicker();
@@ -84,7 +86,28 @@ class _RootNavigationState extends State<RootNavigation> {
   @override
   void initState() {
     super.initState();
+    // Prijava i odjava menjaju ceo ekran — kartice iz čitanja prelaze u unos.
+    _auth.addListener(_onAuthChanged);
     _loadLogo();
+  }
+
+  void _onAuthChanged() => setState(() {});
+
+  @override
+  void dispose() {
+    _auth.removeListener(_onAuthChanged);
+    _auth.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openLogin() async {
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => LoginScreen(auth: _auth)),
+    );
+  }
+
+  Future<void> _signOut() async {
+    await _auth.signOut();
   }
 
   Future<void> _loadLogo() async {
@@ -147,7 +170,8 @@ class _RootNavigationState extends State<RootNavigation> {
   Widget build(BuildContext context) {
     final path = _logoPath;
     // Menjanje logotipa traži prijavu — to je funkcija managementa.
-    final canEditLogo = _auth.can(Permission.editTeamLogo);
+    final canEditLogo = _auth.can(AppPermission.editTeamLogo);
+    final user = _auth.currentUser;
 
     // Poštuje se sistemsko podešavanje za smanjen pokret.
     final reduceMotion = MediaQuery.of(context).disableAnimations;
@@ -175,6 +199,9 @@ class _RootNavigationState extends State<RootNavigation> {
                             onRemoveLogo: canEditLogo && path != null
                                 ? _removeLogo
                                 : null,
+                            signedInAs: user?.name,
+                            onSignIn: user == null ? _openLogin : null,
+                            onSignOut: user == null ? null : _signOut,
                           ),
                           TopTabBar(
                             tabs: _destinations,

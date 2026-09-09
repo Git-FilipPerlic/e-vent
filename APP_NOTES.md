@@ -995,6 +995,33 @@ prvog dana.
 
 ---
 
+## 9. septembar 2026 — ADMIN-001..003: prava prijava
+
+Prvi korak sledećeg bloka. Radi **bez Firebase-a**, jer `AuthService` postoji
+kao interfejs — kasnija zamena Firebase Auth-om ne dira ekrane.
+
+- `lib/services/auth_service.dart` prepisan: `AuthService` je sada
+  `ChangeNotifier`, jer se **ceo UI menja kad se neko prijavi ili odjavi**.
+  Dodati su `AppUser`, `UserRole` i prijava/odjava.
+- `MockAuthService` **više ne pušta sve**. Ranije je vraćao „sme" na svaku
+  dozvolu, da bi funkcije mogle da se probaju pre nego što prijava postoji.
+  Sada bez prijave **ništa ne sme** — što je i pravilo iz specifikacije.
+- `lib/screens/login_screen.dart` — ime i PIN, sa objašnjenjem da prijava
+  služi samo za izmene. Pogrešno ime i pogrešan PIN daju **istu poruku**,
+  jer bi se iz različitih poruka saznalo koja imena postoje.
+- Header pokazuje ko je prijavljen i ima dugmad za prijavu i odjavu. Dugmad
+  za logotip se sada **stvarno kriju** dok nema dozvole — ranije su bila
+  vidljiva uvek, jer je mock puštao sve.
+- Preimenovan `Permission` u **`AppPermission`**: `permission_handler` uvozi
+  svoj `Permission`, pa su se imena sudarala.
+- `test/auth_test.dart` — 7 testova.
+- Provereno: `flutter analyze` — No issues found; `flutter test` — 179/179;
+  provereno na telefonu (header bez prijave nema dugmad za logotip, prijava
+  se otvara).
+- Sledeće: ADMIN-004 — popunjavanje polja na Home tabu kad ima dozvole.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

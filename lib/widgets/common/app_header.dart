@@ -13,7 +13,24 @@ import '../../theme/app_theme.dart';
 /// Widget je "glup": dobija sliku i dozvolu kroz konstruktor, a promenu
 /// logotipa javlja kroz `onEditLogo`.
 class AppHeader extends StatelessWidget {
-  const AppHeader({super.key, this.logo, this.onEditLogo, this.onRemoveLogo});
+  const AppHeader({
+    super.key,
+    this.logo,
+    this.onEditLogo,
+    this.onRemoveLogo,
+    this.signedInAs,
+    this.onSignIn,
+    this.onSignOut,
+  });
+
+  /// Ime prijavljenog korisnika, ako je neko prijavljen.
+  final String? signedInAs;
+
+  /// Otvara prijavu. `null` kad je neko već prijavljen.
+  final VoidCallback? onSignIn;
+
+  /// Odjavljuje. `null` kad niko nije prijavljen.
+  final VoidCallback? onSignOut;
 
   /// Logotip tima. `null` znači da nije izabran.
   final ImageProvider? logo;
@@ -53,7 +70,7 @@ class AppHeader extends StatelessWidget {
             _Wordmark(theme: theme),
 
           // Zatamnjenje uz desnu ivicu, da se ikonice vide i na svetloj slici.
-          if (image != null && canEdit)
+          if (image != null)
             const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -64,20 +81,32 @@ class AppHeader extends StatelessWidget {
               ),
             ),
 
-          if (canEdit)
-            Align(
-              alignment: Alignment.centerRight,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (onRemoveLogo != null)
-                    IconButton(
-                      onPressed: onRemoveLogo,
-                      icon: const Icon(Icons.hide_image_outlined),
-                      iconSize: 22,
-                      color: AppColors.textSecondary,
-                      tooltip: 'Ukloni logotip',
+          Align(
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Ko je prijavljen — da se ne greši čiji su podaci na ekranu.
+                if (signedInAs != null)
+                  Flexible(
+                    child: Text(
+                      signedInAs!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
                     ),
+                  ),
+                if (canEdit && onRemoveLogo != null)
+                  IconButton(
+                    onPressed: onRemoveLogo,
+                    icon: const Icon(Icons.hide_image_outlined),
+                    iconSize: 22,
+                    color: AppColors.textSecondary,
+                    tooltip: 'Ukloni logotip',
+                  ),
+                if (canEdit)
                   IconButton(
                     onPressed: onEditLogo,
                     icon: const Icon(Icons.image_outlined),
@@ -85,10 +114,26 @@ class AppHeader extends StatelessWidget {
                     color: AppColors.accent,
                     tooltip: 'Promeni logotip tima',
                   ),
-                  const SizedBox(width: AppSpacing.xs),
-                ],
-              ),
+                if (onSignIn != null)
+                  IconButton(
+                    onPressed: onSignIn,
+                    icon: const Icon(Icons.login_rounded),
+                    iconSize: 22,
+                    color: AppColors.accent,
+                    tooltip: 'Prijava',
+                  ),
+                if (onSignOut != null)
+                  IconButton(
+                    onPressed: onSignOut,
+                    icon: const Icon(Icons.logout_rounded),
+                    iconSize: 22,
+                    color: AppColors.textSecondary,
+                    tooltip: 'Odjava',
+                  ),
+                const SizedBox(width: AppSpacing.xs),
+              ],
             ),
+          ),
 
           // Razdelnik prema tabovima ispod.
           const Align(
