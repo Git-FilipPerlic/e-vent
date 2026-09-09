@@ -1417,6 +1417,24 @@ Korisnik je odobrio paket `path_provider` (bio je uslov za ovu popravku).
   ranijeg `.../cache/scaled_....jpg`, i sam fajl (377 KB) je u tom folderu.
 - `flutter analyze` čist, `flutter test` 307/307.
 
+## 9. septembar 2026 — jedno dugme u headeru, ostalo u konzoli
+
+Primedba korisnika čim je logotip proradio: „tri ikonice mi prekrivaju
+header — a slika se menja samo iz login menija, ne trebaju mi te opcije na
+main page".
+
+- `AppHeader` sada ima **jedno dugme**: bez prijave nosi ikonicu prijave, sa
+  prijavom ikonicu konzole. Zatamnjenje iza njega je time upola uže, pa se
+  baner vidi skoro ceo.
+- `LoginScreen` je dobio drugo lice: kad je neko već prijavljen, isti ekran
+  je **konzola** — ko je prijavljen, promena i uklanjanje logotipa, odjava.
+  Naslov se menja iz „Prijava" u „Konzola".
+- Dugme „Ukloni logotip" se ne prikazuje kad logotipa nema, a ceo odeljak o
+  logotipu izostaje izvođaču bez dozvole.
+- Provereno na telefonu: header ima jednu ikonicu, konzola prikazuje
+  „Prijavljen: Filip" sa oba dugmeta za logotip i odjavom.
+- `flutter analyze` čist, `flutter test` 312/312, uz pet novih testova.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

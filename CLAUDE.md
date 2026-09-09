@@ -595,8 +595,15 @@ Iz toga slede dva pravila:
   Izvedeno tako da se na kartici pojavi **olovka** koja otvara unos u listu
   odozdo — ekran se time ne pretvara u obrazac, a podatak se menja jednim
   dodirom. Bez dozvole je kartica ista, samo bez olovke.
-- **Menjanje logotipa u headeru traži login** — to je funkcija managementa,
-  ne obična podešavanja.
+- **Logotip se menja iz konzole, ne sa glavne strane** (odluka od
+  9. septembra 2026). U headeru stoji **jedno jedino dugme**: bez prijave
+  vodi u prijavu, sa prijavom u konzolu. Ranije su tu bile tri ikonice —
+  prijava, promena i uklanjanje logotipa — i **prekrivale su sam baner**, a
+  logotip se menja retko i ionako samo uz prijavu.
+
+  Konzola je isti onaj ekran prijave: kad je neko već prijavljen, pokazuje
+  **ko je prijavljen, logotip tima i odjavu**. Izvođaču bez dozvole se
+  logotip tu i ne nudi.
 
 Login ekran izgleda kao Home ekran; razlika je samo u tome što on ima
 popunjavanje tabele koja se posle deli timu.

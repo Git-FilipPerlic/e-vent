@@ -16,11 +16,8 @@ class AppHeader extends StatelessWidget {
   const AppHeader({
     super.key,
     this.logo,
-    this.onEditLogo,
-    this.onRemoveLogo,
     this.signedInAs,
-    this.onSignIn,
-    this.onSignOut,
+    this.onOpenConsole,
     this.onBack,
   });
 
@@ -30,22 +27,15 @@ class AppHeader extends StatelessWidget {
   /// Ime prijavljenog korisnika, ako je neko prijavljen.
   final String? signedInAs;
 
-  /// Otvara prijavu. `null` kad je neko već prijavljen.
-  final VoidCallback? onSignIn;
-
-  /// Odjavljuje. `null` kad niko nije prijavljen.
-  final VoidCallback? onSignOut;
+  /// Otvara prijavu, odnosno konzolu kad je neko već prijavljen.
+  ///
+  /// **Jedno jedino dugme.** Ranije ih je ovde stajalo troje — prijava,
+  /// promena i uklanjanje logotipa — i prekrivala su sam baner. Logotip se
+  /// menja retko i samo uz prijavu, pa mu je mesto u konzoli.
+  final VoidCallback? onOpenConsole;
 
   /// Logotip tima. `null` znači da nije izabran.
   final ImageProvider? logo;
-
-  /// Poziva se kad korisnik hoće da promeni logotip. `null` znači da nema
-  /// dozvolu — menjanje logotipa je funkcija managementa i traži prijavu.
-  final VoidCallback? onEditLogo;
-
-  /// Poziva se kad korisnik hoće da ukloni logotip. `null` kad nema dozvole
-  /// ili kad logotipa ionako nema.
-  final VoidCallback? onRemoveLogo;
 
   /// Visina trake, bez statusne trake telefona.
   static const double height = 72;
@@ -53,7 +43,6 @@ class AppHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final canEdit = onEditLogo != null;
     final image = logo;
 
     return SizedBox(
@@ -134,37 +123,17 @@ class AppHeader extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (canEdit && onRemoveLogo != null)
+                  if (onOpenConsole != null)
                     IconButton(
-                      onPressed: onRemoveLogo,
-                      icon: const Icon(Icons.hide_image_outlined),
-                      iconSize: 22,
-                      color: AppColors.textSecondary,
-                      tooltip: 'Ukloni logotip',
-                    ),
-                  if (canEdit)
-                    IconButton(
-                      onPressed: onEditLogo,
-                      icon: const Icon(Icons.image_outlined),
+                      onPressed: onOpenConsole,
+                      icon: Icon(
+                        signedInAs == null
+                            ? Icons.login_rounded
+                            : Icons.manage_accounts_rounded,
+                      ),
                       iconSize: 22,
                       color: AppColors.accent,
-                      tooltip: 'Promeni logotip tima',
-                    ),
-                  if (onSignIn != null)
-                    IconButton(
-                      onPressed: onSignIn,
-                      icon: const Icon(Icons.login_rounded),
-                      iconSize: 22,
-                      color: AppColors.accent,
-                      tooltip: 'Prijava',
-                    ),
-                  if (onSignOut != null)
-                    IconButton(
-                      onPressed: onSignOut,
-                      icon: const Icon(Icons.logout_rounded),
-                      iconSize: 22,
-                      color: AppColors.textSecondary,
-                      tooltip: 'Odjava',
+                      tooltip: signedInAs == null ? 'Prijava' : 'Konzola',
                     ),
                   const SizedBox(width: AppSpacing.xs),
                 ],

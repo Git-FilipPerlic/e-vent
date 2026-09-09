@@ -3,15 +3,35 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 
-/// Prijava.
+/// Prijava, a posle prijave i **konzola**.
 ///
 /// Bez prijave aplikacija radi — samo se **ništa ne menja**: podaci o
 /// događaju, vozilo i logotip se vide, ali se ne diraju. Prijava je prekidač
 /// između čitanja i unosa, pa se ovaj ekran otvara samo kad zatreba.
+///
+/// Kad je neko već prijavljen, isti ekran pokazuje **ko je prijavljen,
+/// logotip tima i odjavu**. Te stvari ne stoje u headeru na glavnoj strani:
+/// tamo su tri ikonice prekrivale baner, a logotip se ionako menja retko i
+/// samo uz prijavu.
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.auth});
+  const LoginScreen({
+    super.key,
+    required this.auth,
+    this.onEditLogo,
+    this.onRemoveLogo,
+    this.hasLogo = false,
+  });
 
   final AuthService auth;
+
+  /// Bira nov logotip tima. `null` kad korisnik nema dozvolu.
+  final Future<void> Function()? onEditLogo;
+
+  /// Uklanja logotip. `null` kad nema dozvole.
+  final Future<void> Function()? onRemoveLogo;
+
+  /// Da li logotip uopšte postoji — bez njega nema šta da se ukloni.
+  final bool hasLogo;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -39,10 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    final error = await widget.auth.signIn(
-      name: _name.text,
-      pin: _pin.text,
-    );
+    final error = await widget.auth.signIn(name: _name.text, pin: _pin.text);
     if (!mounted) return;
 
     if (error != null) {
@@ -56,99 +73,179 @@ class _LoginScreenState extends State<LoginScreen> {
     Navigator.of(context).pop(true);
   }
 
+  Future<void> _signOut() async {
+    await widget.auth.signOut();
+    if (!mounted) return;
+    Navigator.of(context).pop(false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final user = widget.auth.currentUser;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Prijava')),
+      appBar: AppBar(title: Text(user == null ? 'Prijava' : 'Konzola')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: user != null ? _console(theme, user) : _signInForm(theme),
+        ),
+      ),
+    );
+  }
+
+  /// Šta se vidi kad je neko već prijavljen.
+  Widget _console(ThemeData theme, AppUser user) {
+    final canEditLogo = widget.onEditLogo != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Prijavljen: ${user.name}',
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          canEditLogo
+              ? 'Dok si prijavljen, podaci o događaju se menjaju olovkama na '
+                    'karticama.'
+              : 'Vidiš sve, ali podatke tima menja onaj ko vodi ekipu.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+
+        if (canEditLogo) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Logotip tima',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textSecondary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Stoji u traci iznad tabova. Menja se odavde, ne sa glavne '
+            'strane — tamo bi dugmad prekrivala samu sliku.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            onPressed: widget.onEditLogo,
+            icon: const Icon(Icons.image_outlined, size: 20),
+            label: const Text('Promeni logotip'),
+          ),
+          if (widget.hasLogo) ...[
+            const SizedBox(height: AppSpacing.sm),
+            OutlinedButton.icon(
+              onPressed: widget.onRemoveLogo,
+              icon: const Icon(Icons.hide_image_outlined, size: 20),
+              label: const Text('Ukloni logotip'),
+            ),
+          ],
+        ],
+
+        const SizedBox(height: AppSpacing.xl),
+        FilledButton.icon(
+          onPressed: _signOut,
+          icon: const Icon(Icons.logout_rounded, size: 20),
+          label: const Text('Odjavi se'),
+        ),
+      ],
+    );
+  }
+
+  /// Obrazac za prijavu.
+  Widget _signInForm(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Prijava je potrebna samo za izmene',
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'Bez prijave se podaci o događaju, oprema i muzika normalno '
+          'vide. Prijava otvara unos i deljenje podataka timu.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        TextField(
+          controller: _name,
+          autofocus: true,
+          textInputAction: TextInputAction.next,
+          style: const TextStyle(color: AppColors.textPrimary),
+          decoration: const InputDecoration(
+            labelText: 'Ime',
+            labelStyle: TextStyle(color: AppColors.textSecondary),
+            filled: true,
+            fillColor: AppColors.surfaceAlt,
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        TextField(
+          controller: _pin,
+          obscureText: true,
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _submit(),
+          style: const TextStyle(color: AppColors.textPrimary),
+          decoration: const InputDecoration(
+            labelText: 'PIN',
+            labelStyle: TextStyle(color: AppColors.textSecondary),
+            filled: true,
+            fillColor: AppColors.surfaceAlt,
+            border: OutlineInputBorder(),
+          ),
+        ),
+        if (_errorMessage != null) ...[
+          const SizedBox(height: AppSpacing.md),
+          Row(
             children: [
-              Text(
-                'Prijava je potrebna samo za izmene',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
+              const Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.danger,
+                size: 20,
               ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Bez prijave se podaci o događaju, oprema i muzika normalno '
-                'vide. Prijava otvara unos i deljenje podataka timu.',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  _errorMessage!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.danger,
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextField(
-                controller: _name,
-                autofocus: true,
-                textInputAction: TextInputAction.next,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  labelText: 'Ime',
-                  labelStyle: TextStyle(color: AppColors.textSecondary),
-                  filled: true,
-                  fillColor: AppColors.surfaceAlt,
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: _pin,
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _submit(),
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  labelText: 'PIN',
-                  labelStyle: TextStyle(color: AppColors.textSecondary),
-                  filled: true,
-                  fillColor: AppColors.surfaceAlt,
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              if (_errorMessage != null) ...[
-                const SizedBox(height: AppSpacing.md),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.error_outline_rounded,
-                      color: AppColors.danger,
-                      size: 20,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        _errorMessage!,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.danger,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: AppSpacing.lg),
-              FilledButton(
-                onPressed: _isSubmitting ? null : _submit,
-                child: _isSubmitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Prijavi se'),
               ),
             ],
           ),
+        ],
+        const SizedBox(height: AppSpacing.lg),
+        FilledButton(
+          onPressed: _isSubmitting ? null : _submit,
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Prijavi se'),
         ),
-      ),
+      ],
     );
   }
 }

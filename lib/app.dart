@@ -129,14 +129,23 @@ class _RootNavigationState extends State<RootNavigation> {
     super.dispose();
   }
 
-  Future<void> _openLogin() async {
-    await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => LoginScreen(auth: _auth)),
-    );
-  }
+  /// Otvara prijavu, odnosno konzolu kad je neko već prijavljen.
+  ///
+  /// Tu su i logotip i odjava — na glavnoj strani su tri ikonice prekrivale
+  /// baner, a te se stvari diraju retko.
+  Future<void> _openConsole() async {
+    final canEditLogo = _auth.can(AppPermission.editTeamLogo);
 
-  Future<void> _signOut() async {
-    await _auth.signOut();
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => LoginScreen(
+          auth: _auth,
+          hasLogo: _logoPath != null,
+          onEditLogo: canEditLogo ? _pickLogo : null,
+          onRemoveLogo: canEditLogo && _logoPath != null ? _removeLogo : null,
+        ),
+      ),
+    );
   }
 
   Future<void> _loadLogo() async {
@@ -230,8 +239,6 @@ class _RootNavigationState extends State<RootNavigation> {
   Widget build(BuildContext context) {
     final path = _logoPath;
     final eventId = _eventId;
-    // Menjanje logotipa traži prijavu — to je funkcija managementa.
-    final canEditLogo = _auth.can(AppPermission.editTeamLogo);
     final user = _auth.currentUser;
 
     // Poštuje se sistemsko podešavanje za smanjen pokret.
@@ -256,13 +263,8 @@ class _RootNavigationState extends State<RootNavigation> {
                         children: [
                           AppHeader(
                             logo: path != null ? FileImage(File(path)) : null,
-                            onEditLogo: canEditLogo ? _pickLogo : null,
-                            onRemoveLogo: canEditLogo && path != null
-                                ? _removeLogo
-                                : null,
                             signedInAs: user?.name,
-                            onSignIn: user == null ? _openLogin : null,
-                            onSignOut: user == null ? null : _signOut,
+                            onOpenConsole: _openConsole,
                             onBack: _inEvent ? _backToList : null,
                           ),
                           // Na spisku događaja tabova nema — oni pripadaju

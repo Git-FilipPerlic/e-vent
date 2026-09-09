@@ -1,4 +1,8 @@
+import 'package:event_app/screens/login_screen.dart';
 import 'package:event_app/services/auth_service.dart';
+import 'package:event_app/theme/app_theme.dart';
+import 'package:event_app/widgets/common/app_header.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -71,6 +75,103 @@ void main() {
       await auth.signOut();
 
       expect(notifications, 2);
+    });
+  });
+
+  group('konzola umesto dugmadi u headeru', () {
+    testWidgets('header ima jedno dugme, ne tri', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark,
+          home: Scaffold(
+            body: AppHeader(signedInAs: 'Filip', onOpenConsole: () {}),
+          ),
+        ),
+      );
+
+      // Tri ikonice su prekrivale baner; logotip se menja iz konzole.
+      expect(find.byTooltip('Konzola'), findsOneWidget);
+      expect(find.byTooltip('Promeni logotip tima'), findsNothing);
+      expect(find.byTooltip('Ukloni logotip'), findsNothing);
+      expect(find.byTooltip('Odjava'), findsNothing);
+    });
+
+    testWidgets('bez prijave dugme vodi u prijavu', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark,
+          home: Scaffold(body: AppHeader(onOpenConsole: () {})),
+        ),
+      );
+
+      expect(find.byTooltip('Prijava'), findsOneWidget);
+    });
+
+    testWidgets('prijavljen glavni u konzoli menja logotip i odjavljuje se', (
+      WidgetTester tester,
+    ) async {
+      final auth = MockAuthService();
+      await auth.signIn(name: 'Filip', pin: '1234');
+      var edited = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark,
+          home: LoginScreen(
+            auth: auth,
+            hasLogo: true,
+            onEditLogo: () async => edited++,
+            onRemoveLogo: () async {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Prijavljen: Filip'), findsOneWidget);
+      expect(find.text('Ukloni logotip'), findsOneWidget);
+
+      await tester.tap(find.text('Promeni logotip'));
+      await tester.pumpAndSettle();
+      expect(edited, 1);
+
+      await tester.tap(find.text('Odjavi se'));
+      await tester.pumpAndSettle();
+      expect(auth.isSignedIn, isFalse);
+    });
+
+    testWidgets('bez logotipa nema šta da se ukloni', (
+      WidgetTester tester,
+    ) async {
+      final auth = MockAuthService();
+      await auth.signIn(name: 'Filip', pin: '1234');
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark,
+          home: LoginScreen(auth: auth, onEditLogo: () async {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ukloni logotip'), findsNothing);
+    });
+
+    testWidgets('izvođaču konzola ne nudi logotip', (
+      WidgetTester tester,
+    ) async {
+      final auth = MockAuthService();
+      await auth.signIn(name: 'Ana', pin: '1111');
+
+      await tester.pumpWidget(
+        MaterialApp(theme: AppTheme.dark, home: LoginScreen(auth: auth)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Prijavljen: Ana'), findsOneWidget);
+      expect(find.text('Promeni logotip'), findsNothing);
+      expect(find.text('Odjavi se'), findsOneWidget);
     });
   });
 }
