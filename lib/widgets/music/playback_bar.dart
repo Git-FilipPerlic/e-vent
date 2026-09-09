@@ -150,9 +150,53 @@ class PlaybackBar extends StatelessWidget {
                     label: 'Otvori nastupni ekran',
                     onPressed: onOpenPlayer,
                   ),
+                  // Jačina: jedno slovo koje se vrti L → E → F. Tri
+                  // stepenika umesto klizača — na nastupu se ne pogađa
+                  // procenat, nego se bira „puno / pola / tiho".
+                  _VolumeButton(controller: controller),
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Jačina zvuka, jednim slovom.
+class _VolumeButton extends StatelessWidget {
+  const _VolumeButton({required this.controller});
+
+  final MusicPlayerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final step = controller.volume;
+    final isFull = step == VolumeStep.l;
+
+    return Semantics(
+      button: true,
+      label: 'Jačina zvuka: ${step.label}',
+      child: Tooltip(
+        message: 'Jačina zvuka',
+        child: InkResponse(
+          onTap: controller.cycleVolume,
+          radius: kMinTouchTarget / 2,
+          child: SizedBox(
+            width: kMinTouchTarget,
+            height: kMinTouchTarget,
+            child: Center(
+              child: Text(
+                step.label,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  // Stišano je stanje na koje treba obratiti pažnju, pa je
+                  // slovo tada u boji upozorenja.
+                  color: isFull ? AppColors.accent : AppColors.warning,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
           ),
         ),
       ),

@@ -178,7 +178,23 @@ dugmetom.
 3. **Svaki podatak može da nedostaje.** Numera bez naziva pada na naziv fajla,
    numera bez poznatog trajanja prikazuje `--:--`, numera koja ne može da se
    otvori javlja grešku umesto da obori plejer.
-4. **Red u spisku je 36 dp** — svesno ispod minimalne dodirne mete od 48 dp,
+4. **Jačina zvuka ima tri stepenika, ne klizač** (odluka od 9. septembra
+   2026). Prikazuje se **jednim slovom** u traci uz spisak, koje se dodirom
+   vrti u krug:
+
+   | Slovo | Jačina |
+   |---|---|
+   | `L` | 100% |
+   | `E` | 50% |
+   | `F` | 15% |
+
+   Razlog: na nastupu se ne pogađa procenat, nego se bira između „puno",
+   „pola" i „tiho u pozadini". Slovo je u boji `accent` kad je puna jačina, a
+   u `warning` kad je stišano — stišan zvuk je stanje na koje treba obratiti
+   pažnju. Zadata jačina važi i za sva pretapanja: preklapanje ide do nje, ne
+   do pune jačine, inače bi stišana muzika skakala nazad na 100%.
+
+5. **Red u spisku je 36 dp** — svesno ispod minimalne dodirne mete od 48 dp,
    zbog gustine spiska na nastupu. Red je preko cele širine ekrana, pa je meta
    i dalje široka. Ovo je jedini izuzetak u aplikaciji.
 
@@ -239,24 +255,34 @@ pokretima. Uz to plejer radi bez sistemskih traka, kao druga brana.
 u tom trenutku **svira**. Dok ništa ne svira, to je ista pesma. Čim nešto
 svira, dodir na drugu pesmu je samo bira i priprema — ono što svira se ne seče.
 
+**Dodir uvek radi jedno te isto** (precizirano 9. septembra 2026): stavlja
+tu numeru na mesto **„sledeća"**, odmah iza one koja svira. Nikada ne pušta
+zvuk i nikada ne prekida ono što se čuje.
+
 Osnovni tok:
 
 1. gledaš spisak numera
-2. **dodirneš pesmu koju hoćeš da pustiš** — ona postaje izabrana
+2. **dodirneš pesmu** — ona ide na mesto „sledeća"
 3. pritisneš **play** (u traci uz spisak ili veliko dugme u nastupnom ekranu)
 
 Prelazak na sledeću pesmu usred programa:
 
-1. dodirneš sledeću pesmu — ona je izabrana, a prethodna i dalje svira
-2. otvoriš nastupni ekran
+1. dodirneš sledeću pesmu — ona je sada „sledeća", a prethodna i dalje svira
+2. otvoriš nastupni ekran dugmetom sa uglovima
 3. uključiš **Fade** ako hoćeš preklapanje
-4. pritisneš **veliko dugme** — pesma koja svira izlazi, izabrana ulazi, i
+4. pritisneš **veliko dugme** — pesma koja svira izlazi, „sledeća" ulazi, i
    **obe sviraju u preklopu**. Bez `Fade` prelaz je odmah.
 
 Ostalo:
 
-- **dodir na numeru koja je već izabrana** je vraća na početak
-- **skip napred / nazad** pomeraju red za jedno mesto
+- **dodir na numeru koja svira dodaje još jednu njenu kopiju** odmah iza nje.
+  To je namerno, i to je taj trik: uvod se pusti ponovo i tako se kupi vreme
+  na pretapanju dok se ne odluči šta dalje.
+- numera koja je već negde u redu se dodirom **premešta** na mesto „sledeća",
+  ne dodaje se drugi put
+- **skip napred / nazad** pomeraju taj isti red za jedno mesto. Unazad je
+  pametan: ako je pesma odmakla **3 sekunde ili više**, vraća je na početak;
+  ako je tek počela, ide na prethodnu.
 - **zvuk nikad ne kreće od dodira**, samo od dugmeta
 - prelazak sa pesme na pesmu ide uz **kratko pretapanje naslova** (do 200 ms);
   ostatak ekrana se ne animira, po opštim pravilima za pokret
@@ -265,10 +291,16 @@ Ostalo:
 
 1. **Kontrole uz spisak** — prethodna, −10 s, plej/pauza, +10 s, sledeća.
    Dovoljno da se upravlja bez izlaska iz spiska.
-2. **Nastupni ekran** — prsten, vreme, **ogromno dugme** (200 dp) i **jedan
-   prekidač: Fade**. Ništa više. Dugme je namerno preveliko: traži se prstom,
-   u mraku, bez gledanja u ekran. Jedan prekidač umesto tri — na nastupu se ne
-   bira između opcija.
+2. **Nastupni ekran** — prsten, vreme, **ogromno dugme** i **jedan prekidač:
+   Fade**. Ništa više. Jedan prekidač umesto tri — na nastupu se ne bira
+   između opcija.
+
+   Dugme je **kvadrat koji zauzima otprilike četiri petine ekrana** (odluka
+   od 9. septembra 2026). Razlog je konkretan: zamišljeno je za voditelja
+   koji drži mikrofon i govori, a ne gleda u telefon — dovoljno je da pipne
+   bilo gde po sredini ekrana, ne mora da gađa malu metu. Kvadrat, a ne krug,
+   jer iz istog prostora daje veću metu. Na niskom ekranu ili uz uvećan
+   sistemski font se smanjuje, da sadržaj ne ispadne.
 
 `Fade` znači sve troje odjednom: ulazak iz tišine, izlazak u tišinu i
 **preklapanje** kad se pređe sa numere koja svira na izabranu.
@@ -305,6 +337,9 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-020 | Pretapanje naslova pri prelasku na sledeću numeru | gotovo |
 | MUSIC-021 | Provera podrške za formate | gotovo |
 | MUSIC-022 | Provera rasporeda na različitim veličinama ekrana | gotovo |
+| MUSIC-023 | Dodir stavlja numeru na mesto „sledeća"; dodir na aktivnu dodaje kopiju | gotovo |
+| MUSIC-024 | Jačina zvuka u tri stepenika (L / E / F) | gotovo |
+| MUSIC-025 | Veliko dugme kao kvadrat preko četiri petine ekrana | gotovo |
 
 **Napomene uz pojedine stavke:**
 
@@ -363,11 +398,34 @@ Ono što iz te analize već sada važi kao pravilo za naš LED tab:
 - Ako se ikad doda zvučni režim, **osetljivost mora biti podesiva traka**, ne
   fiksna vrednost.
 
-**Tri pitanja koja moraju da se odgovore pre prvog LED feature-a**
-(prepisana iz analize):
+**Veza ide preko Wi-Fi-ja, ne Bluetooth-a** (odgovor korisnika, 9. septembra
+2026). Korisnik kaže da se do sada, u svakoj aplikaciji koju je koristio,
+povezivao tako što bi **uređaj našao u spisku Wi-Fi mreža**, u meniju koji se
+izvlači prstom nadole. To znači da kontroler pravi **sopstvenu Wi-Fi mrežu**
+(pristupnu tačku) na koju se telefon zakači, pa aplikacija sa njim priča
+preko lokalne mreže.
 
-1. jedan konkretan protokol (npr. SP107E) ili generički pristup sa spiskom
-   podržanih čipova?
+Šta iz toga sledi:
+
+- **`flutter_blue_plus` verovatno ne treba.** Umesto Bluetooth-a ide obična
+  mrežna veza (TCP/UDP soket) ka kontroleru na lokalnoj adresi. Paket se bira
+  tek kad se zna tačan model.
+- **Bluetooth dozvole otpadaju**, a s njima i najmučniji deo dozvola na
+  Androidu.
+- Zato dobija na značaju sasvim drugo pitanje: **šta se dešava kad telefon
+  nije na toj mreži** — treba jasno reći „nisi na mreži kontrolera" i uputiti
+  korisnika u Wi-Fi podešavanja, umesto da ekran ćuti.
+- Kad je telefon na kontrolerovoj mreži, **nema interneta** — a Home tab vuče
+  prognozu i karte. To se mora predvideti: te kartice tada javljaju grešku,
+  ne smeju da obore ekran.
+- Treba i dalje saznati **tačan model kontrolera** (piše na samom uređaju ili
+  na kutiji), jer se protokol razlikuje od modela do modela.
+
+**Pitanja koja još stoje pre prvog LED feature-a**
+(ostatak iz analize):
+
+1. koji je tačno model kontrolera — jedan konkretan protokol ili generički
+   pristup sa spiskom podržanih čipova?
 2. da li treba zvučni/reaktivni režim, i da li se napaja iz mikrofona telefona
    ili iz onoga što svira na Muzika tabu?
 3. da li su u planu i 2D paneli (matrix), ili samo trake — to određuje da li

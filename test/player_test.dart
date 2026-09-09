@@ -75,7 +75,7 @@ void main() {
       controller.dispose();
     });
 
-    test('numera van reda se dodirom ubacuje i odmah bira', () async {
+    test('numera van reda se dodirom ubacuje kao sledeća', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback, queue: [_tracks.first]);
 
@@ -86,16 +86,42 @@ void main() {
       controller.dispose();
     });
 
-    test('dodir na trenutnu numeru je vraća na početak', () async {
+    test('dodir na numeru koja svira dodaje njenu kopiju kao sledeću',
+        () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
-      playback.emitPosition(const Duration(seconds: 30));
-      await Future<void>.delayed(Duration.zero);
+      await controller.play();
+      final before = controller.queue.length;
 
       await controller.onTrackTapped(_tracks[0]);
 
-      expect(playback.lastSeek, Duration.zero);
-      expect(playback.playCalls, 0);
+      // Trik za ponavljanje uvoda: ista numera stoji dvaput, jedna za drugom.
+      expect(controller.queue.length, before + 1);
+      expect(controller.sounding?.id, 'trk-001');
+      expect(controller.selected?.id, 'trk-001');
+      expect(controller.queue[0].id, 'trk-001');
+      expect(controller.queue[1].id, 'trk-001');
+      // I dalje bez zvuka na dodir.
+      expect(playback.playCalls, 1);
+      controller.dispose();
+    });
+
+    test('dodir premešta numeru na mesto sledeća, iza one koja svira',
+        () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      // Treća numera je na kraju reda; dodir je diže odmah iza prve.
+      await controller.onTrackTapped(_tracks[2]);
+
+      expect(controller.queue.map((t) => t.id).toList(), [
+        'trk-001',
+        'trk-003',
+        'trk-002',
+      ]);
+      expect(controller.selected?.id, 'trk-003');
+      expect(controller.sounding?.id, 'trk-001');
       controller.dispose();
     });
 
@@ -247,7 +273,11 @@ void main() {
       await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byType(Switch).first);
+      await tester.pumpAndSettle();
       await tester.tap(find.byType(Switch).first);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byIcon(Icons.play_arrow_rounded));
       await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.play_arrow_rounded));
       await tester.pumpAndSettle();
@@ -378,6 +408,10 @@ void main() {
 
       expect(find.text('Fade'), findsOneWidget);
 
+      // Veliko dugme zauzima skoro ceo ekran, pa prekidač zna da bude ispod
+      // ivice — u testu se do njega mora skrolovati.
+      await tester.ensureVisible(find.text('Fade'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Fade'));
       await tester.pumpAndSettle();
       expect(controller.fade, isTrue);
@@ -545,6 +579,29 @@ void main() {
       expect(find.text('Uvodna špica'), findsNothing);
       expect(find.text('Igre za decu'), findsOneWidget);
 
+      controller.dispose();
+    });
+  });
+
+  group('jačina zvuka', () {
+    test('kreće od pune i vrti se L → E → F → L', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      expect(controller.volume, VolumeStep.l);
+      expect(controller.volume.label, 'L');
+
+      await controller.cycleVolume();
+      expect(controller.volume, VolumeStep.e);
+      expect(playback.masterVolume, 0.5);
+
+      await controller.cycleVolume();
+      expect(controller.volume, VolumeStep.f);
+      expect(playback.masterVolume, closeTo(0.15, 0.0001));
+
+      await controller.cycleVolume();
+      expect(controller.volume, VolumeStep.l);
+      expect(playback.masterVolume, 1.0);
       controller.dispose();
     });
   });

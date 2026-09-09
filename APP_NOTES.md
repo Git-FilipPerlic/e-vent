@@ -1298,6 +1298,32 @@ prazan spisak prikazuje bez prstena.
 Dva nova testa u `music_test.dart` čuvaju oba slučaja: prazan spisak nema
 prsten, spisak sa numerama ga ima.
 
+## 9. septembar 2026 — MUSIC-023/024/025: red čekanja, jačina, veliko dugme
+
+Korisnik je precizirao model kojim se dugo mučio da ga objasni, pa je ovde
+zapisan onako kako ga je opisao.
+
+- **Dodir uvek stavlja numeru na mesto „sledeća"**, odmah iza one koja svira.
+  Ranije je dodir samo „birao" numeru gde god da je stajala u redu; sada je
+  premešta. Numera koja je već u redu se premešta, ne udvaja.
+- **Dodir na numeru koja svira dodaje njenu kopiju** odmah iza nje. To je
+  trik za ponavljanje uvoda dok se kupi vreme na pretapanju. Zbog toga red
+  sme da sadrži istu numeru dvaput, pa se svuda barata **rednim brojem**, a
+  ne id-jem; `_soundingIndex` se ispravlja kad se nešto izvadi ispred njega.
+- **Jačina zvuka u tri stepenika**, jednim slovom u traci: `L` 100%,
+  `E` 50%, `F` 15%. `AudioPlayback` je dobio `masterVolume`; **sva pretapanja
+  sada idu do zadate jačine, ne do pune** — inače bi stišana muzika na svakom
+  prelazu skočila nazad na 100%. Slovo je tirkizno na punoj jačini, žuto kad
+  je stišano.
+- **Veliko dugme je postalo kvadrat preko četiri petine ekrana**, umesto
+  kruga od najviše 200 dp. Razlog je korisnikov: voditelj drži mikrofon,
+  govori i ne gleda u telefon — pipne bilo gde po sredini. Visina ostaje
+  granica, pa se na niskom ekranu smanji.
+- Skip unazad je i ranije bio „pametan" (3 sekunde), pa tu nije bilo izmena.
+- Provereno: `flutter analyze` čist, `flutter test` 283/283.
+- **Ostaje vizuelna provera na telefonu** — zaključao se pre nego što sam
+  stigao da slikam.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Spisak numera se ne pamti.** Živi samo u memoriji `MusicScreen`-a, pa se

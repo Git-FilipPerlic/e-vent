@@ -17,6 +17,17 @@ class FakePlayback implements AudioPlayback {
 
   final List<String> loadedPaths = [];
   int playCalls = 0;
+
+  /// Zadata jačina — testovi je čitaju da provere stepenike L/E/F.
+  double _masterVolume = 1;
+
+  @override
+  double get masterVolume => _masterVolume;
+
+  @override
+  Future<void> setMasterVolume(double value) async {
+    _masterVolume = value;
+  }
   int pauseCalls = 0;
   Duration? lastSeek;
   bool? lastFadeIn;

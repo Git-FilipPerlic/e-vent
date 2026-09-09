@@ -6,6 +6,28 @@ import '../models/track.dart';
 import 'audio_playback.dart';
 import 'waveform_service.dart';
 
+/// Jačina zvuka u tri koraka.
+///
+/// Namerno **tri stepenika, ne klizač**: na nastupu se ne pogađa tačan
+/// procenat, nego se bira između „puno", „pola" i „tiho u pozadini".
+/// Prikazuje se **jednim slovom**, jer za više nema mesta u traci.
+enum VolumeStep {
+  l('L', 1.0),
+  e('E', 0.5),
+  f('F', 0.15);
+
+  const VolumeStep(this.label, this.value);
+
+  /// Slovo koje stoji na dugmetu.
+  final String label;
+
+  /// Jačina, 0..1.
+  final double value;
+
+  /// Sledeći stepenik u krug: L → E → F → L.
+  VolumeStep get next => VolumeStep.values[(index + 1) % VolumeStep.values.length];
+}
+
 /// Vodi reprodukciju i red čekanja.
 ///
 /// Živi u Muzika tabu, a nastupni ekran ga samo pozajmljuje — zato zvuk ne
@@ -80,6 +102,8 @@ class MusicPlayerController extends ChangeNotifier {
   /// Da stišavanje pred kraj numere ne krene dvaput za istu numeru.
   bool _isFadingOut = false;
 
+  VolumeStep _volume = VolumeStep.l;
+
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -107,6 +131,16 @@ class MusicPlayerController extends ChangeNotifier {
   Duration? get duration => _duration;
   bool get isPlaying => _isPlaying;
   bool get fade => _fade;
+
+  /// Trenutna jačina zvuka.
+  VolumeStep get volume => _volume;
+
+  /// Prebacuje na sledeći stepenik jačine: L → E → F → L.
+  Future<void> cycleVolume() async {
+    _volume = _volume.next;
+    notifyListeners();
+    await playback.setMasterVolume(_volume.value);
+  }
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -170,29 +204,55 @@ class MusicPlayerController extends ChangeNotifier {
     playback.fadeToSilence(left.isNegative ? Duration.zero : left);
   }
 
+  /// Gde je mesto „sledeća": odmah iza numere koja svira.
+  ///
+  /// Dok ništa ne svira, to je vrh reda.
+  int get _nextSlot => _soundingIndex >= 0 ? _soundingIndex + 1 : 0;
+
   /// Šta se dešava na dodir numere u spisku.
   ///
-  /// - **ništa ne svira** → numera postaje izabrana i odmah se učita, pa je
-  ///   veliko dugme pušta bez čekanja
-  /// - **nešto svira** → numera postaje izabrana i **priprema se u pozadini**;
-  ///   ono što svira se ne prekida
-  /// - **dodir na već izabranu numeru** → vraća je na početak
+  /// **Dodir nikada ne pušta zvuk.** Uvek radi jedno te isto: stavlja tu
+  /// numeru na mesto **sledeća**, odmah iza one koja svira. Odatle je uzima
+  /// veliko dugme na nastupnom ekranu.
   ///
-  /// Zvuk ni u jednom slučaju ne kreće sam.
+  /// - numera koja je već negde u redu se **premešta** na to mesto
+  /// - **dodir na numeru koja svira dodaje još jednu njenu kopiju** odmah iza
+  ///   nje. To je namerno: tako se uvod pusti ponovo i kupi vreme na
+  ///   pretapanju, dok se ne dogovori šta dalje.
   Future<void> onTrackTapped(Track track) async {
-    if (selected?.id == track.id) {
-      if (!isAnotherSounding) await restartCurrent();
+    final soundingId = sounding?.id;
+    final slot = _nextSlot;
+
+    // Numera koja svira: ide njena kopija odmah iza nje.
+    if (soundingId == track.id) {
+      _queue.insert(slot, track);
+      await _select(slot);
       return;
     }
 
-    var index = _queue.indexWhere((t) => t.id == track.id);
-    if (index < 0) {
-      // Numera van reda se ubacuje odmah iza izabrane.
-      index = (_selectedIndex + 1).clamp(0, _queue.length);
-      _queue.insert(index, track);
+    // Ista numera već negde u redu (ali ne ona koja svira) se premešta.
+    var existing = -1;
+    for (var i = 0; i < _queue.length; i++) {
+      if (i != _soundingIndex && _queue[i].id == track.id) {
+        existing = i;
+        break;
+      }
+    }
+    if (existing >= 0) {
+      final moved = _queue.removeAt(existing);
+      // Vađenje ispred numere koja svira pomera i nju.
+      if (existing < _soundingIndex) _soundingIndex--;
+      final target = (existing < slot ? slot - 1 : slot).clamp(
+        0,
+        _queue.length,
+      );
+      _queue.insert(target, moved);
+      await _select(target);
+      return;
     }
 
-    await _select(index);
+    _queue.insert(slot, track);
+    await _select(slot);
   }
 
   /// Zamenjuje numere u redu dopunjenim podacima iz fajlova.

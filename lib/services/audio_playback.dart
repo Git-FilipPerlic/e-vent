@@ -41,6 +41,14 @@ abstract interface class AudioPlayback {
   /// Da li je sledeća numera spremna za preklapanje.
   bool get hasPreloaded;
 
+  /// Zadata jačina zvuka, 0..1.
+  ///
+  /// **Sva pretapanja idu do ove vrednosti, ne do pune jačine** — inače bi
+  /// stišana muzika na svakom prelazu skočila nazad na 100%.
+  double get masterVolume;
+
+  Future<void> setMasterVolume(double value);
+
   /// Preklapa zvuk sa numere koja svira na unapred učitanu: prva se spušta,
   /// druga se penje, obe sviraju u isto vreme.
   ///
@@ -89,6 +97,22 @@ class JustAudioPlayback implements AudioPlayback {
   final _completed = StreamController<void>.broadcast();
 
   List<StreamSubscription<dynamic>> _bindings = [];
+
+  /// Zadata jačina; 1 je puna. Sve što se dole postavlja množi se njome.
+  double _masterVolume = 1;
+
+  @override
+  double get masterVolume => _masterVolume;
+
+  @override
+  Future<void> setMasterVolume(double value) async {
+    _masterVolume = value.clamp(0.0, 1.0);
+    // Ako je usred pretapanja, sledeći korak će sam uzeti novu vrednost;
+    // inače se primenjuje odmah, da se promena čuje na dodir.
+    if (_fadeTimer == null && _crossfadeTimer == null) {
+      await _active.setVolume(_masterVolume);
+    }
+  }
 
   Timer? _fadeTimer;
   Timer? _crossfadeTimer;
@@ -166,7 +190,7 @@ class JustAudioPlayback implements AudioPlayback {
     // Nova numera poništava pripremljeno preklapanje.
     _hasPreloaded = false;
     await _idle.stop();
-    await _active.setVolume(1);
+    await _active.setVolume(_masterVolume);
     return _open(_active, path);
   }
 
@@ -202,8 +226,8 @@ class JustAudioPlayback implements AudioPlayback {
     _crossfadeTimer = Timer.periodic(_fadeStep, (timer) {
       step++;
       final t = (step / steps).clamp(0.0, 1.0);
-      incoming.setVolume(t);
-      outgoing.setVolume(1 - t);
+      incoming.setVolume(t * _masterVolume);
+      outgoing.setVolume((1 - t) * _masterVolume);
       if (t >= 1) {
         timer.cancel();
         outgoing.stop();
@@ -246,14 +270,14 @@ class JustAudioPlayback implements AudioPlayback {
     _fadeTimer?.cancel();
 
     if (!fadeIn) {
-      await _active.setVolume(1);
+      await _active.setVolume(_masterVolume);
       await _active.play();
       return;
     }
 
     await _active.setVolume(0);
     unawaited(_active.play());
-    unawaited(_fade(target: 1, over: fadeInDuration));
+    unawaited(_fade(target: _masterVolume, over: fadeInDuration));
   }
 
   @override
@@ -264,8 +288,8 @@ class JustAudioPlayback implements AudioPlayback {
     _cancelFades();
     await _active.pause();
     // Ako je pauza pala usred pretapanja, zvuk bi pri nastavku ostao tih —
-    // zato se jačina vraća na punu.
-    await _active.setVolume(1);
+    // zato se jačina vraća na zadatu.
+    await _active.setVolume(_masterVolume);
   }
 
   @override

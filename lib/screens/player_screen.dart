@@ -42,19 +42,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
   /// Koliko se preskače jednim dodirom.
   static const Duration skipStep = Duration(seconds: 10);
 
-  /// Najveći prečnik velikog dugmeta. Namerno ogroman — pogađa se bez
-  /// gledanja u ekran.
-  static const double _maxPlayButtonSize = 200;
-
-  /// Koliko dugme sme da bude na datom ekranu.
+  /// Koliki je kvadrat velikog dugmeta.
   ///
-  /// Na niskom ekranu, ili kad je sistemski font uvećan, dugme se smanjuje —
-  /// bolje manje dugme nego sadržaj koji ispadne sa ekrana.
+  /// **Namerno ogroman — otprilike četiri petine ekrana.** Zamišljen je za
+  /// voditelja koji drži mikrofon i ne gleda u telefon: dovoljno je da pipne
+  /// bilo gde po sredini, ne mora da gađa malu metu.
+  ///
+  /// Visina je i dalje granica: na niskom ekranu, ili kad je sistemski font
+  /// uvećan, dugme se smanji pre nego što sadržaj ispadne sa ekrana.
   double _playButtonSize(BoxConstraints constraints) {
-    return math.min(
-      _maxPlayButtonSize,
-      math.min(constraints.maxWidth * 0.62, constraints.maxHeight * 0.30),
-    );
+    return math.min(constraints.maxWidth * 0.8, constraints.maxHeight * 0.62);
   }
 
   @override
@@ -255,10 +252,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
       child: Container(
         width: size,
         height: size,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
+        decoration: BoxDecoration(
+          // Kvadrat, ne krug: iz istog prostora se dobija veća meta, a
+          // uglovi su blago zaobljeni da ne seku ekran.
+          borderRadius: BorderRadius.circular(kCardRadius * 2),
           color: AppColors.accent,
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: AppColors.accentDeep,
               blurRadius: 24,
@@ -268,9 +267,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
         ),
         child: Material(
           color: Colors.transparent,
-          shape: const CircleBorder(),
+          borderRadius: BorderRadius.circular(kCardRadius * 2),
           child: InkWell(
-            customBorder: const CircleBorder(),
+            borderRadius: BorderRadius.circular(kCardRadius * 2),
             onTap: _onPlayPressed,
             child: Icon(
               controller.isPlaying
