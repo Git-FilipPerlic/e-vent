@@ -1324,6 +1324,28 @@ zapisan onako kako ga je opisao.
 - **Ostaje vizuelna provera na telefonu** — zaključao se pre nego što sam
   stigao da slikam.
 
+## 9. septembar 2026 — doterivanje Muzika taba po primedbama sa telefona
+
+Sve iz jedne runde gledanja aplikacije u ruci:
+
+- **Traka se prelila za 44 piksela** čim je slovo za jačinu ušlo u red sa
+  šest dugmadi. Razdvojena je u **dva reda**: gore premotavanje i pauza, dole
+  folder, nastupni ekran i jačina. Donji red je visok **36 dp** — isti svesni
+  izuzetak od 48 dp kao kod spiska numera.
+  Dodat je i test u `layout_test.dart` koji podiže samu traku na 320 dp uz
+  font 1,3×; proveren je tako što je bez ispravke pao.
+- **Folder je sada samo ikonica** u tom donjem redu; dugme „Pregledaj
+  fajlove" iznad spiska je uklonjeno i spisak je dobio ceo prostor. Natpis
+  ostaje u praznom stanju, jer tada trake nema.
+- **Naslov i vreme na nastupnom ekranu su smanjeni i prebačeni u
+  `textSecondary`.** Korisnikova primedba: „ono čisto belo štipa oči".
+  Krupno na tom ekranu ostaje samo dugme.
+- Sadržaj nastupnog ekrana je odmaknut **iza prstena**
+  (`inset + waveHeight`), jer je naslov ulazio u talas.
+- Provereno na telefonu: dodir stavlja numeru na mesto „sledeća" dok prva
+  svira (traka pokazuje „svira: ..."), slovo se vrti L → E → F i žuto je kad
+  je stišano, veliko dugme zauzima četiri petine ekrana.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Uhvatiti pad Bluetooth veze sa mikseta.** Zvuk ide preko Bluetooth-a do

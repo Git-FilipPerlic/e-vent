@@ -189,14 +189,25 @@ dugmetom.
    | `F` | 15% |
 
    Razlog: na nastupu se ne pogađa procenat, nego se bira između „puno",
-   „pola" i „tiho u pozadini". Slovo je u boji `accent` kad je puna jačina, a
+   „pola" i „tiho u pozadini". Bitno je i to što **mikseta nije nadohvat** —
+   zvuk do nje ide Bluetooth-om, pa se muzika mora stišati iz aplikacije. Slovo je u boji `accent` kad je puna jačina, a
    u `warning` kad je stišano — stišan zvuk je stanje na koje treba obratiti
    pažnju. Zadata jačina važi i za sva pretapanja: preklapanje ide do nje, ne
    do pune jačine, inače bi stišana muzika skakala nazad na 100%.
 
 5. **Red u spisku je 36 dp** — svesno ispod minimalne dodirne mete od 48 dp,
    zbog gustine spiska na nastupu. Red je preko cele širine ekrana, pa je meta
-   i dalje široka. Ovo je jedini izuzetak u aplikaciji.
+   i dalje široka.
+
+6. **Traka uz spisak ima dva reda.** Gore je premotavanje i pauza — ono što
+   se dira u hodu. Dole su tri odluke druge vrste: **folder**, ulaz u
+   **nastupni ekran** i **jačina**. Donji red je visok **36 dp**, isti svesni
+   izuzetak od 48 dp: ta tri dugmeta se ne traže u žurbi, a spisak numera time
+   dobija prostor.
+
+   **Fajlovi se otvaraju samom ikonicom foldera** u tom redu — natpis
+   „Pregledaj fajlove" je otpao. Natpis ostaje jedino u praznom stanju, dok
+   spiska nema pa nema ni trake; inače numere ne bi imale odakle da se dodaju.
 
 #### Kuda ide zvuk: Bluetooth do miksete (razjašnjeno 9. septembra 2026)
 
@@ -325,7 +336,9 @@ Ostalo:
 1. **Kontrole uz spisak** — prethodna, −10 s, plej/pauza, +10 s, sledeća.
    Dovoljno da se upravlja bez izlaska iz spiska.
 2. **Nastupni ekran** — prsten, vreme, **ogromno dugme** i **jedan prekidač:
-   Fade**. Ništa više. Jedan prekidač umesto tri — na nastupu se ne bira
+   Fade**. Naziv numere i vreme stoje **sitno i u `textSecondary`**: to su
+   podaci koji se provere jednom, a krupno belo na crnom usput štipa oči.
+   Sve što je krupno na tom ekranu jeste dugme. Ništa više. Jedan prekidač umesto tri — na nastupu se ne bira
    između opcija.
 
    Dugme je **kvadrat koji zauzima otprilike četiri petine ekrana** (odluka
