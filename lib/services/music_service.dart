@@ -25,44 +25,9 @@ class MockMusicService implements MusicService {
   }
 }
 
-/// Test numere. Namerno različite: sa izvođačem i bez, iz foldera i iz
-/// plejliste, jedna bez naziva (proverava pad na naziv fajla) i jedna bez
-/// poznatog trajanja.
-const List<Map<String, dynamic>> _tracks = [
-  {
-    'id': 'trk-001',
-    'title': 'Uvodna špica',
-    'artist': 'Miks za doček',
-    'source': 'playlist',
-    'durationSeconds': 154,
-    'path': '/muzika/uvodna-spica.mp3',
-  },
-  {
-    'id': 'trk-002',
-    'title': 'Igre za decu',
-    'artist': 'Dečji miks',
-    'source': 'playlist',
-    'durationSeconds': 212,
-    'path': '/muzika/igre-za-decu.mp3',
-  },
-  {
-    'id': 'trk-003',
-    'title': 'Vatreni show',
-    'source': 'folder',
-    'durationSeconds': 187,
-    'path': '/muzika/vatreni-show.mp3',
-  },
-  {
-    'id': 'trk-004',
-    'source': 'folder',
-    'durationSeconds': 240,
-    'path': '/muzika/bez-naziva-04.mp3',
-  },
-  {
-    'id': 'trk-005',
-    'title': 'Završni plesni program',
-    'artist': 'Finale',
-    'source': 'playlist',
-    'path': '/muzika/finale.mp3',
-  },
-];
+/// Spisak je prazan dok korisnik ne doda numere sa telefona.
+///
+/// Ranije su ovde stajale izmišljene numere, radi provere rasporeda. One su
+/// uklonjene čim je spisak počeo da se puni pravim fajlovima: numera koja ne
+/// može da se pusti samo smeta na nastupu.
+const List<Map<String, dynamic>> _tracks = [];

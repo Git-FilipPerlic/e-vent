@@ -20,7 +20,10 @@ import 'player_screen.dart';
 /// posebna dozvola za čitanje memorije — korisnik sam pokazuje šta sme da se
 /// čita.
 class MusicScreen extends StatefulWidget {
-  const MusicScreen({super.key});
+  const MusicScreen({super.key, this.service});
+
+  /// Ubacuje se u testu; u aplikaciji se pravi sam.
+  final MusicService? service;
 
   @override
   State<MusicScreen> createState() => _MusicScreenState();
@@ -28,7 +31,7 @@ class MusicScreen extends StatefulWidget {
 
 class _MusicScreenState extends State<MusicScreen> {
   /// Jedino mesto gde se bira izvor numera.
-  final MusicService _service = MockMusicService();
+  late final MusicService _service = widget.service ?? MockMusicService();
 
   List<Track> _tracks = const [];
 

@@ -101,6 +101,22 @@ class _PlayerScreenState extends State<PlayerScreen> {
         : (_position.inMilliseconds / total).clamp(0.0, 1.0);
   }
 
+  /// Koliko se preskače jednim dodirom.
+  static const Duration skipStep = Duration(seconds: 10);
+
+  /// Pomera reprodukciju napred ili nazad, uz granice numere.
+  Future<void> _skip(Duration by) async {
+    final total = _duration;
+    var target = _position + by;
+    if (target < Duration.zero) target = Duration.zero;
+    if (total != null && target > total) target = total;
+
+    await _playback.seek(target);
+    if (!mounted) return;
+    setState(() => _position = target);
+    _updateProgress();
+  }
+
   Future<void> _toggle() async {
     if (_isPlaying) {
       await _playback.pause();
@@ -171,7 +187,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                _playButton(theme),
+                _controls(theme),
                 const SizedBox(height: AppSpacing.lg),
                 _fadeInSwitch(theme),
                 const Spacer(),
@@ -180,6 +196,30 @@ class _PlayerScreenState extends State<PlayerScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Preskakanje unazad, veliko dugme, preskakanje unapred.
+  Widget _controls(ThemeData theme) {
+    final ready = !_isLoading && _errorMessage == null;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _SkipButton(
+          icon: Icons.replay_10_rounded,
+          label: '10 sekundi unazad',
+          onPressed: ready ? () => _skip(-skipStep) : null,
+        ),
+        const SizedBox(width: AppSpacing.lg),
+        _playButton(theme),
+        const SizedBox(width: AppSpacing.lg),
+        _SkipButton(
+          icon: Icons.forward_10_rounded,
+          label: '10 sekundi unapred',
+          onPressed: ready ? () => _skip(skipStep) : null,
+        ),
+      ],
     );
   }
 
@@ -209,30 +249,36 @@ class _PlayerScreenState extends State<PlayerScreen> {
       );
     }
 
+    // Puna tirkizna podloga i tamna ikonica: dugme mora da se vidi iz ruke,
+    // u mraku, bez traženja. Raniji providni gradijent se praktično nije
+    // razaznavao od pozadine.
     return Semantics(
       button: true,
       label: _isPlaying ? 'Pauza' : 'Pusti',
-      child: DecoratedBox(
+      child: Container(
+        width: 128,
+        height: 128,
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          gradient: AppGradients.accent,
+          color: AppColors.accent,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.accentDeep,
+              blurRadius: 24,
+              spreadRadius: 2,
+            ),
+          ],
         ),
-        child: SizedBox(
-          width: 120,
-          height: 120,
-          child: Material(
-            color: Colors.transparent,
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: _toggle,
-              child: Icon(
-                _isPlaying
-                    ? Icons.pause_rounded
-                    : Icons.play_arrow_rounded,
-                size: 64,
-                color: AppColors.accent,
-              ),
+        child: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: _toggle,
+            child: Icon(
+              _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              size: 72,
+              color: AppColors.background,
             ),
           ),
         ),
@@ -258,6 +304,38 @@ class _PlayerScreenState extends State<PlayerScreen> {
       ),
       activeThumbColor: AppColors.accent,
       contentPadding: EdgeInsets.zero,
+    );
+  }
+}
+
+/// Dugme za preskakanje 10 sekundi. Manje od velikog, ali i dalje puna
+/// dodirna meta.
+class _SkipButton extends StatelessWidget {
+  const _SkipButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+
+  /// `null` dok numera nije spremna — dugme tada stoji ugašeno.
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(icon),
+        iconSize: 40,
+        tooltip: label,
+        color: AppColors.accent,
+        disabledColor: AppColors.border,
+      ),
     );
   }
 }

@@ -13,6 +13,43 @@ Widget _wrap(Widget child) {
   );
 }
 
+/// Lažni izvor numera — spisak u aplikaciji je prazan dok korisnik ne doda
+/// fajlove sa telefona, pa se u testu podmeće nekoliko numera.
+class FakeMusicService implements MusicService {
+  FakeMusicService(this.tracks);
+
+  final List<Track> tracks;
+
+  @override
+  Future<List<Track>> loadTracks() async => tracks;
+}
+
+final List<Track> _sample = [
+  const Track(
+    id: 'trk-001',
+    title: 'Uvodna špica',
+    artist: 'Miks za doček',
+    source: TrackSource.playlist,
+    duration: Duration(seconds: 154),
+    path: '/muzika/uvodna-spica.mp3',
+  ),
+  const Track(
+    id: 'trk-002',
+    title: 'Igre za decu',
+    artist: 'Dečji miks',
+    source: TrackSource.playlist,
+    duration: Duration(seconds: 212),
+    path: '/muzika/igre-za-decu.mp3',
+  ),
+  const Track(
+    id: 'trk-003',
+    title: 'Vatreni show',
+    duration: Duration(seconds: 187),
+    path: '/muzika/vatreni-show.mp3',
+  ),
+  const Track(id: 'trk-004', path: '/muzika/bez-naziva-04.mp3'),
+];
+
 void main() {
   group('numera', () {
     test('naziv pada na naziv fajla, pa na objašnjenje', () {
@@ -92,7 +129,9 @@ void main() {
 
   group('Muzika ekran', () {
     testWidgets('učita spisak numera', (WidgetTester tester) async {
-      await tester.pumpWidget(_wrap(const MusicScreen()));
+      await tester.pumpWidget(
+        _wrap(MusicScreen(service: FakeMusicService(_sample))),
+      );
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Uvodna špica'), findsOneWidget);
@@ -103,7 +142,9 @@ void main() {
 
     testWidgets('dodir bira numeru, ali ne pokreće reprodukciju',
         (WidgetTester tester) async {
-      await tester.pumpWidget(_wrap(const MusicScreen()));
+      await tester.pumpWidget(
+        _wrap(MusicScreen(service: FakeMusicService(_sample))),
+      );
       await tester.pumpAndSettle();
 
       // Dok ništa nije izabrano, nema ni dugmeta za plejer.
@@ -121,7 +162,9 @@ void main() {
 
     testWidgets('izbor druge numere menja dugme',
         (WidgetTester tester) async {
-      await tester.pumpWidget(_wrap(const MusicScreen()));
+      await tester.pumpWidget(
+        _wrap(MusicScreen(service: FakeMusicService(_sample))),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.textContaining('Igre za decu'));
@@ -136,18 +179,20 @@ void main() {
     });
   });
 
-  group('mock servis', () {
-    test('vraća numere iz oba izvora', () async {
-      final tracks = await MockMusicService().loadTracks();
+  group('podrazumevani servis', () {
+    test('spisak je prazan dok korisnik ne doda numere', () async {
+      // Izmišljene numere su uklonjene: numera koja ne može da se pusti
+      // samo smeta na nastupu.
+      expect(await MockMusicService().loadTracks(), isEmpty);
+    });
 
-      expect(tracks.length, 5);
-      expect(
-        tracks.any((t) => t.source == TrackSource.playlist),
-        isTrue,
-      );
-      expect(tracks.any((t) => t.source == TrackSource.folder), isTrue);
-      // Jedna numera namerno nema poznato trajanje.
-      expect(tracks.any((t) => t.duration == null), isTrue);
+    testWidgets('prazan spisak to i kaže', (WidgetTester tester) async {
+      await tester.pumpWidget(_wrap(const MusicScreen()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nijedna numera nije dodata.'), findsOneWidget);
+      expect(find.text('Folder'), findsOneWidget);
+      expect(find.text('Numere'), findsOneWidget);
     });
   });
 }

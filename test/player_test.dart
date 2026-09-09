@@ -30,6 +30,7 @@ class FakePlayback implements AudioPlayback {
   String? loadedPath;
   int playCalls = 0;
   int pauseCalls = 0;
+  Duration? lastSeek;
   bool? lastFadeIn;
   bool disposed = false;
 
@@ -66,7 +67,10 @@ class FakePlayback implements AudioPlayback {
   Future<void> stop() async {}
 
   @override
-  Future<void> seek(Duration position) async {}
+  Future<void> seek(Duration position) async {
+    lastSeek = position;
+    _position.add(position);
+  }
 
   @override
   Future<void> dispose() async {
@@ -200,5 +204,63 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(playback.disposed, isTrue);
+  });
+
+  testWidgets('preskakanje pomera 10 sekundi napred i nazad',
+      (WidgetTester tester) async {
+    final playback = FakePlayback(trackDuration: const Duration(seconds: 200));
+    await tester.pumpWidget(
+      _wrap(PlayerScreen(track: _track, playback: playback)),
+    );
+    await tester.pumpAndSettle();
+
+    playback.emitPosition(const Duration(seconds: 50));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.forward_10_rounded));
+    await tester.pumpAndSettle();
+    expect(playback.lastSeek, const Duration(seconds: 60));
+
+    await tester.tap(find.byIcon(Icons.replay_10_rounded));
+    await tester.pumpAndSettle();
+    expect(playback.lastSeek, const Duration(seconds: 50));
+  });
+
+  testWidgets('preskakanje ne izlazi izvan numere',
+      (WidgetTester tester) async {
+    final playback = FakePlayback(trackDuration: const Duration(seconds: 15));
+    await tester.pumpWidget(
+      _wrap(PlayerScreen(track: _track, playback: playback)),
+    );
+    await tester.pumpAndSettle();
+
+    // Na početku numere unazad ostaje na nuli.
+    await tester.tap(find.byIcon(Icons.replay_10_rounded));
+    await tester.pumpAndSettle();
+    expect(playback.lastSeek, Duration.zero);
+
+    // Napred ne prelazi preko kraja.
+    await tester.tap(find.byIcon(Icons.forward_10_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.forward_10_rounded));
+    await tester.pumpAndSettle();
+    expect(playback.lastSeek, const Duration(seconds: 15));
+  });
+
+  testWidgets('dok se numera učitava, preskakanje je ugašeno',
+      (WidgetTester tester) async {
+    final playback = FakePlayback(failsToLoad: true);
+    await tester.pumpWidget(
+      _wrap(PlayerScreen(track: _track, playback: playback)),
+    );
+    await tester.pumpAndSettle();
+
+    final skip = tester.widget<IconButton>(
+      find.ancestor(
+        of: find.byIcon(Icons.forward_10_rounded),
+        matching: find.byType(IconButton),
+      ),
+    );
+    expect(skip.onPressed, isNull);
   });
 }
