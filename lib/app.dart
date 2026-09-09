@@ -160,9 +160,19 @@ class _RootNavigationState extends State<RootNavigation> {
       // Korisnik je odustao — ništa se ne menja i ništa se ne javlja.
       if (picked == null) return;
 
-      await _logoService.save(picked.path);
+      // Slika se kopira u folder aplikacije; pamti se ta kopija, ne
+      // privremeni fajl koji Android obriše.
+      final saved = await _logoService.save(picked.path);
       if (!mounted) return;
-      setState(() => _logoPath = picked.path);
+      if (saved == null) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('Logotip nije sačuvan.')),
+          );
+        return;
+      }
+      setState(() => _logoPath = saved);
     } catch (_) {
       messenger
         ..hideCurrentSnackBar()

@@ -1395,6 +1395,28 @@ zbog novog build-a nego zato što spisak nije nigde čuvan.
   trajanjima i bez nastavaka u nazivu.
 - `flutter analyze` čist, `flutter test` 299/299.
 
+## 9. septembar 2026 — logotip tima preživljava reinstalaciju
+
+Korisnik je odobrio paket `path_provider` (bio je uslov za ovu popravku).
+
+- `TeamLogoService` sada **kopira izabranu sliku u trajni folder aplikacije**
+  i pamti tu kopiju. Ranije je pamtio putanju koju ostavi `image_picker`, a
+  ona vodi u privremeni folder koji Android briše — pa je logotip nestajao.
+- **Svaka nova slika dobija novo ime** (nosi vreme čuvanja). Da je ime
+  fiksno, Flutter bi i dalje crtao staru sliku iz svog keša. Stara kopija se
+  briše tek pošto je nova upisana, da se u slučaju greške ne ostane bez obe.
+- Ako kopije nema, zapis se čisti i header se vraća na ime aplikacije, umesto
+  da pokušava da nacrta sliku koje nema.
+- Ako čuvanje pukne, javi se porukom i **stari logotip ostaje** — ranije se
+  stanje menjalo i pre nego što se zna da je upis prošao.
+- Folder aplikacije je u servisu **ubacljiv**, pa testovi rade nad
+  privremenim folderom; `SharedPreferences.setMockInitialValues` pokriva
+  ostalo. Nov `test/team_logo_test.dart`, 8 testova.
+- **Provereno na telefonu:** posle biranja slike, u
+  `shared_prefs` stoji `.../app_flutter/team_logo_1788990318395.jpg` umesto
+  ranijeg `.../cache/scaled_....jpg`, i sam fajl (377 KB) je u tom folderu.
+- `flutter analyze` čist, `flutter test` 307/307.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`
@@ -1407,11 +1429,6 @@ zbog novog build-a nego zato što spisak nije nigde čuvan.
 - **Release APK za deljenje.** Sadašnji build je debug — radi, ali je krupniji
   i sporiji i nije za deljenje. Za pravu verziju treba ključ za potpisivanje
   (pravi se jednom).
-- **Logotip tima nestaje posle reinstalacije aplikacije.** `image_picker`
-  ostavlja izabranu sliku u privremenom folderu aplikacije, a taj folder se
-  briše pri reinstalaciji, pa zapamćena putanja više ne postoji. Header to
-  podnosi (vrati se na ime aplikacije), ali sliku treba prekopirati u trajni
-  folder aplikacije — traži paket `path_provider`, pa čeka odluku korisnika.
 - **Lager šablon se unosi iz admin konzole.** Ne samo stavke nego i **sekcije**:
   različite firme imaju različit lager, pa broj sekcija nije fiksan. Sadašnjih
   šest sekcija i 13 stavki su privremeni šablon dok se ne poveže baza.

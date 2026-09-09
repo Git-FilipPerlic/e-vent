@@ -113,7 +113,13 @@ Uz to na Home ekranu:
 - **pull-to-refresh** (povlačenje nadole ponovo učitava podatke o događaju)
 - **greška pri učitavanju**: poruka + dugme "Pokušaj ponovo" umesto praznog ekrana (HOME-021)
 - **header sa logotipom tima** (iznad tabova): logo bira korisnik sa ulogom `glavni`,
-  ostali ga samo vide
+  ostali ga samo vide. **Izabrana slika se prekopira u trajni folder
+  aplikacije**, a ne ostavlja tamo gde je `image_picker` spusti — njegov
+  folder je privremen i Android ga briše, pa je logotip nestajao pri
+  reinstalaciji. Svaka nova slika dobija novo ime (nosi vreme čuvanja), jer
+  bi inače Flutter i dalje crtao staru iz svog keša; stara kopija se briše
+  tek kad je nova upisana. Ako kopije nema, zapis se čisti i header se vraća
+  na ime aplikacije.
 
 ### Lager tab
 
@@ -910,7 +916,7 @@ za proveru praznih stanja) mogu da posluže kao seed za Firestore.
 | Datum/vreme na srpskom | `Intl.DateTimeFormat('sr-Latn-RS')` | `intl` (`DateFormat.yMMMMd('sr')`) |
 | Kopiranje u clipboard | `expo-clipboard` | ugrađeno: `Clipboard.setData` |
 | Logo tima iz galerije | `expo-image-picker` | `image_picker` |
-| Trajno čuvanje loga | *nije radilo u Expo Go* | `shared_preferences` |
+| Trajno čuvanje loga | *nije radilo u Expo Go* | `shared_preferences` + `path_provider` |
 | Ikonice | Feather (`@expo/vector-icons`) | ugrađene Material ikonice |
 | Audio (Muzika tab) | planirano `expo-av` | **`just_audio`** (izabrano) |
 | Talasni oblik pesme | — | **`just_waveform`** (izabrano) |
