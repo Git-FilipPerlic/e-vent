@@ -597,6 +597,33 @@ Dodati paketi: **`just_audio`** (^0.10.6) i **`file_picker`** (^12.2.0).
 
 ---
 
+## 9. septembar 2026 — Muzika sekcija u dokumentaciji prepisana
+
+Korisnik je doneo spisak feature-a iz ranije muzičke aplikacije. Upoređen je sa
+`CLAUDE.md` i sekcija „Muzika tab" je prepisana od nule.
+
+- **Feature-i sada imaju ID-jeve i redosled** — tabela MUSIC-001..022, sa
+  označenim gotovim stavkama (001–008) i sledećom na redu (MUSIC-009, red
+  čekanja).
+- **Nova pravila upisana:** red čekanja, dodir ubacuje numeru kao sledeću,
+  dodir na aktivnu je ponavlja, skip napred/nazad, fade-out, crossfade,
+  premotavanje po prstenu, podaci iz fajla, pregled foldera sa podfolderima,
+  rad u pozadini sa notifikacijom.
+- **Pravila koja se ne menjaju** izdvojena su na jedno mesto (dodir ne pušta
+  zvuk, izvor se uvek vidi, svaki podatak može da nedostaje, red je 36 dp).
+- **Dve stavke su izričito odbačene**, sa razlogom, da se ne vraćaju:
+  - *vintage hi-fi crno-platinasta tema* — paleta je jedinstvena za sve tabove,
+    Muzika ne sme da izgleda kao druga aplikacija;
+  - *talasni oblik koji se računa u realnom vremenu* (`MediaExtractor`) —
+    dokumentacija izričito traži računanje jednom po pesmi uz keširanje, a te
+    klase su uz to Android-only, dok je projekat jedan kod za Android i iOS.
+- Sređeno usput: broj feature-a za Muziku je prebrojan (022, ne 026), a
+  izuzetak od 48 dp sada stoji objašnjen na jednom mestu umesto na dva.
+
+- Sledeće: **MUSIC-009 — red čekanja.**
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Talasni oblik u prstenu reprodukcije.** Prsten sada crta ravnu liniju.

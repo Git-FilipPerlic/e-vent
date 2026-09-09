@@ -75,15 +75,16 @@ celini.
    telefon, adresa sa mapom i navigacijom, datum, sat uživo, vreme polaska,
    izbor vozila, učesnici sa ulogama, status spremnosti, podsetnik, scenario
 2. **Muzika** — plejer za nastup: lista fajlova (folder/plejlista), izbor pa
-   pokretanje, tajmer, fade-in/fade-out, kasnije queue i EQ
+   pokretanje velikim dugmetom, tajmer, fade-in/fade-out, red čekanja,
+   crossfade, prsten talasnog oblika po ivici ekrana
 3. **LED** — kontrola LED rasvete preko Bluetooth-a: boje, scene, efekti,
    kasnije sinhronizacija sa muzikom
 4. **Lager** — checklist opreme po sekcijama (Tehnika, Animacija, Specijalni
    efekti, Vatreni rekviziti, Svila, Hoop), pakovanje pre i raspakivanje posle
    događaja, limit 90 stavki
 
-Planirano ukupno 101 feature (HOME-001..025, MUSIC-001..026, LED-001..024,
-LAGER-001..026).
+Feature-i se vode po tabovima: HOME-001..025, **MUSIC-001..022**
+(prebrojano 9. septembra 2026, spisak je niže), LED-001..024, LAGER-001..026.
 
 ### Home tab — tačan spisak elemenata, odozgo nadole
 
@@ -139,9 +140,24 @@ Iz toga sledi:
 
 ### Muzika tab
 
-Lista muzičkih fajlova sa izvorom (Folder / Playlista). Izbor fajla **ne**
-pokreće reprodukciju — pokreće se tek u playback meniju sa velikim dugmetom;
-tajmer i opcija "fade in 10 sec".
+Plejer za nastup. Spisak numera se puni sa telefona (pojedinačni fajlovi ili
+ceo folder), numera se bira iz spiska, a zvuk kreće **tek u plejeru**, velikim
+dugmetom.
+
+#### Pravila koja se ne menjaju
+
+1. **Dodir na numeru nikada ne pokreće zvuk.** Usred programa prst ume da
+   okrzne ekran; pogrešna pesma u zvučniku je skuplja greška od jednog dodira
+   više. Puštanje i pauza idu isključivo preko velikog dugmeta u plejeru.
+2. **Izvor numere se uvek vidi** (folder ili plejlista). U žurbi se lako pomeša
+   pesma iz telefona sa pesmom pripremljenom za nastup. U zbijenom spisku izvor
+   se prikazuje ikonicom, jer za tekst nema mesta.
+3. **Svaki podatak može da nedostaje.** Numera bez naziva pada na naziv fajla,
+   numera bez poznatog trajanja prikazuje `--:--`, numera koja ne može da se
+   otvori javlja grešku umesto da obori plejer.
+4. **Red u spisku je 36 dp** — svesno ispod minimalne dodirne mete od 48 dp,
+   zbog gustine spiska na nastupu. Red je preko cele širine ekrana, pa je meta
+   i dalje široka. Ovo je jedini izuzetak u aplikaciji.
 
 #### Prsten talasnog oblika (glavni vizuelni element)
 
@@ -166,21 +182,87 @@ izvođač jednim pogledom zna šta ga čeka — dolazi li tih uvod ili udar.
 - na trenutnoj poziciji stoji mala tačka koja klizi po putanji
 - u sredini ekrana ostaje tekstualno vreme (proteklo i ukupno) — prsten je
   dopuna, ne zamena za brojku
-- kasnija faza: prevlačenjem po prstenu se premotava pesma
+- prevlačenjem po prstenu se premotava pesma (MUSIC-015)
 
 **Podaci i izvedba (bitno za performanse):**
 
 - amplitude se računaju **jednom po pesmi**, pri učitavanju fajla — niz od N
   vrednosti 0..1, gde je N približno broj tačaka po obimu ekrana
-- niz se kešira uz fajl; nikada se ne računa u toku crtanja
+- niz se kešira uz fajl; **nikada se ne računa u toku crtanja**
 - crtanje ide kroz `CustomPainter`; putanja (zaobljeni pravougaonik uz ivicu
   ekrana) se gradi jednom po veličini ekrana, ne po kadru
 - prerisavanje se okida pozicijom reprodukcije preko `Listenable`, bez
   ponovnog građenja widget stabla; ceo prsten ide u `RepaintBoundary`
 - dok amplitude nisu spremne, crta se ravna linija — nikad prazan ekran
-- paket za izvlačenje talasnog oblika iz audio fajla treba izabrati kad se dođe
-  do ovog feature-a (kandidati: `just_waveform`, `audio_waveforms`) — odluka se
-  donosi sa korisnikom, ne usput
+- paket za izvlačenje talasnog oblika treba izabrati kad se dođe do MUSIC-016
+  (kandidati: `just_waveform`, `audio_waveforms`) — odluka se donosi sa
+  korisnikom, ne usput
+
+#### Red čekanja i kretanje kroz spisak (dogovoreno 9. septembra 2026)
+
+Plejer ne pušta jednu po jednu pesmu — vodi **red čekanja**:
+
+- **dodir na numeru koja nije aktivna** je ubacuje kao **sledeću** u redu;
+  trenutna pesma se ne prekida
+- **dodir na numeru koja je već aktivna** je ponavlja od početka
+- **skip napred / nazad** pomeraju red za jedno mesto
+- prelazak sa pesme na pesmu ide uz **kratko pretapanje naslova** (do 200 ms);
+  ostatak ekrana se ne animira, po opštim pravilima za pokret
+
+#### Spisak feature-a i redosled rada
+
+Radi se odozgo nadole. Gotovo je ono što je označeno.
+
+| ID | Šta | Status |
+|---|---|---|
+| MUSIC-001 | Spisak numera sa izvorom (folder / plejlista) | gotovo |
+| MUSIC-002 | Dodir bira numeru, ne pušta je | gotovo |
+| MUSIC-003 | Plejer: veliko dugme, tajmer, naslov | gotovo |
+| MUSIC-004 | Fade-in 10 sekundi | gotovo |
+| MUSIC-005 | Prsten po ivici ekrana (za sada ravna linija) | gotovo |
+| MUSIC-006 | Dodavanje pojedinačnih numera sa telefona | gotovo |
+| MUSIC-007 | Izbor foldera sa numerama | gotovo |
+| MUSIC-008 | Zbijen spisak (36 dp) + sklanjanje headera pri skrolovanju | gotovo |
+| MUSIC-009 | **Red čekanja** (queue) | sledeće |
+| MUSIC-010 | Dodir ubacuje numeru kao sledeću u redu | |
+| MUSIC-011 | Dodir na aktivnu numeru je ponavlja | |
+| MUSIC-012 | Skip napred / skip nazad | |
+| MUSIC-013 | Fade-out na kraju i pri pauzi | |
+| MUSIC-014 | Crossfade između dve numere | |
+| MUSIC-015 | Prevlačenje po prstenu premotava pesmu | |
+| MUSIC-016 | Talasni oblik u prstenu (traži paket) | |
+| MUSIC-017 | Podaci iz fajla: izvođač, album, trajanje | |
+| MUSIC-018 | Pregled foldera sa ulaskom u podfoldere | |
+| MUSIC-019 | Rad u pozadini + kontrole u notifikaciji (traži paket) | |
+| MUSIC-020 | Pretapanje naslova pri prelasku na sledeću numeru | |
+| MUSIC-021 | Provera podrške za formate (mp3, m4a, aac, wav, flac, ogg, opus, wma) | |
+| MUSIC-022 | Provera rasporeda na različitim veličinama ekrana | |
+
+**Napomene uz pojedine stavke:**
+
+- **MUSIC-014 (crossfade)** traži da dve numere sviraju istovremeno, dakle
+  **dva plejera**, ne jedan. To je izmena arhitekture plejera i radi se tek
+  posle reda čekanja, ne pre.
+- **MUSIC-019 (rad u pozadini)** je najveća stavka: traži paket
+  (`just_audio_background` ili `audio_service`), dozvolu za foreground servis
+  na Androidu i posebno ponašanje na iOS-u. Radi se kad sve ostalo radi.
+- **MUSIC-018** je pravi pregled foldera, sa ulaskom u podfoldere. Sadašnji
+  MUSIC-007 samo bira jedan folder; na Androidu ume da vrati `content://`
+  adresu koja se ne može listati, i tada aplikacija kaže da se biraju same
+  numere.
+
+#### Odbačeno (odluka od 9. septembra 2026)
+
+Iz spiska stare muzičke aplikacije **ne prenosi se**:
+
+- **Vintage hi-fi izgled, crno-platinasta tema sa metalnim gradijentima.**
+  Paleta aplikacije je propisana i jedinstvena za sve tabove: skoro crno sa
+  tamno-tirkiznim prizvukom, gde boja uvek nosi značenje a nikad ukras.
+  Muzika tab ne sme da izgleda kao druga aplikacija.
+- **Talasni oblik koji se računa u realnom vremenu** (Android `MediaExtractor`
+  / `MediaCodec`). Amplitude se računaju jednom po pesmi i keširaju — računanje
+  u toku crtanja obara 60 fps na prstenu, a `MediaExtractor` je uz to Android
+  klasa, dok je ovo jedan kod za Android i iOS.
 
 ### LED tab
 
@@ -279,9 +361,9 @@ da bi prevlačenje ostalo slobodno za prsten na Muzici.
 **Header i tabovi se sklanjaju pri skrolovanju nadole** i vraćaju čim se krene
 nagore. Time spisak dobija oko 150 dp, a tabovi su na dohvat jednim pokretom.
 
-**Izuzetak od pravila o dodirnoj meti:** red u spisku numera je 36 dp, ne 48.
-Odluka korisnika, zbog gustine spiska na nastupu. Red je preko cele širine
-ekrana, pa je meta i dalje široka. Svuda drugde važi 48 dp.
+**Izuzetak od pravila o dodirnoj meti** postoji samo na spisku numera
+(36 dp umesto 48) — objašnjen je u odeljku „Muzika tab". Svuda drugde
+važi 48 dp.
 
 ### Pravila dizajna
 
