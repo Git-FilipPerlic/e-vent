@@ -92,4 +92,48 @@ void main() {
       expect(edited.assignedTo, ['Filip', 'Ana']);
     });
   });
+
+  group('vrsta događaja', () {
+    test('čita se iz baze', () async {
+      final service = MockEventService();
+
+      expect((await service.loadEvent('evt-001')).type, EventType.rodjendan);
+      expect((await service.loadEvent('evt-002')).type, EventType.krstenje);
+      expect((await service.loadEvent('evt-003')).type, EventType.svadba);
+      // Prazan događaj nema vrstu i to je ispravno stanje.
+      expect((await service.loadEvent('evt-004')).type, isNull);
+    });
+
+    test('nazivi poštuju konvenciju — bez vrste u nazivu', () async {
+      final service = MockEventService();
+      final events = await service.loadEvents();
+
+      for (final event in events) {
+        final title = event.title?.toLowerCase() ?? '';
+        for (final type in EventType.values) {
+          expect(
+            title.contains(type.label.toLowerCase()),
+            isFalse,
+            reason: 'naziv "${event.title}" ponavlja vrstu',
+          );
+        }
+      }
+    });
+
+    test('nepoznata i prazna vrsta daju null', () {
+      expect(EventType.fromId(null), isNull);
+      expect(EventType.fromId('   '), isNull);
+      expect(EventType.fromId('koncert'), isNull);
+      // Veličina slova i razmaci ne smetaju.
+      expect(EventType.fromId('  SVADBA '), EventType.svadba);
+    });
+
+    test('izmena podataka ne gubi vrstu', () async {
+      final service = MockEventService();
+      final event = await service.loadEvent('evt-001');
+
+      expect(event.copyWith(title: 'Drugo').type, EventType.rodjendan);
+      expect(event.withVehicle('vehicle-002').type, EventType.rodjendan);
+    });
+  });
 }

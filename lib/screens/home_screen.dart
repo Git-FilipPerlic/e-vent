@@ -344,6 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
             title: _event?.title,
             date: _event?.eventDate,
             durationMinutes: _event?.durationMinutes,
+            type: _event?.type,
             onEdit: !_canEdit
                 ? null
                 : () => _editField(

@@ -200,7 +200,7 @@ class _GroupHeader extends StatelessWidget {
   }
 }
 
-/// Jedan događaj u spisku: sat, naziv sa trajanjem, mesto.
+/// Jedan događaj u spisku: sat, naziv, pa vrsta sa mestom i trajanjem.
 ///
 /// Datum se ne ponavlja — nosi ga naslov grupe. Sat stoji jer je više
 /// nastupa istog dana uobičajeno, pa se redosled mora videti odmah.
@@ -219,12 +219,14 @@ class _EventRow extends StatelessWidget {
     final address = event.address;
     final city = address == null ? null : EventAddress.cityFrom(address);
 
-    // Mesto i trajanje u jednom redu; ono čega nema se preskače, pa se ne
-    // pojavljuje usamljena tačka ni prazan red.
-    final details = [
-      ?city,
-      if (duration != null) AppDate.shortDuration(duration),
-    ].join(' · ');
+    // Vrsta i mesto u donjem redu; vrsta prva jer je to prvo pitanje pred
+    // polazak — ide li se na rođendan ili na svadbu. Ono čega nema se
+    // preskače, pa nema usamljene tačke ni praznog reda.
+    //
+    // Trajanje je u levoj koloni uz sat: na uskom telefonu sa uvećanim
+    // sistemskim fontom (320 dp, 1,3×) sve troje u jednom redu ne staje, a
+    // trajanje i onako pripada uz vreme.
+    final details = [?event.type?.label, ?city].join(' · ');
 
     return Card(
       margin: const EdgeInsets.fromLTRB(
@@ -242,15 +244,28 @@ class _EventRow extends StatelessWidget {
             children: [
               SizedBox(
                 width: 64,
-                child: Text(
-                  // Bez datuma nema ni sata — crtica, ne prazno mesto.
-                  date == null ? '—' : AppDate.time(date),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: date == null
-                        ? AppColors.textSecondary
-                        : AppColors.accent,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      // Bez datuma nema ni sata — crtica, ne prazno mesto.
+                      date == null ? '—' : AppDate.time(date),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: date == null
+                            ? AppColors.textSecondary
+                            : AppColors.accent,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (duration != null)
+                      Text(
+                        AppDate.shortDuration(duration),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               Expanded(
@@ -260,7 +275,9 @@ class _EventRow extends StatelessWidget {
                     // Naziv dobija ceo red za sebe. Trajanje je sišlo u donji
                     // red jer je gore sekao imena („Svadba - Jel…").
                     Text(
-                      event.title ?? 'Događaj bez naziva',
+                      // Kratko namerno: na uskom ekranu duži tekst se seče,
+                      // a ovde je poenta samo da red nije prazan.
+                      event.title ?? 'Bez naziva',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleMedium?.copyWith(
@@ -275,7 +292,7 @@ class _EventRow extends StatelessWidget {
                         details,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                        style: theme.textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),

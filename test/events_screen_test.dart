@@ -50,8 +50,9 @@ void main() {
 
       expect(find.text('7 Mia'), findsOneWidget);
       expect(find.text('16:00'), findsOneWidget);
-      // Mesto i trajanje dele donji red, da naziv ne bi bio isečen.
-      expect(find.text('Novi Sad · 2h'), findsOneWidget);
+      // Vrsta i mesto u donjem redu, trajanje uz sat.
+      expect(find.text('Rođendan · Novi Sad'), findsOneWidget);
+      expect(find.text('2h'), findsOneWidget);
     });
 
     testWidgets('događaj bez datuma ima crticu umesto sata', (
@@ -61,7 +62,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('—'), findsOneWidget);
-      expect(find.text('Događaj bez naziva'), findsOneWidget);
+      expect(find.text('Bez naziva'), findsOneWidget);
     });
 
     testWidgets('dodir na događaj javlja koji je izabran', (
@@ -114,8 +115,8 @@ void main() {
 
       expect(find.text('Delegirani'), findsNothing);
       expect(find.text('7 Mia'), findsOneWidget);
-      // Krštenje je dodeljeno samo Filipu.
-      expect(find.textContaining('Krštenje'), findsNothing);
+      // Krštenje kod Nikolića je dodeljeno samo Filipu.
+      expect(find.text('Nikolić'), findsNothing);
     });
 
     testWidgets('manager prebacuje na delegirane', (
@@ -130,12 +131,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // "Moji" ne sadrži događaj koji još nikome nije dodeljen.
-      expect(find.text('Događaj bez naziva'), findsNothing);
+      expect(find.text('Bez naziva'), findsNothing);
 
       await tester.tap(find.text('Delegirani'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Događaj bez naziva'), findsOneWidget);
+      expect(find.text('Bez naziva'), findsOneWidget);
     });
 
     testWidgets('prazan spisak objasni zašto je prazan', (

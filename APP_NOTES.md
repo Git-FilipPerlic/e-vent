@@ -1157,6 +1157,36 @@ Ispostavilo se da je popravka mala, jer je servis od početka radio po
 - Sledeće: ADMIN-007 — „Create and share", pravljenje događaja i dodela timu.
   Tek sada ima smisla, kad spisak postoji.
 
+## 9. septembar 2026 — EVENTS-006: vrsta događaja
+
+Korisnik je tražio da nazivi poštuju konvenciju iz `CLAUDE.md`, ali da se i
+dalje vidi **ide li se na rođendan, krštenje, svadbu, nastup ili festival**.
+Rešenje nije duži naziv nego zaseban podatak.
+
+- Urađeno:
+  - `EventType` u modelu: `rodjendan`, `krstenje`, `svadba`, `nastup`,
+    `festival`. U bazi se piše bez naših slova; `EventType.fromId` prašta
+    razmake i veličinu slova, a nepoznata vrednost daje `null` umesto greške.
+  - `Event.type` prolazi kroz `fromMap`, `copyWith` i `withVehicle`.
+  - U **spisku** vrsta ide prva u donjem redu: `Rođendan · Novi Sad · 2h`.
+  - Na **Home kartici** vrsta stoji na mestu reči „Događaj" — isti prostor, a
+    nosi podatak. Bez unete vrste ostaje opšte „Događaj".
+  - Test nazivi skraćeni po konvenciji: „Krštenje - porodica Nikolić" →
+    `Nikolić`, „Svadba - Jelena i Nemanja" → `Jelena i Nemanja`. Time su se
+    usput prestali i sekati u spisku.
+- Provereno:
+  - `flutter analyze` čist, `flutter test` 255/255.
+  - Nov test čuva konvenciju: nijedan naziv u podacima ne sme da sadrži reč
+    koja je vrsta događaja.
+  - Na telefonu se videlo da je **korisnikov ekran 320 dp širine sa uvećanim
+    sistemskim fontom 1,3×** (`wm density` 540 na 1080 px, `font_scale` 1.3) —
+    najuži slučaj koji `layout_test.dart` proverava. Vrsta, mesto i trajanje
+    u istom redu tu ne staju, pa je **trajanje prešlo u levu kolonu ispod
+    sata**, a donji red nosi `Rođendan · Novi Sad` sitnijim slovima.
+    Zamena za prazan naziv skraćena je na „Bez naziva" iz istog razloga.
+- Sledeće: ADMIN-007 — „Create and share", pravljenje događaja i dodela timu.
+  Uz to ide i izbor vrste pri pravljenju.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

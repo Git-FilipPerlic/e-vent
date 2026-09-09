@@ -1,3 +1,4 @@
+import 'package:event_app/models/event.dart';
 import 'package:event_app/theme/app_theme.dart';
 import 'package:event_app/utils/date_format.dart';
 import 'package:event_app/widgets/home/event_title.dart';
@@ -64,5 +65,32 @@ void main() {
 
     expect(find.text('Datum nije unet'), findsOneWidget);
     expect(find.text('7 Mia'), findsOneWidget);
+  });
+
+  group('vrsta događaja', () {
+    testWidgets('stoji umesto reči „Događaj"', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          EventTitle(
+            title: 'Jelena i Nemanja',
+            date: DateTime(2026, 10, 3, 20, 0),
+            type: EventType.svadba,
+          ),
+        ),
+      );
+
+      // Naziv ostaje kratak, a vrsta zauzima mesto opšte reči.
+      expect(find.text('Svadba'), findsOneWidget);
+      expect(find.text('Događaj'), findsNothing);
+      expect(find.textContaining('Jelena i Nemanja'), findsOneWidget);
+    });
+
+    testWidgets('bez unete vrste ostaje „Događaj"', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(_wrap(const EventTitle(title: 'Nešto')));
+
+      expect(find.text('Događaj'), findsOneWidget);
+    });
   });
 }

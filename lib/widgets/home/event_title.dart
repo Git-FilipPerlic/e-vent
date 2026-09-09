@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../models/event.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/date_format.dart';
 import '../common/edit_text_sheet.dart';
@@ -10,9 +11,12 @@ import '../common/edit_text_sheet.dart';
 /// Sve stoji u dva reda, bez odrednica koje se podrazumevaju:
 ///
 /// ```
-/// Događaj      12. septembar   16:00
+/// Rođendan     12. septembar   16:00
 /// 7 Mia / 2h
 /// ```
+///
+/// - **Vrsta stoji umesto reči „Događaj"** — isto mesto, a nosi podatak.
+///   Bez unete vrste piše opšte „Događaj".
 ///
 /// - **Naziv nema reč "rođendan"** — arapski broj ispred imena već znači
 ///   koliko slavljenik puni godina, pa i reč "godina" otpada.
@@ -30,8 +34,14 @@ class EventTitle extends StatelessWidget {
     required this.title,
     this.date,
     this.durationMinutes,
+    this.type,
     this.onEdit,
   });
+
+  /// Vrsta događaja. Stoji umesto reči „Događaj" — isti prostor, a odmah se
+  /// zna ide li se na rođendan, krštenje, svadbu, nastup ili festival.
+  /// `null` kad nije uneta, pa ostaje opšte „Događaj".
+  final EventType? type;
 
   /// Otvara izmenu naziva. `null` kad korisnik nema dozvolu — kartica je tada
   /// ista, samo bez olovke.
@@ -62,7 +72,7 @@ class EventTitle extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'Događaj',
+                  type?.label ?? 'Događaj',
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: AppColors.textSecondary,
                     letterSpacing: 0.5,

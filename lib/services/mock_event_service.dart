@@ -154,8 +154,9 @@ const Map<String, Map<String, dynamic>> _events = {
   'evt-001': {
     'id': 'evt-001',
     // Broj ispred imena je broj godina slavljenika — reč "rođendan"
-    // i odrednica "godina" se podrazumevaju i ne pišu se.
+    // i odrednica "godina" se podrazumevaju i ne pišu se; vrstu nosi 'type'.
     'title': '7 Mia',
+    'type': 'rodjendan',
     'scenario': ['Doček gostiju', 'Igre za decu', 'Završni plesni program'],
     'organizerName': 'Jovana Petrović',
     'organizerPhone': '+381641234567',
@@ -180,7 +181,8 @@ const Map<String, Map<String, dynamic>> _events = {
   // Samo jedan učesnik — proverava status tima kad fali vozač.
   'evt-002': {
     'id': 'evt-002',
-    'title': 'Krštenje - porodica Nikolić',
+    'title': 'Nikolić',
+    'type': 'krstenje',
     'scenario': ['Doček gostiju', 'Bengalke ispred sale'],
     'organizerName': 'Milan Nikolić',
     'organizerPhone': '+381621112233',
@@ -203,7 +205,8 @@ const Map<String, Map<String, dynamic>> _events = {
   // dodeljuju se po redosledu (Filip glavni, Ana vozač).
   'evt-003': {
     'id': 'evt-003',
-    'title': 'Svadba - Jelena i Nemanja',
+    'title': 'Jelena i Nemanja',
+    'type': 'svadba',
     'scenario': ['Doček mladenaca', 'Vatreni show', 'Svila i hoop tačka'],
     'organizerName': 'Jelena Simić',
     'address': 'Kisačka 78, Novi Sad',

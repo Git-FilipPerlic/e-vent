@@ -421,6 +421,7 @@ Radi se pre ADMIN-007: dodela događaja timu nema smisla dok ne postoji spisak.
 | EVENTS-003 | Izbor događaja otvara tabove za taj događaj, nazad vraća na spisak | gotovo |
 | EVENTS-004 | Prekidač „Moji / Delegirani" za onoga ko delegira | gotovo |
 | EVENTS-005 | Prazna stanja i greška pri učitavanju spiska | gotovo |
+| EVENTS-006 | Vrsta događaja (rođendan, krštenje, svadba, nastup, festival) | gotovo |
 
 ### Admin konzola i login (dogovoreno 8. septembra 2026)
 
@@ -484,8 +485,8 @@ Naziv je kratak i bez odrednica koje se podrazumevaju:
 |---|---|
 | `Rođendan - Mia (7 godina)` | `7 Mia` |
 
-- Reč **"rođendan" se ne piše** — iz imena slavljenika i broja se već vidi
-  o čemu je reč.
+- Reč **"rođendan" se ne piše u nazivu** — za to postoji zasebno polje
+  **vrsta događaja** (vidi niže).
 - **Arapski broj ispred imena uvek znači godine slavljenika**, pa odrednica
   "godina" otpada.
 - **Trajanje se prepoznaje po slovu `h`** (`2h`, `1h30`, `45min`) — to je
@@ -496,6 +497,29 @@ Naziv je kratak i bez odrednica koje se podrazumevaju:
   ponavlja u redu sa ulicom.
 - `Event.title` u bazi već sadrži gotov naziv u ovom obliku; aplikacija ga
   ne sklapa i ne prevodi.
+
+#### Vrsta događaja
+
+Naziv je kratak, ali izvođač i dalje mora da zna **na šta ide** — nije isto
+spremiti se za dečji rođendan i za svadbu. Zato je vrsta **zaseban podatak**
+(`Event.type`), a ne deo naziva:
+
+| Vrsta | Piše se |
+|---|---|
+| `rodjendan` | Rođendan |
+| `krstenje` | Krštenje |
+| `svadba` | Svadba |
+| `nastup` | Nastup |
+| `festival` | Festival |
+
+- u **spisku događaja** vrsta stoji prva u donjem redu:
+  `Rođendan · Novi Sad · 2h`
+- na **Home kartici** vrsta stoji na mestu opšte reči „Događaj", pa se ne
+  troši nijedan piksel viška: `Rođendan   12. septembar   16:00`
+- **vrsta može da nedostaje** — tada na Home kartici piše opšte „Događaj", a u
+  spisku se preskače. Događaj bez vrste je i dalje ispravan događaj.
+- u bazi se piše bez naših slova (`rodjendan`, `krstenje`), da uvoz podataka
+  ne zavisi od kodne strane
 
 ### Vreme na Home tabu (odluka od 8. septembra 2026)
 

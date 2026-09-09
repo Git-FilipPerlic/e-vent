@@ -14,6 +14,39 @@ abstract final class ParticipantRole {
   }
 }
 
+/// Vrsta događaja.
+///
+/// Postoji zato što **naziv ostaje kratak** (`7 Mia`, `Jelena i Nemanja`) —
+/// u naziv se ne piše ni „rođendan" ni „svadba". Vrsta je zaseban podatak, pa
+/// se u spisku na prvi pogled vidi ide li se na rođendan, krštenje, svadbu,
+/// običan nastup ili festival.
+enum EventType {
+  rodjendan('rodjendan', 'Rođendan'),
+  krstenje('krstenje', 'Krštenje'),
+  svadba('svadba', 'Svadba'),
+  nastup('nastup', 'Nastup'),
+  festival('festival', 'Festival');
+
+  const EventType(this.id, this.label);
+
+  /// Kako se piše u bazi. Bez naših slova, da se ne muči ni jedan uvoz.
+  final String id;
+
+  /// Kako se prikazuje u aplikaciji.
+  final String label;
+
+  /// Vrsta iz baze. Nepoznata ili prazna vrednost daje `null` — događaj bez
+  /// vrste je i dalje ispravan događaj.
+  static EventType? fromId(String? id) {
+    if (id == null || id.trim().isEmpty) return null;
+    final needle = id.trim().toLowerCase();
+    for (final type in EventType.values) {
+      if (type.id == needle) return type;
+    }
+    return null;
+  }
+}
+
 /// Jedan član ekipe na događaju.
 class Participant {
   const Participant({required this.name, required this.role});
@@ -46,12 +79,18 @@ class Event {
     this.participants = const [],
     this.createdBy,
     this.assignedTo = const [],
+    this.type,
   });
 
   final String id;
 
-  /// Naziv slavljenika / događaja, npr. 'Rođendan - Mia (7 godina)'.
+  /// Naziv slavljenika / događaja, npr. '7 Mia'.
+  ///
+  /// Kratak, bez vrste — vrstu nosi [type].
   final String? title;
+
+  /// Rođendan, krštenje, svadba, nastup ili festival. `null` kad nije uneta.
+  final EventType? type;
 
   /// Tačke programa, npr. ['Doček gostiju', 'Igre za decu'].
   final List<String> scenario;
@@ -141,6 +180,7 @@ class Event {
     List<Participant>? participants,
     String? createdBy,
     List<String>? assignedTo,
+    EventType? type,
   }) {
     return Event(
       id: id,
@@ -161,6 +201,7 @@ class Event {
       participants: participants ?? this.participants,
       createdBy: _edited(createdBy, this.createdBy),
       assignedTo: assignedTo ?? this.assignedTo,
+      type: type ?? this.type,
     );
   }
 
@@ -191,6 +232,7 @@ class Event {
       participants: participants,
       createdBy: createdBy,
       assignedTo: assignedTo,
+      type: type,
     );
   }
 
@@ -253,6 +295,7 @@ class Event {
       participants: participants,
       createdBy: _emptyToNull(map['createdBy'] as String?),
       assignedTo: ((map['assignedTo'] as List?) ?? const []).cast<String>(),
+      type: EventType.fromId(map['type'] as String?),
     );
   }
 
