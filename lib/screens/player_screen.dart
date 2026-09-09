@@ -60,15 +60,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
-  /// Puštanje vraća na spisak; pauza ostavlja ekran otvorenim.
+  /// Veliko dugme **uvek pušta** — nikad ne pauzira.
+  ///
+  /// Na nastupnom ekranu pauza ne postoji. Ovaj ekran ima jedno značenje:
+  /// „pusti ono što je izabrano". Ako neko usred programa promaši dugme,
+  /// najgore što može da se desi jeste da numera krene — a ne da muzika
+  /// stane pred publikom. Iz ekrana se izlazi strelicom nazad, pauza stoji
+  /// u traci uz spisak.
   Future<void> _onPlayPressed() async {
     final controller = widget.controller;
     final navigator = Navigator.of(context);
-
-    if (controller.isPlaying) {
-      await controller.toggle();
-      return;
-    }
 
     await controller.play();
     if (!mounted) return;
@@ -253,11 +254,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
       );
     }
 
-    // Puna tirkizna podloga i tamna ikonica: dugme mora da se vidi iz ruke,
-    // u mraku, bez traženja.
+    // **Šuplje dugme:** obojena je samo ikonica, a kvadrat je obeležen
+    // linijom. Puna tirkizna površina preko četiri petine ekrana svetli kao
+    // lampa i vidi se iz publike — a ovaj ekran se otvara usred programa, u
+    // mraku. Linija i dalje kaže dokle se sme pipnuti, dok se meta ne nauči
+    // napamet; ceo kvadrat je dodirljiv, ne samo ikonica.
     return Semantics(
       button: true,
-      label: controller.isPlaying ? 'Pauza' : 'Pusti',
+      label: 'Pusti',
       child: Container(
         width: size,
         height: size,
@@ -265,14 +269,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
           // Kvadrat, ne krug: iz istog prostora se dobija veća meta, a
           // uglovi su blago zaobljeni da ne seku ekran.
           borderRadius: BorderRadius.circular(kCardRadius * 2),
-          color: AppColors.accent,
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.accentDeep,
-              blurRadius: 24,
-              spreadRadius: 2,
-            ),
-          ],
+          border: Border.all(color: AppColors.accentDeep, width: 2),
         ),
         child: Material(
           color: Colors.transparent,
@@ -281,11 +278,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
             borderRadius: BorderRadius.circular(kCardRadius * 2),
             onTap: _onPlayPressed,
             child: Icon(
-              controller.isPlaying
-                  ? Icons.pause_rounded
-                  : Icons.play_arrow_rounded,
+              // Nikad pauza: ovaj ekran samo pušta.
+              Icons.play_arrow_rounded,
               size: size * 0.55,
-              color: AppColors.background,
+              color: AppColors.accent,
             ),
           ),
         ),

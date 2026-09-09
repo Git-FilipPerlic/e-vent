@@ -336,7 +336,19 @@ Ostalo:
 1. **Kontrole uz spisak** — prethodna, −10 s, plej/pauza, +10 s, sledeća.
    Dovoljno da se upravlja bez izlaska iz spiska.
 2. **Nastupni ekran** — prsten, vreme, **ogromno dugme** i **jedan prekidač:
-   Fade**. Naziv numere i vreme stoje **sitno i u `textSecondary`**: to su
+   Fade**.
+
+   **Na tom ekranu pauze nema.** Veliko dugme uvek pušta, nikad ne pauzira.
+   Ekran ima jedno jedino značenje: „pusti ono što je izabrano". Ako se
+   usred programa dugme promaši, najgore što može da se desi jeste da numera
+   krene — a ne da muzika stane pred publikom. Izlazi se strelicom nazad, a
+   pauza stoji u traci uz spisak.
+
+   **Dugme je šuplje:** obojena je samo ikonica, a kvadrat je obeležen
+   linijom. Puna tirkizna površina preko četiri petine ekrana svetli kao
+   lampa i vidi se iz publike, a ekran se otvara usred programa, u mraku.
+   Linija i dalje kaže dokle se sme pipnuti dok se meta ne nauči napamet;
+   **ceo kvadrat je dodirljiv, ne samo ikonica**. Naziv numere i vreme stoje **sitno i u `textSecondary`**: to su
    podaci koji se provere jednom, a krupno belo na crnom usput štipa oči.
    Sve što je krupno na tom ekranu jeste dugme. Ništa više. Jedan prekidač umesto tri — na nastupu se ne bira
    između opcija.
@@ -349,7 +361,17 @@ Ostalo:
    sistemski font se smanjuje, da sadržaj ne ispadne.
 
 `Fade` znači sve troje odjednom: ulazak iz tišine, izlazak u tišinu i
-**preklapanje** kad se pređe sa numere koja svira na izabranu.
+**preklapanje** kad se pređe sa numere koja svira na izabranu. Sva tri traju
+**10 sekundi**.
+
+**Premotavanje ne prekida pretapanje** (odluka od 9. septembra 2026). Dok
+preklapanje traje, izvođač sme da prevlači po prstenu ili da preskače, i da
+tako dovede novu numeru na pravo mesto — a pretapanje i dalje ide. To je i
+poenta: u preklopu se doterivanje ne čuje, pa ima prostora za finu izmenu i
+greška se teže primeti. Zbog toga preklapanje traje isto koliko i ulazak iz
+tišine; ranije je stajalo 6 sekundi, što nije davalo vremena ni za šta.
+Stišavanje pred kraj numere se **ne pokreće dok pretapanje traje**, da se dva
+pretapanja ne otimaju oko istog plejera.
 
 Reprodukcija pripada **Muzika tabu**, ne nastupnom ekranu, pa muzika ne
 prestaje kad se sa njega izađe. **Veliko dugme pusti numeru i odmah vrati na

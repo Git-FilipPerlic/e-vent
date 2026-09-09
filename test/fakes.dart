@@ -21,6 +21,15 @@ class FakePlayback implements AudioPlayback {
   /// Zadata jačina — testovi je čitaju da provere stepenike L/E/F.
   double _masterVolume = 1;
 
+  /// Da li je pretapanje u toku — testovi ga postavljaju ručno.
+  bool fading = false;
+
+  /// Koliko je puta traženo stišavanje pred kraj numere.
+  int fadeToSilenceCalls = 0;
+
+  @override
+  bool get isFading => fading;
+
   @override
   double get masterVolume => _masterVolume;
 
@@ -77,6 +86,7 @@ class FakePlayback implements AudioPlayback {
   @override
   Future<void> fadeToSilence(Duration over) async {
     lastFadeToSilence = over;
+    fadeToSilenceCalls++;
   }
 
   @override

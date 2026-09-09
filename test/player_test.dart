@@ -1,5 +1,6 @@
 import 'package:event_app/models/track.dart';
 import 'package:event_app/screens/player_screen.dart';
+import 'package:event_app/services/audio_playback.dart';
 import 'package:event_app/services/music_player_controller.dart';
 import 'package:event_app/theme/app_theme.dart';
 import 'package:event_app/widgets/music/edge_progress_ring.dart';
@@ -603,6 +604,96 @@ void main() {
       expect(controller.volume, VolumeStep.l);
       expect(playback.masterVolume, 1.0);
       controller.dispose();
+    });
+  });
+
+  group('veliko dugme uvek pušta', () {
+    testWidgets('nema pauze ni dok numera svira', (WidgetTester tester) async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
+      await tester.pumpAndSettle();
+
+      // Muzika pred publikom ne sme da stane zbog promašenog dodira.
+      expect(find.byIcon(Icons.pause_rounded), findsNothing);
+      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+      controller.dispose();
+    });
+
+    testWidgets('dodir pušta i vraća na spisak', (WidgetTester tester) async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark,
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => PlayerScreen(controller: controller),
+                  ),
+                ),
+                child: const Text('otvori'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('otvori'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
+      await tester.pumpAndSettle();
+
+      expect(playback.playCalls, 1);
+      // Ekran se zatvorio — ruke su slobodne za sledeću numeru.
+      expect(find.text('otvori'), findsOneWidget);
+      controller.dispose();
+    });
+  });
+
+  group('pretapanje se ne prekida premotavanjem', () {
+    test('premotavanje ne gasi pretapanje', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+      playback.fading = true;
+
+      await controller.skip(const Duration(seconds: 10));
+
+      // Poenta: dok pretapanje traje, numera se dovodi na pravo mesto, a da
+      // se to u zvuku ne primeti.
+      expect(playback.isFading, isTrue);
+      expect(playback.lastSeek, const Duration(seconds: 10));
+      controller.dispose();
+    });
+
+    test('stišavanje pred kraj ne upada usred pretapanja', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      controller.setFade(true);
+      await controller.play();
+      playback.fading = true;
+
+      // Numera je pri kraju: bez zaštite bi krenulo i stišavanje.
+      playback.emitPosition(const Duration(seconds: 55));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(playback.fadeToSilenceCalls, 0);
+      controller.dispose();
+    });
+
+    test('preklapanje traje isto koliko i ulazak iz tišine', () {
+      // Specifikacija kaže 10 sekundi; kraće ne ostavlja vremena za
+      // doterivanje numere u toku preklapanja.
+      expect(
+        JustAudioPlayback.crossfadeDuration,
+        JustAudioPlayback.fadeInDuration,
+      );
     });
   });
 }

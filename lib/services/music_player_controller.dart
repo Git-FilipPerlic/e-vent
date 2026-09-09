@@ -193,6 +193,9 @@ class MusicPlayerController extends ChangeNotifier {
   /// uključeno i ako iza nje ne ide preklapanje na sledeću.
   void _maybeFadeOut() {
     if (!_fade || _isFadingOut || !_isPlaying) return;
+    // Usred preklapanja se ne dira jačina: dva pretapanja bi se otimala oko
+    // istog plejera, pa bi zvuk poskakivao.
+    if (playback.isFading) return;
 
     final total = _duration;
     if (total == null || total == Duration.zero) return;

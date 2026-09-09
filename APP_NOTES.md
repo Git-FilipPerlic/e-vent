@@ -1346,6 +1346,32 @@ Sve iz jedne runde gledanja aplikacije u ruci:
   svira (traka pokazuje „svira: ..."), slovo se vrti L → E → F i žuto je kad
   je stišano, veliko dugme zauzima četiri petine ekrana.
 
+## 9. septembar 2026 — nastupni ekran: uvek „pusti", šuplje dugme, duže preklapanje
+
+Tri primedbe sa nastupa, sve tri sa razlogom koji vredi zapisati:
+
+- **Veliko dugme više nikad ne pokazuje pauzu.** Ekran ima jedno značenje:
+  „pusti izabrano". Promašen dodir sme da pusti numeru, ali ne sme da
+  zaustavi muziku pred publikom. Pauza ostaje u traci uz spisak, izlaz je
+  strelica nazad.
+- **Dugme je postalo šuplje** — obojena je samo ikonica, kvadrat je obeležen
+  linijom u `accentDeep`. Puna tirkizna površina preko četiri petine ekrana
+  svetli kao lampa i vidi se iz publike, a otvara se usred programa u mraku.
+  Ceo kvadrat je i dalje dodirljiv.
+- **Preklapanje traje 10 sekundi umesto 6.** U kodu je stajalo 6, suprotno
+  specifikaciji koja je oduvek govorila 10. Duže nije ukras: dok preklapanje
+  traje, numera se prevlačenjem po prstenu ili skip dugmićima dovodi na pravo
+  mesto, a u preklopu se to ne čuje. Kratko pretapanje za to ne ostavlja
+  vremena.
+- Uz to: `AudioPlayback` je dobio `isFading`, pa **stišavanje pred kraj
+  numere ne kreće dok pretapanje traje** — inače bi se dva pretapanja otimala
+  oko istog plejera i zvuk bi poskakivao. Tajmeri se sada brišu kad završe,
+  da `isFading` ne laže.
+- Provereno: `flutter analyze` čist, `flutter test` 296/296, uz nove testove
+  za sve troje.
+- **Ostaje vizuelna provera na telefonu** — korisnik ga je u međuvremenu
+  uzeo u ruke.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Uhvatiti pad Bluetooth veze sa mikseta.** Zvuk ide preko Bluetooth-a do

@@ -41,6 +41,12 @@ abstract interface class AudioPlayback {
   /// Da li je sledeća numera spremna za preklapanje.
   bool get hasPreloaded;
 
+  /// Da li je pretapanje (ulazak, izlazak ili preklapanje) u toku.
+  ///
+  /// **Premotavanje ga ne prekida** — to je i poenta: dok pretapanje traje,
+  /// numera se dovodi na pravo mesto, a da se to u zvuku ne primeti.
+  bool get isFading;
+
   /// Zadata jačina zvuka, 0..1.
   ///
   /// **Sva pretapanja idu do ove vrednosti, ne do pune jačine** — inače bi
@@ -114,6 +120,9 @@ class JustAudioPlayback implements AudioPlayback {
     }
   }
 
+  @override
+  bool get isFading => _fadeTimer != null || _crossfadeTimer != null;
+
   Timer? _fadeTimer;
   Timer? _crossfadeTimer;
   bool _hasPreloaded = false;
@@ -125,7 +134,13 @@ class JustAudioPlayback implements AudioPlayback {
   static const Duration fadeOutDuration = Duration(seconds: 10);
 
   /// Koliko traje preklapanje dve numere.
-  static const Duration crossfadeDuration = Duration(seconds: 6);
+  /// Preklapanje traje **isto koliko i ulazak iz tišine — 10 sekundi**.
+  ///
+  /// Ranije je bilo 6, suprotno specifikaciji. Duže nije samo lepše: dok
+  /// pretapanje traje, izvođač još može da premota novu numeru na pravo
+  /// mesto, a greška se u tom preklopu teže čuje. Kratko pretapanje mu ne
+  /// ostavlja vremena za to.
+  static const Duration crossfadeDuration = Duration(seconds: 10);
 
   /// Pauza se stišava kratko — deset sekundi čekanja da muzika stane bilo bi
   /// besmisleno kad neko hoće tišinu odmah.
@@ -230,6 +245,7 @@ class JustAudioPlayback implements AudioPlayback {
       outgoing.setVolume((1 - t) * _masterVolume);
       if (t >= 1) {
         timer.cancel();
+        _crossfadeTimer = null;
         outgoing.stop();
       }
     });
@@ -256,6 +272,7 @@ class JustAudioPlayback implements AudioPlayback {
       player.setVolume(start + (target - start) * t);
       if (t >= 1) {
         timer.cancel();
+        _fadeTimer = null;
         if (!done.isCompleted) done.complete();
       }
     });
