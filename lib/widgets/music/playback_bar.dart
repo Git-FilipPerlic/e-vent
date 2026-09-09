@@ -17,10 +17,14 @@ class PlaybackBar extends StatelessWidget {
     super.key,
     required this.controller,
     required this.onOpenPlayer,
+    required this.onBrowse,
   });
 
   final MusicPlayerController controller;
   final VoidCallback onOpenPlayer;
+
+  /// Otvara pregled fajlova. Stoji kao **sama ikonica foldera**, bez natpisa.
+  final VoidCallback onBrowse;
 
   @override
   Widget build(BuildContext context) {
@@ -145,11 +149,33 @@ class PlaybackBar extends StatelessWidget {
                         ? controller.next
                         : null,
                   ),
+                ],
+              ),
+              // Drugi red: fajlovi, ulaz u nastupni ekran i jačina zvuka.
+              //
+              // Odvojen je namerno. Gornji red je premotavanje i pauza — ono
+              // što se dira u hodu; ovde su odluke druge vrste. Red je
+              // **niži od gornjeg**, jer se ova tri dugmeta ne traže u žurbi,
+              // a spisak numera time dobija prostor.
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _BarButton(
+                    icon: Icons.folder_open_rounded,
+                    label: 'Pregledaj fajlove',
+                    size: 26,
+                    height: _shortRow,
+                    onPressed: onBrowse,
+                  ),
+                  const SizedBox(width: AppSpacing.lg),
                   _BarButton(
                     icon: Icons.open_in_full_rounded,
                     label: 'Otvori nastupni ekran',
+                    size: 26,
+                    height: _shortRow,
                     onPressed: onOpenPlayer,
                   ),
+                  const SizedBox(width: AppSpacing.lg),
                   // Jačina: jedno slovo koje se vrti L → E → F. Tri
                   // stepenika umesto klizača — na nastupu se ne pogađa
                   // procenat, nego se bira „puno / pola / tiho".
@@ -163,6 +189,11 @@ class PlaybackBar extends StatelessWidget {
     );
   }
 }
+
+/// Visina donjeg reda. Namerno ispod 48 dp — ova tri dugmeta se ne traže u
+/// žurbi, a red preko cele širine ostaje lako pogodljiv. Isti izuzetak kao
+/// kod spiska numera, opisan u `CLAUDE.md`.
+const double _shortRow = 36;
 
 /// Jačina zvuka, jednim slovom.
 class _VolumeButton extends StatelessWidget {
@@ -185,7 +216,7 @@ class _VolumeButton extends StatelessWidget {
           radius: kMinTouchTarget / 2,
           child: SizedBox(
             width: kMinTouchTarget,
-            height: kMinTouchTarget,
+            height: _shortRow,
             child: Center(
               child: Text(
                 step.label,
@@ -211,12 +242,16 @@ class _BarButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.size = 28,
+    this.height,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback? onPressed;
   final double size;
+
+  /// Visina dodirne mete. `null` znači uobičajenih 48 dp.
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -230,6 +265,13 @@ class _BarButton extends StatelessWidget {
         tooltip: label,
         color: AppColors.accent,
         disabledColor: AppColors.border,
+        padding: EdgeInsets.zero,
+        constraints: height == null
+            ? null
+            : BoxConstraints(
+                minWidth: kMinTouchTarget,
+                minHeight: height!,
+              ),
       ),
     );
   }

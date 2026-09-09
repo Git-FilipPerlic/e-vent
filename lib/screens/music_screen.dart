@@ -173,22 +173,9 @@ class _MusicScreenState extends State<MusicScreen> {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.sm,
-            AppSpacing.md,
-            AppSpacing.sm,
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _browse,
-              icon: const Icon(Icons.folder_open_rounded, size: 20),
-              label: const Text('Pregledaj fajlove'),
-            ),
-          ),
-        ),
+        // Dugme za fajlove više ne stoji iznad spiska: preselilo se u traku,
+        // kao **sama ikonica foldera**. Spisak time dobija ceo prostor, a
+        // ikonica je jasna i bez natpisa.
         Expanded(
           // Prsten obilazi **spisak**, ne ceo ekran: dokle je pesma stigla
           // vidi se i ovde, a prevlačenjem uz ivicu se premota dok svira.
@@ -244,7 +231,11 @@ class _MusicScreenState extends State<MusicScreen> {
         // Prvi nivo: kontrole uz sam spisak, bez izlaska iz njega.
         // Trake nema dok se numera ne izabere — prazna traka samo zauzima red.
         if (_player.selected != null)
-          PlaybackBar(controller: _player, onOpenPlayer: _openPlayer),
+          PlaybackBar(
+            controller: _player,
+            onOpenPlayer: _openPlayer,
+            onBrowse: _browse,
+          ),
       ],
     );
   }
@@ -253,11 +244,24 @@ class _MusicScreenState extends State<MusicScreen> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Text(
-          'Nijedna numera nije dodata.',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleMedium
-              ?.copyWith(color: AppColors.textSecondary),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Nijedna numera nije dodata.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            // Dok spiska nema, nema ni trake — pa folder mora da stoji ovde,
+            // inače se numere ne bi imale odakle dodati.
+            OutlinedButton.icon(
+              onPressed: _browse,
+              icon: const Icon(Icons.folder_open_rounded, size: 20),
+              label: const Text('Pregledaj fajlove'),
+            ),
+          ],
         ),
       ),
     );

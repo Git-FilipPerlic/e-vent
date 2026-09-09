@@ -116,7 +116,13 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           minHeight: constraints.maxHeight,
                         ),
                         child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+                // Sadržaj počinje **iza prstena**, ne preko njega: inače
+                // naslov ulazi u talas i oba postanu nečitljiva.
+                padding: const EdgeInsets.all(
+                  EdgeProgressRing.inset +
+                      EdgeProgressRing.waveHeight +
+                      AppSpacing.sm,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -127,8 +133,11 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       text:
                           track?.displayTitle ??
                           'Nijedna numera nije izabrana',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: AppColors.textPrimary,
+                      // Manje i blaže nego ranije: naslov je podatak koji se
+                      // proveri jednom, a ne ono što se gleda tokom nastupa.
+                      // Krupno belo na crnom je usput i štipalo oči.
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: AppColors.textSecondary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -152,9 +161,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     Text(
                       '${TrackTile.formatDuration(controller.position)}'
                       ' / ${TrackTile.formatDuration(controller.duration)}',
-                      style: theme.textTheme.displaySmall?.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w700,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),

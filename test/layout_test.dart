@@ -9,6 +9,7 @@ import 'package:event_app/services/music_service.dart';
 import 'package:event_app/theme/app_theme.dart';
 import 'package:event_app/utils/date_format.dart';
 import 'package:event_app/widgets/home/event_categories.dart';
+import 'package:event_app/widgets/music/playback_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -128,6 +129,39 @@ void main() {
         await _atSize(tester, size, scale, () async {
           await tester.pumpWidget(
             _wrap(_scaled(scale, PlayerScreen(controller: controller))),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+        });
+      });
+
+      testWidgets('traka plejera staje $label', (WidgetTester tester) async {
+        // Traka nosi šest dugmadi i slovo za jačinu; na uskom telefonu sa
+        // uvećanim fontom se već jednom prelila za 44 piksela.
+        final playback = FakePlayback(
+          trackDuration: const Duration(seconds: 154),
+        );
+        final controller = MusicPlayerController(playback: playback);
+        addTearDown(controller.dispose);
+        await controller.setQueue(_sample);
+
+        await _atSize(tester, size, scale, () async {
+          await tester.pumpWidget(
+            _wrap(
+              _scaled(
+                scale,
+                Scaffold(
+                  body: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: PlaybackBar(
+                      controller: controller,
+                      onOpenPlayer: () {},
+                      onBrowse: () {},
+                    ),
+                  ),
+                ),
+              ),
+            ),
           );
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);
