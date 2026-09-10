@@ -1568,6 +1568,22 @@ upućuje u konzolu.
 
 `flutter analyze` čist, `flutter test` 344/344.
 
+## 10. septembar 2026 — izlazak u tišinu na pauzu traje 6 sekundi
+
+Korisnikova odluka: kad se pritisne pauza, muzika treba da se povuče
+**šest sekundi**, ne za tren.
+
+Razlog je nastupni, ne tehnički: toliko dugačak izlazak pred publikom deluje
+kao namera, a ne kao kvar, i voditelj u tom vremenu stigne da uzme mikrofon i
+progovori preko muzike koja se stišava.
+
+Ranije je stajalo 1,2 sekunde. **Kad je `Fade` isključen ostaje kratkih pola
+sekunde** — samo toliko da nestane „klik" na prekidu; naglo sečenje ne postoji
+ni u jednom slučaju.
+
+`flutter analyze` čist, `flutter test` 344/344. **Nije još čuto na telefonu** —
+uređaj je bio isključen kad je odluka doneta.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

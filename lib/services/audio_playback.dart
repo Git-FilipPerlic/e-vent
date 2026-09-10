@@ -151,11 +151,17 @@ class JustAudioPlayback implements AudioPlayback {
 
   /// Pauza se stišava kratko — deset sekundi čekanja da muzika stane bilo bi
   /// besmisleno kad neko hoće tišinu odmah.
-  static const Duration pauseFadeDuration = Duration(milliseconds: 1200);
+  /// Koliko traje izlazak u tišinu kad se pritisne pauza, uz uključen `Fade`.
+  ///
+  /// **Šest sekundi.** Dovoljno dugo da se muzika pred publikom povuče kao
+  /// namera, a ne kao kvar — voditelj u tom vremenu stigne da uzme mikrofon i
+  /// progovori preko toga.
+  static const Duration pauseFadeDuration = Duration(seconds: 6);
 
   /// **Pauza nikad ne seče naglo.** I kad je `Fade` isključen, zvuk se spusti
   /// za pola sekunde — dovoljno da nestane onaj „klik" na prekidu, a
-  /// prekratko da bi se osetilo kao pretapanje.
+  /// prekratko da bi se osetilo kao pretapanje. Sa uključenim `Fade` izlazak
+  /// traje [pauseFadeDuration].
   static const Duration shortPauseFade = Duration(milliseconds: 500);
 
   /// Koliko se najduže čeka da se numera otvori.

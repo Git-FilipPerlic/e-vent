@@ -781,14 +781,16 @@ void main() {
         JustAudioPlayback.shortPauseFade,
         const Duration(milliseconds: 500),
       );
-      // Uz uključen Fade pauza je duža, ali i dalje kratka.
+      // Uz uključen Fade muzika se povlači **šest sekundi** — toliko da
+      // deluje kao namera, a ne kao kvar, i da voditelj stigne da progovori
+      // preko toga.
+      expect(
+        JustAudioPlayback.pauseFadeDuration,
+        const Duration(seconds: 6),
+      );
       expect(
         JustAudioPlayback.pauseFadeDuration.inMilliseconds,
         greaterThan(JustAudioPlayback.shortPauseFade.inMilliseconds),
-      );
-      expect(
-        JustAudioPlayback.pauseFadeDuration.inSeconds,
-        lessThan(JustAudioPlayback.quickFadeDuration.inSeconds),
       );
     });
   });

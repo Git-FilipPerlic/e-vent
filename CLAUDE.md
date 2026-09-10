@@ -413,8 +413,15 @@ Ostalo:
    sistemski font se smanjuje, da sadržaj ne ispadne.
 
 `Fade` znači sve troje odjednom: ulazak iz tišine, izlazak u tišinu i
-**preklapanje** kad se pređe sa numere koja svira na izabranu. Traju
-**10 sekundi** — osim ulaska iz tišine kad ga pokrene **obično plej dugme u
+**preklapanje** kad se pređe sa numere koja svira na izabranu.
+
+**Izlazak u tišinu na pauzu traje 6 sekundi** (odluka od 10. septembra 2026).
+Toliko da se muzika pred publikom povuče kao namera, a ne kao kvar — voditelj
+u tom vremenu stigne da uzme mikrofon i progovori preko nje. Kad je `Fade`
+isključen, pauza i dalje ima kratkih pola sekunde, samo da nestane „klik" na
+prekidu; naglo sečenje ne postoji ni u jednom slučaju.
+
+Ostalo traje **10 sekundi** — osim ulaska iz tišine kad ga pokrene **obično plej dugme u
 traci**, koji traje **5 sekundi**: traka služi za usputno paljenje i pauzu, a
 ne za uvod pred publiku, pa je deset sekundi tamo predugo čekanje.
 
