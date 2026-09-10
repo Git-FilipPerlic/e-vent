@@ -22,7 +22,10 @@ abstract interface class AudioPlayback {
 
   /// Pušta numeru. Uz `fadeIn` zvuk kreće od tišine i penje se
   /// [JustAudioPlayback.fadeInDuration] — da uvod ne "udari" iz zvučnika.
-  Future<void> play({bool fadeIn = false});
+  ///
+  /// [over] skraćuje ili produžava taj ulazak; `null` znači uobičajenih
+  /// deset sekundi.
+  Future<void> play({bool fadeIn = false, Duration? over});
 
   /// Pauzira. Uz `fadeOut` zvuk se spusti do tišine pa stane — da prekid
   /// ne bude sečen usred takta.
@@ -129,6 +132,10 @@ class JustAudioPlayback implements AudioPlayback {
 
   /// Koliko traje fade-in kad je uključen.
   static const Duration fadeInDuration = Duration(seconds: 10);
+
+  /// Kraći ulazak, za obično plej dugme u traci. Deset sekundi je tamo
+  /// predugo: traka služi za usputno paljenje, a ne za uvod pred publiku.
+  static const Duration quickFadeDuration = Duration(seconds: 5);
 
   /// Koliko traje spuštanje zvuka pred kraj numere.
   static const Duration fadeOutDuration = Duration(seconds: 10);
@@ -283,7 +290,7 @@ class JustAudioPlayback implements AudioPlayback {
   Future<void> fadeToSilence(Duration over) => _fade(target: 0, over: over);
 
   @override
-  Future<void> play({bool fadeIn = false}) async {
+  Future<void> play({bool fadeIn = false, Duration? over}) async {
     _fadeTimer?.cancel();
 
     if (!fadeIn) {
@@ -294,7 +301,7 @@ class JustAudioPlayback implements AudioPlayback {
 
     await _active.setVolume(0);
     unawaited(_active.play());
-    unawaited(_fade(target: _masterVolume, over: fadeInDuration));
+    unawaited(_fade(target: _masterVolume, over: over ?? fadeInDuration));
   }
 
   @override

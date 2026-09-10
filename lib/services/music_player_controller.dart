@@ -11,10 +11,13 @@ import 'waveform_service.dart';
 /// Namerno **tri stepenika, ne klizač**: na nastupu se ne pogađa tačan
 /// procenat, nego se bira između „puno", „pola" i „tiho u pozadini".
 /// Prikazuje se **jednim slovom**, jer za više nema mesta u traci.
+/// Vrednosti su namerno **razmaknute nisko**: glasnoća se ne čuje linearno.
+/// Pola amplitude ne zvuči kao pola jačine, nego tek malo tiše — zato su
+/// stepenici spušteni na 35% i 5%, gde se razlika zaista čuje.
 enum VolumeStep {
   l('L', 1.0),
-  e('E', 0.5),
-  f('F', 0.15);
+  e('E', 0.35),
+  f('F', 0.05);
 
   const VolumeStep(this.label, this.value);
 
@@ -386,7 +389,11 @@ class MusicPlayerController extends ChangeNotifier {
   /// - izabrana je druga, a nešto svira → **prelazi se na izabranu**;
   ///   uz `fade` obe numere sviraju u preklopu, bez njega prelaz je odmah
   /// - ništa ne svira → pušta se izabrana
-  Future<void> play() async {
+  /// [quick] skraćuje ulazak iz tišine — koristi ga obično plej dugme u
+  /// traci. Veliko dugme na nastupnom ekranu i dalje ide punih 10 sekundi,
+  /// jer ono uvodi numeru pred publiku; traka je za usputno paljenje i pauzu,
+  /// gde je deset sekundi predugo čekanje.
+  Future<void> play({bool quick = false}) async {
     if (!isReady) return;
 
     if (isAnotherSounding) {
@@ -396,7 +403,10 @@ class MusicPlayerController extends ChangeNotifier {
 
     _isFadingOut = false;
     _soundingIndex = _selectedIndex;
-    await playback.play(fadeIn: _fade);
+    await playback.play(
+      fadeIn: _fade,
+      over: quick ? JustAudioPlayback.quickFadeDuration : null,
+    );
     notifyListeners();
   }
 
@@ -407,7 +417,7 @@ class MusicPlayerController extends ChangeNotifier {
       await playback.pause(fadeOut: _fade);
       return;
     }
-    await play();
+    await play(quick: true);
   }
 
   /// Prebacuje zvuk na numeru pod datim rednim brojem.

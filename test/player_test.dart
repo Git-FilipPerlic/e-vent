@@ -594,11 +594,13 @@ void main() {
 
       await controller.cycleVolume();
       expect(controller.volume, VolumeStep.e);
-      expect(playback.masterVolume, 0.5);
+      expect(playback.masterVolume, closeTo(0.35, 0.0001));
 
       await controller.cycleVolume();
       expect(controller.volume, VolumeStep.f);
-      expect(playback.masterVolume, closeTo(0.15, 0.0001));
+      // Nisko namerno: glasnoća se ne čuje linearno, pa se na 15% razlika
+      // jedva osećala.
+      expect(playback.masterVolume, closeTo(0.05, 0.0001));
 
       await controller.cycleVolume();
       expect(controller.volume, VolumeStep.l);
@@ -694,6 +696,32 @@ void main() {
         JustAudioPlayback.crossfadeDuration,
         JustAudioPlayback.fadeInDuration,
       );
+    });
+  });
+
+  group('dužina ulaska iz tišine', () {
+    test('obično plej dugme ulazi za 5 sekundi', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      controller.setFade(true);
+
+      await controller.toggle();
+
+      expect(playback.lastFadeInOver, JustAudioPlayback.quickFadeDuration);
+      expect(JustAudioPlayback.quickFadeDuration, const Duration(seconds: 5));
+      controller.dispose();
+    });
+
+    test('veliko dugme i dalje ulazi punih 10 sekundi', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      controller.setFade(true);
+
+      await controller.play();
+
+      // `null` znači podrazumevano trajanje — punih deset sekundi.
+      expect(playback.lastFadeInOver, isNull);
+      controller.dispose();
     });
   });
 }

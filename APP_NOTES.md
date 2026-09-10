@@ -1462,6 +1462,34 @@ LED tab, jer je protokol te porodice kontrolera poznat.
 - **Nije još probano sa pravim uređajem** — za to telefon mora da bude na
   mreži kontrolera. To proverava korisnik.
 
+## 10. septembar 2026 — LED-006/007 i tri primedbe sa nastupa
+
+**LED-006 — jačina svetla.** Magic Home nema komandu za jačinu, pa se šalje
+**ista boja, utamnjena**. Boja i jačina zato žive zajedno u kontroleru: da se
+pamte odvojeno, promena jednog bi poništila drugo. Klizač šalje komandu tek
+kad se prst podigne — svaki pomeraj bi bio nova poruka i svetlo bi
+poskakivalo. Najniže je 5%, jer je nula gašenje, a za to postoji dugme.
+
+**LED-007 — kontroler se pamti.** Adresa i redosled boja, u
+`lib/services/led_memory.dart`. Kontroler gotovo uvek dobije istu adresu, pa
+se nudi „Poveži se ponovo (192.168.4.1)" umesto traženja mreže pred nastup.
+Redosled se pamti jer je svojstvo samog uređaja.
+
+**Tri primedbe korisnika, sve tri sređene:**
+
+- **U listu „Kada i koliko" nema više „Nije unet".** Red se zove „Datum" i
+  vodi u kalendar, pa se iz konteksta zna šta se bira. Opšte pravilo o
+  praznim poljima i dalje važi za kartice, gde podatak stoji sam.
+- **Obično plej dugme u traci sada ulazi iz tišine za 5 sekundi**, ne 10.
+  Traka služi za usputno paljenje; deset sekundi je tamo predugo. Veliko
+  dugme na nastupnom ekranu i dalje ide punih deset, jer ono uvodi numeru
+  pred publiku.
+- **Jačine L/E/F spuštene na 100% / 35% / 5%** (ranije 50% i 15%). Korisnik
+  je rekao da se razlika ne oseća — i bio je u pravu: glasnoća se ne čuje
+  linearno, pa pola amplitude zvuči tek malo tiše.
+
+`flutter analyze` čist, `flutter test` 328/328.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

@@ -133,13 +133,17 @@ class _EventWhenSheetState extends State<_EventWhenSheet> {
 
             _PickerRow(
               label: 'Datum',
-              value: start != null ? AppDate.dateShort(start) : 'Nije unet',
+              // Prazno kad nije uneto: red se zove „Datum" i vodi u kalendar,
+              // pa se iz konteksta zna šta se bira. Ovo je izuzetak od opšteg
+              // pravila o praznim poljima — ono važi za kartice, gde podatak
+              // stoji sam, bez naziva reda pored sebe.
+              value: start != null ? AppDate.dateShort(start) : '',
               hasValue: start != null,
               onTap: _pickDate,
             ),
             _PickerRow(
               label: 'Sat početka',
-              value: start != null ? AppDate.time(start) : 'Nije unet',
+              value: start != null ? AppDate.time(start) : '',
               hasValue: start != null,
               onTap: _pickTime,
             ),

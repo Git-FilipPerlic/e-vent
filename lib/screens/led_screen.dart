@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/led_controller.dart';
+import '../services/led_memory.dart';
 import '../theme/app_theme.dart';
 
 /// LED tab — kontrola Magic Home rasvete preko lokalne mreže.
@@ -23,9 +24,17 @@ class LedScreen extends StatefulWidget {
 
 class _LedScreenState extends State<LedScreen> {
   late final LedController _led = widget.controller ?? MagicHomeController();
+  final LedMemory _memory = const LedMemory();
 
   List<LedDevice> _devices = const [];
   String? _connectedTo;
+
+  /// Kontroler sa kog se poslednji put upravljalo. Ponudi se odmah, da se
+  /// pred nastup ne traži mreža iznova.
+  String? _lastAddress;
+
+  /// Jačina svetla, 0..1.
+  double _brightness = 1;
 
   bool _isSearching = false;
   bool _isBusy = false;
@@ -47,6 +56,28 @@ class _LedScreenState extends State<LedScreen> {
     Color(0xFFFF2D95),
     Color(0xFFFFFFFF),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMemory();
+  }
+
+  Future<void> _loadMemory() async {
+    final address = await _memory.lastAddress();
+    final order = await _memory.colorOrder();
+    if (!mounted) return;
+
+    setState(() {
+      _lastAddress = address;
+      final led = _led;
+      if (led is MagicHomeController && order != null) {
+        led.colorOrder = ColorOrder.values
+            .where((value) => value.name == order)
+            .firstOrNull ?? led.colorOrder;
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -84,8 +115,10 @@ class _LedScreenState extends State<LedScreen> {
       if (!mounted) return;
       setState(() {
         _connectedTo = address;
+        _lastAddress = address;
         _isBusy = false;
       });
+      await _remember();
     } on LedConnectionException {
       if (!mounted) return;
       setState(() {
@@ -93,6 +126,23 @@ class _LedScreenState extends State<LedScreen> {
         _message = 'Kontroler na $address se ne javlja.';
       });
     }
+  }
+
+  /// Pamti kontroler i redosled boja — oba su svojstvo samog uređaja.
+  Future<void> _remember() async {
+    final address = _connectedTo;
+    if (address == null) return;
+
+    final led = _led;
+    await _memory.remember(
+      address: address,
+      colorOrder: led is MagicHomeController ? led.colorOrder.name : null,
+    );
+  }
+
+  Future<void> _setBrightness(double value) async {
+    setState(() => _brightness = value);
+    await _led.setBrightness(value);
   }
 
   Future<void> _power(bool on) async {
@@ -182,6 +232,16 @@ class _LedScreenState extends State<LedScreen> {
         icon: const Icon(Icons.keyboard_rounded, size: 20),
         label: const Text('Unesi adresu ručno'),
       ),
+      if (_lastAddress != null) ...[
+        const SizedBox(height: AppSpacing.sm),
+        // Kontroler gotovo uvek dobije istu adresu, pa se ovo isplati:
+        // jedan dodir umesto traženja mreže pred nastup.
+        OutlinedButton.icon(
+          onPressed: _isBusy ? null : () => _connect(_lastAddress!),
+          icon: const Icon(Icons.history_rounded, size: 20),
+          label: Text('Poveži se ponovo ($_lastAddress)'),
+        ),
+      ],
       for (final device in _devices) ...[
         const SizedBox(height: AppSpacing.sm),
         Card(
@@ -271,6 +331,35 @@ class _LedScreenState extends State<LedScreen> {
         ],
       ),
       const SizedBox(height: AppSpacing.lg),
+      Row(
+        children: [
+          Text(
+            'Jačina svetla',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textSecondary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '${(_brightness * 100).round()}%',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+      // Magic Home nema zasebnu komandu za jačinu — šalje se ista boja,
+      // utamnjena. Zato jačina i boja žive zajedno u kontroleru.
+      Slider(
+        value: _brightness,
+        min: 0.05,
+        onChanged: (value) => setState(() => _brightness = value),
+        // Šalje se tek kad se prst podigne: svaki pomeraj bi bio nova poruka
+        // kontroleru, pa bi svetlo poskakivalo.
+        onChangeEnd: _setBrightness,
+      ),
+      const SizedBox(height: AppSpacing.lg),
       Text(
         'Redosled boja',
         style: theme.textTheme.labelMedium?.copyWith(
@@ -309,6 +398,7 @@ class _LedScreenState extends State<LedScreen> {
     if (led is! MagicHomeController) return;
 
     setState(() => led.colorOrder = order);
+    await _remember();
     // Boja se odmah šalje ponovo, da se promena vidi bez ponovnog biranja.
     final color = _color;
     if (color != null) await _setColor(color);

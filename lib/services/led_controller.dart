@@ -63,6 +63,13 @@ abstract interface class LedController {
   /// Postavlja boju. Vrednosti su 0..255, onako kako ih korisnik vidi;
   /// preslaganje po [ColorOrder] radi sam kontroler.
   Future<void> setColor(int red, int green, int blue);
+
+  /// Jačina svetla, 0..1.
+  ///
+  /// Magic Home nema zasebnu komandu za jačinu — **ista boja se šalje
+  /// utamnjena**. Zato jačina i boja moraju da se pamte zajedno, inače bi
+  /// promena jednog poništila drugo.
+  Future<void> setBrightness(double value);
 }
 
 /// Uređaj se ne javlja (nije na mreži, ili telefon nije na njegovoj mreži).
@@ -98,6 +105,14 @@ class MagicHomeController implements LedController {
   ColorOrder colorOrder;
 
   Socket? _socket;
+
+  /// Poslednja izabrana boja, puna jačina. Čuva se jer se jačina šalje kao
+  /// utamnjena ista boja — bez zapamćene boje ne bi imalo šta da se utamni.
+  int _red = 255;
+  int _green = 255;
+  int _blue = 255;
+
+  double _brightness = 1;
 
   @override
   bool get isConnected => _socket != null;
@@ -191,10 +206,26 @@ class MagicHomeController implements LedController {
 
   @override
   Future<void> setColor(int red, int green, int blue) {
+    _red = red.clamp(0, 255);
+    _green = green.clamp(0, 255);
+    _blue = blue.clamp(0, 255);
+    return _sendColor();
+  }
+
+  @override
+  Future<void> setBrightness(double value) {
+    _brightness = value.clamp(0.0, 1.0);
+    return _sendColor();
+  }
+
+  /// Šalje zapamćenu boju, utamnjenu na zadatu jačinu.
+  Future<void> _sendColor() {
+    int dim(int channel) => (channel * _brightness).round().clamp(0, 255);
+
     final ordered = colorOrder.arrange(
-      red.clamp(0, 255),
-      green.clamp(0, 255),
-      blue.clamp(0, 255),
+      dim(_red),
+      dim(_green),
+      dim(_blue),
     );
     // Peti bajt je bela dioda; nju ne diramo dok se ne zna ima li je uređaj.
     return _send([0x31, ...ordered, 0x00, 0x00, 0x0F]);

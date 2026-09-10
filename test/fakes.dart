@@ -27,6 +27,9 @@ class FakePlayback implements AudioPlayback {
   /// Koliko je puta traženo stišavanje pred kraj numere.
   int fadeToSilenceCalls = 0;
 
+  /// Koliko je trajao poslednji traženi ulazak iz tišine.
+  Duration? lastFadeInOver;
+
   @override
   bool get isFading => fading;
 
@@ -70,7 +73,8 @@ class FakePlayback implements AudioPlayback {
   }
 
   @override
-  Future<void> play({bool fadeIn = false}) async {
+  Future<void> play({bool fadeIn = false, Duration? over}) async {
+    lastFadeInOver = over;
     playCalls++;
     lastFadeIn = fadeIn;
     _playing.add(true);

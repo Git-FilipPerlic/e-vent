@@ -92,7 +92,11 @@ void main() {
         act: (tester) async {},
       );
 
-      expect(find.text('Nije unet'), findsNWidgets(2));
+      // Prazno, ne „Nije unet": red se zove „Datum" i vodi u kalendar, pa se
+      // iz konteksta zna šta se bira.
+      expect(find.text('Nije unet'), findsNothing);
+      expect(find.text('Datum'), findsOneWidget);
+      expect(find.text('Sat početka'), findsOneWidget);
     });
 
     testWidgets('odustajanje ne menja ništa', (WidgetTester tester) async {

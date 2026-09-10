@@ -108,6 +108,11 @@ Ne treba ga ponovo dogovarati — radi se odozgo nadole, jedan po jedan element.
 | 13 | Podsetnik | koliko je ostalo do polaska ili početka događaja | HOME-019 |
 | 14 | Scenario | tačke programa; stavke iz baze + korisnik može da doda svoje | HOME-025 |
 
+**U listovima za unos prazna polja ostaju prazna.** Pravilo „Datum nije unet"
+važi za **kartice**, gde podatak stoji sam. U listu „Kada i koliko" svaki red
+ima naziv pored sebe i vodi u kalendar, pa se iz konteksta zna šta se bira —
+tu bi „Nije unet" bio suvišan tekst.
+
 Uz to na Home ekranu:
 
 - **pull-to-refresh** (povlačenje nadole ponovo učitava podatke o događaju)
@@ -206,8 +211,12 @@ dugmetom.
    | Slovo | Jačina |
    |---|---|
    | `L` | 100% |
-   | `E` | 50% |
-   | `F` | 15% |
+   | `E` | 35% |
+   | `F` | 5% |
+
+   Vrednosti su namerno spuštene (ranije 50% i 15%): **glasnoća se ne čuje
+   linearno**. Pola amplitude ne zvuči kao pola jačine nego tek malo tiše, pa
+   se razlika između stepenika jedva osećala.
 
    Razlog: na nastupu se ne pogađa procenat, nego se bira između „puno",
    „pola" i „tiho u pozadini". Bitno je i to što **mikseta nije nadohvat** —
@@ -382,8 +391,10 @@ Ostalo:
    sistemski font se smanjuje, da sadržaj ne ispadne.
 
 `Fade` znači sve troje odjednom: ulazak iz tišine, izlazak u tišinu i
-**preklapanje** kad se pređe sa numere koja svira na izabranu. Sva tri traju
-**10 sekundi**.
+**preklapanje** kad se pređe sa numere koja svira na izabranu. Traju
+**10 sekundi** — osim ulaska iz tišine kad ga pokrene **obično plej dugme u
+traci**, koji traje **5 sekundi**: traka služi za usputno paljenje i pauzu, a
+ne za uvod pred publiku, pa je deset sekundi tamo predugo čekanje.
 
 **Premotavanje ne prekida pretapanje** (odluka od 9. septembra 2026). Dok
 preklapanje traje, izvođač sme da prevlači po prstenu ili da preskače, i da
@@ -553,9 +564,20 @@ bajt svake poruke.
 | LED-003 | Paljenje i gašenje | gotovo |
 | LED-004 | Izbor boje iz palete | gotovo |
 | LED-005 | Izbor redosleda boja (RGB / GRB / BRG) | gotovo |
-| LED-006 | Jačina svetla | |
-| LED-007 | Pamćenje poslednjeg kontrolera | |
+| LED-006 | Jačina svetla | gotovo |
+| LED-007 | Pamćenje poslednjeg kontrolera | gotovo |
 | LED-008 | Scene i efekti | |
+
+**Jačina svetla nema svoju komandu.** Magic Home je nema — šalje se **ista
+boja, utamnjena**. Zato boja i jačina žive zajedno u kontroleru: kad bi se
+pamtile odvojeno, promena jednog bi poništila drugo. Klizač šalje komandu
+**tek kad se prst podigne**, jer bi svaki pomeraj bio nova poruka i svetlo bi
+poskakivalo. Najniža vrednost je 5%, ne 0 — nula je gašenje, a za to postoji
+dugme.
+
+**Kontroler se pamti** (adresa i redosled boja), pa se pred nastup nudi
+„Poveži se ponovo" umesto traženja mreže iznova. Redosled se pamti jer je
+**svojstvo samog uređaja**: isti kontroler će i sledeći put očekivati isto.
 
 **Prvo što treba proveriti sa uređajem na stolu:** da li boje izlaze tačno.
 Ako plavo daje zeleno, menja se redosled u samom tabu — to je stvar
