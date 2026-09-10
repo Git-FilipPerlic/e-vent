@@ -56,13 +56,9 @@ void main() {
           ChecklistSectionTile(
             section: _tehnika,
             checkedIds: const {'zvucnik'},
-            addedItemIds: const {},
             isExpanded: false,
-            canEditItems: true,
             onToggleExpanded: () {},
             onToggleItem: (_) {},
-            onAddItem: (_) {},
-            onRemoveItem: (_) {},
           ),
         ),
       );
@@ -70,29 +66,6 @@ void main() {
       expect(find.text('Tehnika'), findsOneWidget);
       expect(find.text('1/2'), findsOneWidget);
       expect(find.text('Zvučnik'), findsNothing);
-    });
-
-    testWidgets('otvorena pokazuje stavke i dugme za dodavanje',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        _wrap(
-          ChecklistSectionTile(
-            section: _tehnika,
-            checkedIds: const {},
-            addedItemIds: const {},
-            isExpanded: true,
-            canEditItems: true,
-            onToggleExpanded: () {},
-            onToggleItem: (_) {},
-            onAddItem: (_) {},
-            onRemoveItem: (_) {},
-          ),
-        ),
-      );
-
-      expect(find.text('Zvučnik'), findsOneWidget);
-      expect(find.text('Mikrofon'), findsOneWidget);
-      expect(find.text('Dodaj stavku'), findsOneWidget);
     });
 
     testWidgets('dodir na stavku javlja koja je stavka',
@@ -103,13 +76,9 @@ void main() {
           ChecklistSectionTile(
             section: _tehnika,
             checkedIds: const {},
-            addedItemIds: const {},
             isExpanded: true,
-            canEditItems: true,
             onToggleExpanded: () {},
             onToggleItem: (id) => toggled = id,
-            onAddItem: (_) {},
-            onRemoveItem: (_) {},
           ),
         ),
       );
@@ -120,53 +89,6 @@ void main() {
       expect(toggled, 'mikrofon');
     });
 
-    testWidgets('samo dodate stavke mogu da se obrišu',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        _wrap(
-          ChecklistSectionTile(
-            section: _tehnika,
-            checkedIds: const {},
-            addedItemIds: const {'mikrofon'},
-            isExpanded: true,
-            canEditItems: true,
-            onToggleExpanded: () {},
-            onToggleItem: (_) {},
-            onAddItem: (_) {},
-            onRemoveItem: (_) {},
-          ),
-        ),
-      );
-
-      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
-    });
-
-    testWidgets('prazna stavka se ne dodaje', (WidgetTester tester) async {
-      var calls = 0;
-      await tester.pumpWidget(
-        _wrap(
-          ChecklistSectionTile(
-            section: _tehnika,
-            checkedIds: const {},
-            addedItemIds: const {},
-            isExpanded: true,
-            canEditItems: true,
-            onToggleExpanded: () {},
-            onToggleItem: (_) {},
-            onAddItem: (_) => calls++,
-            onRemoveItem: (_) {},
-          ),
-        ),
-      );
-
-      await tester.tap(find.text('Dodaj stavku'));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), '   ');
-      await tester.tap(find.text('Dodaj'));
-      await tester.pumpAndSettle();
-
-      expect(calls, 0);
-    });
   });
 
   group('Lager ekran', () {
@@ -203,31 +125,37 @@ void main() {
 
       expect(find.byIcon(Icons.check_box_rounded), findsNothing);
     });
+  });
 
-    testWidgets('dodata stavka ulazi u sekciju i u brojač',
-        (WidgetTester tester) async {
-      // Dodavanje menja katalog firme, pa traži prijavljenog managera.
+  group('oprema se ne unosi na pakovanju', () {
+    testWidgets('nema dodavanja ni brisanja stavki', (
+      WidgetTester tester,
+    ) async {
       final auth = MockAuthService();
       await auth.signIn(name: 'Filip', pin: '1234');
 
       await tester.pumpWidget(_wrap(LagerScreen(auth: auth)));
       await tester.pumpAndSettle();
-
       await tester.tap(find.text('Tehnika'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Dodaj stavku'));
+      // Spisak opreme je stvar vlasnika i uređuje se u konzoli. Pred nastup
+      // se ne kucaju stavke — samo se prolaze i čekiraju.
+      expect(find.text('Dodaj stavku'), findsNothing);
+      expect(find.byIcon(Icons.close_rounded), findsNothing);
+      // Čekiranje i dalje radi, i ne traži nikakvu dozvolu.
+      expect(find.byIcon(Icons.check_box_outline_blank_rounded), findsWidgets);
+    });
+
+    testWidgets('ni izvođač bez prijave ne vidi unos', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(_wrap(const LagerScreen()));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'Rezervni kabl');
-      await tester.tap(find.text('Dodaj'));
+      await tester.tap(find.text('Tehnika'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Rezervni kabl'), findsOneWidget);
-      // I može da se obriše, jer ju je korisnik dodao.
-      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
-
-      // Upis u katalog ide u pozadini; sačekaj ga da test ne ostavi tajmer.
-      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Dodaj stavku'), findsNothing);
     });
   });
 }

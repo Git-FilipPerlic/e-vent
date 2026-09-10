@@ -142,6 +142,22 @@ korisnik može da doda svoju stavku, traka napretka i limit od 90 stavki.
 Lager ne prikazuje **sve** što firma poseduje, nego samo ono što ide na taj
 događaj. Veza ide ovako:
 
+**Delovi opreme se unose SAMO u konzoli** (pravilo od 10. septembra 2026, na
+izričit zahtev vlasnika). Ni na Lager tabu ni pri dodeli opreme događaju ne
+postoji dodavanje ni brisanje stavki.
+
+Razlog je sam smisao Lagera: vlasnik zna svoj lager i **jednom** upiše šta
+kojoj kategoriji pripada. Pred nastup se onda ne kucaju stavke nego se
+**klikne kategorija** — u tome je ušteda vremena. Ako nešto ne treba da se
+nosi, ide se u konzolu i skida se sa te kategorije, a ne krpi po događaju.
+
+Iz toga sledi:
+
+- **Lager tab samo čekira.** Nema „Dodaj stavku", nema brisanja stavki.
+- **Izbor opreme za događaj bira samo kategorije.** Nema olovke koja otvara
+  delove.
+- Sve što menja katalog stoji na jednom mestu: konzola → **„Oprema firme"**.
+
 0. **Manager u konzoli pravi sam spisak kategorija** koje firma poseduje —
    Vatra, Svila, Tehnika, Kablovi, LED, Robot… To je ekran **„Oprema firme"**,
    do kog se stiže iz konzole. Tu se kategorije prave, preimenuju i brišu, a

@@ -1584,6 +1584,30 @@ ni u jednom slučaju.
 `flutter analyze` čist, `flutter test` 344/344. **Nije još čuto na telefonu** —
 uređaj je bio isključen kad je odluka doneta.
 
+## 10. septembar 2026 — oprema se unosi samo u konzoli
+
+Vlasnikovo pravilo, i vredi ga zapisati njegovim rečima: „ja kao vlasnik znam
+svoj lager — ja ću iz konzole dodeliti kojoj kategoriji idu koji itemi. ali
+kad dođem na funkciju da dodajem za događaj ja neću kliktati nove iteme, jer
+čitava poenta je da to bude skraćeno. ja ću samo kliktati njihove kategorije."
+
+Uklonjeno je, dakle:
+
+- **„Dodaj stavku" i brisanje stavki sa Lager taba.** Lager sada samo čekira.
+  Sa njima su otišli `canEditItems`, `addedItemIds` i ceo red za unos.
+- **Olovka za delove u izboru kategorija po događaju.** Tamo se sada bira
+  isključivo kategorija.
+
+Uređivanje delova ostaje **samo** u konzoli, pod „Oprema firme" — jedno mesto
+umesto tri, i ono koje je vlasnik i tražio.
+
+Testovi koji su pokrivali uklonjeno su zamenjeni obrnutima: da na pakovanju
+nema unosa ni prijavljenom manageru, i da izbor kategorija ne nudi izmenu
+delova.
+
+`flutter analyze` čist, `flutter test` 339/339. **Nije još viđeno na
+telefonu** — uređaj je bio isključen.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

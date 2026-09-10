@@ -143,38 +143,31 @@ class _CategoryChip extends StatelessWidget {
 
 /// Izbor kategorija, u listi koja se izvuče odozdo.
 ///
+/// **Ovde se biraju samo kategorije.** Šta pripada kojoj kategoriji je stvar
+/// vlasnika i uređuje se u konzoli, pod „Oprema firme" — pred nastup se ne
+/// kuca oprema, nego se klikne kategorija.
+///
 /// Vraća nov spisak id-jeva, ili `null` ako je korisnik odustao.
 Future<List<String>?> showCategoryPicker(
   BuildContext context, {
   required List<ChecklistSection> catalog,
   required List<String> selectedIds,
-  ValueChanged<ChecklistSection>? onEditItems,
 }) {
   return showModalBottomSheet<List<String>>(
     context: context,
     backgroundColor: AppColors.surface,
     showDragHandle: true,
     isScrollControlled: true,
-    builder: (context) => _CategoryPicker(
-      catalog: catalog,
-      selectedIds: selectedIds,
-      onEditItems: onEditItems,
-    ),
+    builder: (context) =>
+        _CategoryPicker(catalog: catalog, selectedIds: selectedIds),
   );
 }
 
 class _CategoryPicker extends StatefulWidget {
-  const _CategoryPicker({
-    required this.catalog,
-    required this.selectedIds,
-    this.onEditItems,
-  });
+  const _CategoryPicker({required this.catalog, required this.selectedIds});
 
   final List<ChecklistSection> catalog;
   final List<String> selectedIds;
-
-  /// Otvara delove kategorije. `null` kad korisnik nema dozvolu.
-  final ValueChanged<ChecklistSection>? onEditItems;
 
   @override
   State<_CategoryPicker> createState() => _CategoryPickerState();
@@ -240,18 +233,6 @@ class _CategoryPickerState extends State<_CategoryPicker> {
                           _selected.remove(section.id);
                         }
                       }),
-                      // Dug pritisak otvara delove te kategorije — retka
-                      // radnja, pa ne zauzima mesto u samom dugmetu.
-                      onDeleted: widget.onEditItems == null
-                          ? null
-                          : () {
-                              Navigator.of(context).pop(_selected.toList());
-                              widget.onEditItems!(section);
-                            },
-                      deleteIcon: widget.onEditItems == null
-                          ? null
-                          : const Icon(Icons.edit_rounded, size: 16),
-                      deleteButtonTooltipMessage: 'Izmeni delove',
                     ),
                   if (widget.catalog.isEmpty)
                     Text(

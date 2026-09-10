@@ -5,8 +5,11 @@ import '../../theme/app_theme.dart';
 
 /// Jedna sekcija checkliste (Tehnika, Animacija, Vatreni rekviziti...).
 ///
-/// Sekcija se otvara i zatvara; unutra su stavke sa kvačicom i red za
-/// dodavanje svoje stavke.
+/// Sekcija se otvara i zatvara; unutra su stavke sa kvačicom.
+///
+/// **Ovde se delovi ne dodaju ni ne brišu.** Spisak opreme je stvar vlasnika
+/// i uređuje se u konzoli, pod „Oprema firme"; na pakovanju se samo čekira.
+/// Cela poenta je da pred nastup ne kucaš stavke nego da ih samo prođeš.
 ///
 /// Widget je "glup": dobija sekciju i skup čekiranih stavki kroz konstruktor,
 /// a svaku promenu javlja ekranu.
@@ -18,31 +21,16 @@ class ChecklistSectionTile extends StatelessWidget {
     required this.isExpanded,
     required this.onToggleExpanded,
     required this.onToggleItem,
-    required this.onAddItem,
-    required this.onRemoveItem,
-    required this.addedItemIds,
-    this.canEditItems = false,
   });
-
-  /// Da li korisnik sme da dodaje i briše delove.
-  ///
-  /// Delovi pripadaju **katalogu firme**, pa ih menja samo manager. Čekiranje
-  /// na pakovanju ne traži nikakvu dozvolu.
-  final bool canEditItems;
 
   final ChecklistSection section;
 
   /// Id-jevi stavki koje su čekirane.
   final Set<String> checkedIds;
 
-  /// Id-jevi stavki koje je korisnik sam dodao — samo one mogu da se obrišu.
-  final Set<String> addedItemIds;
-
   final bool isExpanded;
   final VoidCallback onToggleExpanded;
   final ValueChanged<String> onToggleItem;
-  final ValueChanged<String> onAddItem;
-  final ValueChanged<String> onRemoveItem;
 
   int get _checkedCount =>
       section.items.where((item) => checkedIds.contains(item.id)).length;
@@ -106,11 +94,8 @@ class ChecklistSectionTile extends StatelessWidget {
               _ItemRow(
                 item: item,
                 isChecked: checkedIds.contains(item.id),
-                canRemove: canEditItems && addedItemIds.contains(item.id),
                 onToggle: () => onToggleItem(item.id),
-                onRemove: () => onRemoveItem(item.id),
               ),
-            if (canEditItems) _AddItemRow(onAdd: onAddItem),
           ],
         ],
       ),
@@ -123,16 +108,12 @@ class _ItemRow extends StatelessWidget {
   const _ItemRow({
     required this.item,
     required this.isChecked,
-    required this.canRemove,
     required this.onToggle,
-    required this.onRemove,
   });
 
   final ChecklistItem item;
   final bool isChecked;
-  final bool canRemove;
   final VoidCallback onToggle;
-  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -181,98 +162,8 @@ class _ItemRow extends StatelessWidget {
                 ),
               ),
             ),
-            if (canRemove)
-              IconButton(
-                onPressed: onRemove,
-                icon: const Icon(Icons.close_rounded),
-                iconSize: 18,
-                color: AppColors.textSecondary,
-                tooltip: 'Obriši stavku',
-              ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Red za dodavanje svoje stavke u sekciju.
-class _AddItemRow extends StatefulWidget {
-  const _AddItemRow({required this.onAdd});
-
-  final ValueChanged<String> onAdd;
-
-  @override
-  State<_AddItemRow> createState() => _AddItemRowState();
-}
-
-class _AddItemRowState extends State<_AddItemRow> {
-  final TextEditingController _controller = TextEditingController();
-  bool _isAdding = false;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final name = _controller.text.trim();
-    // Prazna stavka se ne dodaje — ćutke, bez poruke o grešci.
-    if (name.isEmpty) return;
-
-    widget.onAdd(name);
-    _controller.clear();
-    setState(() => _isAdding = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!_isAdding) {
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: AppSpacing.sm,
-            bottom: AppSpacing.sm,
-          ),
-          child: TextButton.icon(
-            onPressed: () => setState(() => _isAdding = true),
-            icon: const Icon(Icons.add_rounded, size: 20),
-            label: const Text('Dodaj stavku'),
-          ),
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.sm,
-        AppSpacing.md,
-        AppSpacing.md,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              autofocus: true,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _submit(),
-              style: const TextStyle(color: AppColors.textPrimary),
-              decoration: const InputDecoration(
-                hintText: 'Naziv opreme',
-                hintStyle: TextStyle(color: AppColors.textSecondary),
-                filled: true,
-                fillColor: AppColors.surfaceAlt,
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          FilledButton(onPressed: _submit, child: const Text('Dodaj')),
-        ],
       ),
     );
   }

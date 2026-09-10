@@ -1,8 +1,6 @@
 import 'package:event_app/models/checklist.dart';
-import 'package:event_app/screens/category_items_screen.dart';
-import 'package:event_app/screens/lager_screen.dart';
-import 'package:event_app/services/auth_service.dart';
 import 'package:event_app/services/mock_event_service.dart';
+import 'package:event_app/screens/category_items_screen.dart';
 import 'package:event_app/theme/app_theme.dart';
 import 'package:event_app/widgets/home/event_categories.dart';
 import 'package:flutter/material.dart';
@@ -105,41 +103,10 @@ void main() {
   });
 
   group('dozvole za katalog', () {
-    testWidgets('bez prijave se delovi ne dodaju', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.dark,
-          home: LagerScreen(eventId: 'evt-001', auth: MockAuthService()),
-        ),
-      );
-      await tester.pumpAndSettle();
+  });
 
-      await tester.tap(find.text('Tehnika'));
-      await tester.pumpAndSettle();
-
-      // Stavke se i dalje čekiraju, ali katalog firme ostaje netaknut.
-      expect(find.text('Dodaj stavku'), findsNothing);
-    });
-
-    testWidgets('glavni sme da dodaje delove', (WidgetTester tester) async {
-      final auth = MockAuthService();
-      await auth.signIn(name: 'Filip', pin: '1234');
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.dark,
-          home: LagerScreen(eventId: 'evt-001', auth: auth),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Tehnika'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Dodaj stavku'), findsOneWidget);
-    });
-
-    testWidgets('olovka za delove se ne nudi bez dozvole', (
+  group('delovi se ne diraju sa događaja', () {
+    testWidgets('izbor kategorija ne nudi izmenu delova', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -161,37 +128,10 @@ void main() {
       await tester.tap(find.text('otvori'));
       await tester.pumpAndSettle();
 
+      // Pred nastup se klikću kategorije, ne stavke. Delovi se uređuju u
+      // konzoli, pod „Oprema firme".
       expect(find.byTooltip('Izmeni delove'), findsNothing);
-    });
-
-    testWidgets('sa dozvolom olovka otvara delove kategorije', (
-      WidgetTester tester,
-    ) async {
-      ChecklistSection? edited;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.dark,
-          home: Builder(
-            builder: (context) => TextButton(
-              onPressed: () => showCategoryPicker(
-                context,
-                catalog: const [_vatra],
-                selectedIds: const [],
-                onEditItems: (section) => edited = section,
-              ),
-              child: const Text('otvori'),
-            ),
-          ),
-        ),
-      );
-
-      await tester.tap(find.text('otvori'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Izmeni delove'));
-      await tester.pumpAndSettle();
-
-      expect(edited?.id, 'sec-vatra');
+      expect(find.widgetWithText(FilterChip, 'Vatra · 2'), findsOneWidget);
     });
   });
 }

@@ -32,6 +32,10 @@ enum LagerMode {
 /// svim delovima koji im pripadaju. Ono što se ne nosi se ne prikazuje — na
 /// nastupu nema vremena za prelistavanje opreme koja nije ni ponesena.
 ///
+/// **Ovde se oprema ne unosi.** Spisak je stvar vlasnika i uređuje se u
+/// konzoli, pod „Oprema firme"; na događaju se biraju samo kategorije, a
+/// ovde se prolazi i čekira. Poenta je da pred nastup ne kucaš stavke.
+///
 /// Ista lista služi dvaput: **pre** događaja se čekira šta je spakovano, a
 /// **posle** događaja šta se vratilo. Zato svaki režim ima svoje kvačice —
 /// pakovanje se ne poništava kad se posle raspakuje.
@@ -80,15 +84,6 @@ class _LagerScreenState extends State<LagerScreen> {
   /// Otvorene sekcije. Na početku su sve zatvorene — spisak od šest sekcija
   /// mora da stane na jedan ekran.
   final Set<String> _expanded = <String>{};
-
-  /// Stavke koje je korisnik sam dodao; samo one mogu da se obrišu.
-  final Set<String> _addedItemIds = <String>{};
-
-  int _nextAddedNumber = 1;
-
-  /// Da li prijavljeni korisnik sme da menja katalog opreme.
-  bool get _canEditCatalog =>
-      widget.auth?.can(AppPermission.editEvent) ?? false;
 
   @override
   void initState() {
@@ -164,81 +159,6 @@ class _LagerScreenState extends State<LagerScreen> {
     });
   }
 
-  /// Dodaje stavku u sekciju. Preko [kMaxChecklistItems] se ne ide —
-  /// lista prestaje da bude upotrebljiva kad se pakuje u žurbi.
-  void _addItem(String sectionId, String name) {
-    if (_totalItems >= kMaxChecklistItems) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Dostignut je limit od $kMaxChecklistItems stavki.',
-            ),
-          ),
-        );
-      return;
-    }
-
-    final id = 'dodato-${_nextAddedNumber++}';
-    setState(() {
-      _addedItemIds.add(id);
-      _catalog = [
-        for (final section in _catalog)
-          if (section.id == sectionId)
-            ChecklistSection(
-              id: section.id,
-              name: section.name,
-              items: [...section.items, ChecklistItem(id: id, name: name)],
-            )
-          else
-            section,
-      ];
-    });
-    _saveCategory(sectionId);
-  }
-
-  /// Upisuje izmenjenu kategoriju u katalog firme.
-  ///
-  /// Ide u pozadini; ako pukne, javi se porukom. Spisak se ne vraća unazad —
-  /// usred pakovanja je gore izgubiti upisanu stavku nego imati je dvaput.
-  Future<void> _saveCategory(String sectionId) async {
-    final section = _catalog.where((s) => s.id == sectionId).firstOrNull;
-    if (section == null) return;
-
-    try {
-      await _service.saveCategory(section);
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Izmena opreme nije sačuvana.')),
-        );
-    }
-  }
-
-  void _removeItem(String sectionId, String itemId) {
-    setState(() {
-      _addedItemIds.remove(itemId);
-      for (final checked in _checked.values) {
-        checked.remove(itemId);
-      }
-      _catalog = [
-        for (final section in _catalog)
-          if (section.id == sectionId)
-            ChecklistSection(
-              id: section.id,
-              name: section.name,
-              items: section.items.where((i) => i.id != itemId).toList(),
-            )
-          else
-            section,
-      ];
-    });
-    _saveCategory(sectionId);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: _buildBody());
@@ -298,14 +218,9 @@ class _LagerScreenState extends State<LagerScreen> {
             ChecklistSectionTile(
               section: section,
               checkedIds: checked,
-              addedItemIds: _addedItemIds,
               isExpanded: _expanded.contains(section.id),
               onToggleExpanded: () => _toggleSection(section.id),
               onToggleItem: _toggleItem,
-              // Katalog firme menja samo manager; ostali samo čekiraju.
-              canEditItems: _canEditCatalog,
-              onAddItem: (name) => _addItem(section.id, name),
-              onRemoveItem: (itemId) => _removeItem(section.id, itemId),
             ),
         ],
       ),
