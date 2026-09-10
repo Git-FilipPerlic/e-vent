@@ -153,6 +153,11 @@ class JustAudioPlayback implements AudioPlayback {
   /// besmisleno kad neko hoće tišinu odmah.
   static const Duration pauseFadeDuration = Duration(milliseconds: 1200);
 
+  /// **Pauza nikad ne seče naglo.** I kad je `Fade` isključen, zvuk se spusti
+  /// za pola sekunde — dovoljno da nestane onaj „klik" na prekidu, a
+  /// prekratko da bi se osetilo kao pretapanje.
+  static const Duration shortPauseFade = Duration(milliseconds: 500);
+
   /// Koliko se najduže čeka da se numera otvori.
   ///
   /// Bez ovoga plejer ume da ostane zauvek na "učitava se": kad putanja ne
@@ -306,8 +311,11 @@ class JustAudioPlayback implements AudioPlayback {
 
   @override
   Future<void> pause({bool fadeOut = false}) async {
-    if (fadeOut && _active.playing) {
-      await _fade(target: 0, over: pauseFadeDuration);
+    if (_active.playing) {
+      await _fade(
+        target: 0,
+        over: fadeOut ? pauseFadeDuration : shortPauseFade,
+      );
     }
     _cancelFades();
     await _active.pause();

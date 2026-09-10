@@ -30,6 +30,17 @@ class ChecklistSection {
   final String name;
   final List<ChecklistItem> items;
 
+  /// Zapis kakav ide u bazu — ogledalo [ChecklistSection.fromMap].
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'items': [
+        for (final item in items) {'id': item.id, 'name': item.name},
+      ],
+    };
+  }
+
   factory ChecklistSection.fromMap(Map<String, dynamic> map) {
     final rawItems = (map['items'] as List?) ?? const [];
     return ChecklistSection(

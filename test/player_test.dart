@@ -699,6 +699,26 @@ void main() {
     });
   });
 
+  group('pauza', () {
+    test('nikad ne seče naglo, ni kad je Fade isključen', () {
+      // Pola sekunde: dovoljno da nestane „klik" na prekidu, prekratko da bi
+      // se osetilo kao pretapanje.
+      expect(
+        JustAudioPlayback.shortPauseFade,
+        const Duration(milliseconds: 500),
+      );
+      // Uz uključen Fade pauza je duža, ali i dalje kratka.
+      expect(
+        JustAudioPlayback.pauseFadeDuration.inMilliseconds,
+        greaterThan(JustAudioPlayback.shortPauseFade.inMilliseconds),
+      );
+      expect(
+        JustAudioPlayback.pauseFadeDuration.inSeconds,
+        lessThan(JustAudioPlayback.quickFadeDuration.inSeconds),
+      );
+    });
+  });
+
   group('dužina ulaska iz tišine', () {
     test('obično plej dugme ulazi za 5 sekundi', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));

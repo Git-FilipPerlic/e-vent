@@ -299,6 +299,39 @@ class Event {
     );
   }
 
+  /// Pretvara događaj u mapu kakvu baza očekuje.
+  ///
+  /// Ogledalo je [Event.fromMap]: datumi idu kao tekst po ISO standardu, a
+  /// **polja kojih nema se ne upisuju** — prazno polje u bazi i polje koje
+  /// ne postoji su za nas ista stvar, a kraći zapis je lakši za čitanje.
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      if (title != null) 'title': title,
+      if (scenario.isNotEmpty) 'scenario': scenario,
+      if (organizerName != null) 'organizerName': organizerName,
+      if (organizerPhone != null) 'organizerPhone': organizerPhone,
+      if (address != null) 'address': address,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (eventDate != null) 'eventDate': eventDate!.toIso8601String(),
+      if (departureTime != null)
+        'departureTime': departureTime!.toIso8601String(),
+      if (travelDurationMinutes != null)
+        'travelDurationMinutes': travelDurationMinutes,
+      if (durationMinutes != null) 'durationMinutes': durationMinutes,
+      if (vehicleId != null) 'vehicleId': vehicleId,
+      if (categoryIds.isNotEmpty) 'categoryIds': categoryIds,
+      if (participants.isNotEmpty)
+        'participants': [
+          for (final p in participants) {'name': p.name, 'role': p.role},
+        ],
+      if (createdBy != null) 'createdBy': createdBy,
+      if (assignedTo.isNotEmpty) 'assignedTo': assignedTo,
+      if (type != null) 'type': type!.id,
+    };
+  }
+
   /// Prazan tekst iz baze tretiramo isto kao da podatak ne postoji.
   static String? _emptyToNull(String? value) {
     if (value == null || value.trim().isEmpty) return null;
