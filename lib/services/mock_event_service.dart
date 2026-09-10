@@ -189,8 +189,35 @@ class MockEventService implements EventService {
     await Future<void>.delayed(_delay);
     return [
       for (final map in _checklistTemplate)
-        _editedCategories[map['id'] as String] ?? ChecklistSection.fromMap(map),
+        if (!_deletedCategories.contains(map['id'] as String))
+          _editedCategories[map['id'] as String] ??
+              ChecklistSection.fromMap(map),
+      for (final id in _createdCategories.keys)
+        _editedCategories[id] ?? _createdCategories[id]!,
     ];
+  }
+
+  /// Kategorije napravljene u aplikaciji, i one obrisane.
+  final Map<String, ChecklistSection> _createdCategories = {};
+  final Set<String> _deletedCategories = {};
+  int _nextCategoryNumber = 1;
+
+  @override
+  Future<ChecklistSection> createCategory(String name) async {
+    await Future<void>.delayed(_delay);
+
+    final id = 'sec-novo-${_nextCategoryNumber++}';
+    final category = ChecklistSection(id: id, name: name.trim());
+    _createdCategories[id] = category;
+    return category;
+  }
+
+  @override
+  Future<void> deleteCategory(String categoryId) async {
+    await Future<void>.delayed(_delay);
+    _createdCategories.remove(categoryId);
+    _editedCategories.remove(categoryId);
+    _deletedCategories.add(categoryId);
   }
 
   @override

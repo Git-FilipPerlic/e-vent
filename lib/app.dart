@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'screens/equipment_screen.dart';
 import 'screens/events_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -154,6 +155,14 @@ class _RootNavigationState extends State<RootNavigation> {
     super.dispose();
   }
 
+  /// Spisak opreme cele firme — odatle se prave kategorije koje se posle
+  /// biraju po događaju.
+  Future<void> _openEquipment() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => EquipmentScreen(service: _events)),
+    );
+  }
+
   /// Otvara prijavu, odnosno konzolu kad je neko već prijavljen.
   ///
   /// Tu su i logotip i odjava — na glavnoj strani su tri ikonice prekrivale
@@ -168,6 +177,9 @@ class _RootNavigationState extends State<RootNavigation> {
           hasLogo: _logoPath != null,
           onEditLogo: canEditLogo ? _pickLogo : null,
           onRemoveLogo: canEditLogo && _logoPath != null ? _removeLogo : null,
+          onOpenEquipment: _auth.can(AppPermission.editEvent)
+              ? _openEquipment
+              : null,
         ),
       ),
     );

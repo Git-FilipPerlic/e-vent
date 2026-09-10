@@ -59,6 +59,15 @@ abstract interface class EventService {
   /// Katalog kategorija opreme koje firma ima, sa delovima.
   Future<List<ChecklistSection>> loadChecklistTemplate();
 
+  /// Pravi novu kategoriju opreme i vraća je sa dodeljenim `id`-jem.
+  Future<ChecklistSection> createCategory(String name);
+
+  /// Briše kategoriju iz **kataloga firme**.
+  ///
+  /// Događaji koji su je nosili je posle toga prosto nemaju — čuvaju se samo
+  /// id-jevi, pa nepostojeća kategorija ispada iz prikaza sama.
+  Future<void> deleteCategory(String categoryId);
+
   /// Čuva izmenjenu kategoriju (delove koji joj pripadaju).
   ///
   /// Menja **katalog firme**, pa se izmena vidi na svim događajima koji tu

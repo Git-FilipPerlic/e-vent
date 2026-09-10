@@ -94,7 +94,14 @@ class _EditTextSheetState extends State<_EditTextSheet> {
             TextField(
               controller: _controller,
               autofocus: true,
-              keyboardType: widget.keyboardType,
+              // **Višeredno polje traži tastaturu sa novim redom.** Flutter
+              // to i proverava: obično `text` uz `newline` obara ekran. Na to
+              // se naletelo na unosu adrese, jedinom polju sa dva reda.
+              keyboardType:
+                  widget.maxLines > 1 &&
+                      widget.keyboardType == TextInputType.text
+                  ? TextInputType.multiline
+                  : widget.keyboardType,
               maxLines: widget.maxLines,
               textInputAction: widget.maxLines > 1
                   ? TextInputAction.newline

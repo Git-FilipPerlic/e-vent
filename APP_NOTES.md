@@ -1540,6 +1540,34 @@ pisala mejl adresa. Tri izmene:
 
 `flutter analyze` čist, `flutter test` 340/340.
 
+## 10. septembar 2026 — oprema firme, i pad na unosu adrese
+
+**Pad na unosu adrese (prijavio korisnik).** Crveni ekran čim se otvori unos:
+`Use keyboardType: TextInputType.multiline when using TextInputAction.newline
+on a multiline TextField`. **Adresa je jedino polje sa dva reda** u celoj
+aplikaciji, pa je jedino i pogađalo tu proveru — sva ostala polja su jednoredna
+i zato se nikad nije pojavilo. List za unos sada višerednom polju daje
+odgovarajuću tastaturu.
+
+Dodata su i dva testa koja otvaraju baš to polje; proverio sam da bez
+ispravke oba padaju. To je bila prava rupa u pokrivenosti: testirao sam unos
+naziva i organizatora, a oni imaju jedan red.
+
+**Oprema firme (ekran u konzoli).** Kategorije su do sada mogle samo da se
+menjaju — nisu mogle da se **prave ni brišu**, pa je sa praznom bazom katalog
+ostajao prazan zauvek. Sada u konzoli stoji „Uredi spisak opreme": pravljenje,
+preimenovanje, brisanje, a dodir na kategoriju otvara njene delove. Brisanje
+kaže koliko delova odlazi sa njom.
+
+`EventService` je dobio `createCategory` i `deleteCategory`, u obe izvedbe.
+
+**Izbor kategorija po događaju su sada dugmići**, kao u „Ko radi" — korisnik
+je tražio baš to, jer su pregledniji od spiska sa kvačicama. Na dugmetu stoji
+i broj delova, a olovka na njemu otvara delove te kategorije. Prazan katalog
+upućuje u konzolu.
+
+`flutter analyze` čist, `flutter test` 344/344.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

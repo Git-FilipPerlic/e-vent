@@ -142,6 +142,18 @@ class FirestoreEventService implements EventService {
   }
 
   @override
+  Future<ChecklistSection> createCategory(String name) async {
+    final doc = _db.collection('checklistTemplates').doc();
+    final category = ChecklistSection(id: doc.id, name: name.trim());
+    await doc.set(category.toMap());
+    return category;
+  }
+
+  @override
+  Future<void> deleteCategory(String categoryId) =>
+      _db.collection('checklistTemplates').doc(categoryId).delete();
+
+  @override
   Future<void> saveCategory(ChecklistSection category) async {
     // Menja **katalog firme**, pa se izmena vidi na svim događajima koji tu
     // kategoriju nose.

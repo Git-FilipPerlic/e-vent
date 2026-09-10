@@ -127,4 +127,73 @@ void main() {
       expect(reloaded.categoryIds, ['sec-hoop']);
     });
   });
+
+  group('izbor kategorija po događaju', () {
+    testWidgets('kategorije stoje kao dugmići, kao u „Ko radi"', (
+      WidgetTester tester,
+    ) async {
+      List<String>? picked;
+
+      await tester.pumpWidget(
+        _wrap(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                picked = await showCategoryPicker(
+                  context,
+                  catalog: _catalog,
+                  selectedIds: const ['sec-vatra'],
+                );
+              },
+              child: const Text('otvori'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('otvori'));
+      await tester.pumpAndSettle();
+
+      // Naziv i broj delova stoje u samom dugmetu.
+      expect(find.widgetWithText(FilterChip, 'Vatra · 2'), findsOneWidget);
+      expect(find.widgetWithText(FilterChip, 'LED · 1'), findsOneWidget);
+
+      final vatra = tester.widget<FilterChip>(
+        find.widgetWithText(FilterChip, 'Vatra · 2'),
+      );
+      expect(vatra.selected, isTrue);
+
+      // Dodir dodaje kategoriju, ponovni je skida.
+      await tester.tap(find.widgetWithText(FilterChip, 'LED · 1'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sačuvaj'));
+      await tester.pumpAndSettle();
+
+      expect(picked, containsAll(<String>['sec-vatra', 'sec-led']));
+    });
+
+    testWidgets('prazan katalog upućuje u konzolu', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showCategoryPicker(
+                context,
+                catalog: const [],
+                selectedIds: const [],
+              ),
+              child: const Text('otvori'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('otvori'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Oprema firme'), findsOneWidget);
+    });
+  });
 }

@@ -124,4 +124,48 @@ void main() {
       expect(find.textContaining('9 Petar'), findsOneWidget);
     });
   });
+
+  group('unos adrese', () {
+    testWidgets('polje sa dva reda se otvara bez greške', (
+      WidgetTester tester,
+    ) async {
+      final auth = MockAuthService();
+      await auth.signIn(name: 'Filip', pin: '1234');
+
+      await tester.pumpWidget(_wrap(HomeScreen(auth: auth)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(_pencil('Adresa'));
+      await tester.pumpAndSettle();
+
+      // Adresa je jedino polje sa dva reda. Flutter obara ekran kad
+      // višeredno polje dobije običnu tastaturu uz „novi red" — na to se i
+      // naletelo na telefonu.
+      expect(tester.takeException(), isNull);
+      expect(find.text('Adresa'), findsWidgets);
+
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.maxLines, 2);
+      expect(field.keyboardType, TextInputType.multiline);
+    });
+
+    testWidgets('uneta adresa se odmah vidi na kartici', (
+      WidgetTester tester,
+    ) async {
+      final auth = MockAuthService();
+      await auth.signIn(name: 'Filip', pin: '1234');
+
+      await tester.pumpWidget(_wrap(HomeScreen(auth: auth)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(_pencil('Adresa'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Kisačka 78, Novi Sad');
+      await tester.tap(find.text('Sačuvaj'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('Kisačka 78'), findsOneWidget);
+    });
+  });
 }

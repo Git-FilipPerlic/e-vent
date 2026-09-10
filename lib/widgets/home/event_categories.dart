@@ -221,48 +221,48 @@ class _CategoryPickerState extends State<_CategoryPicker> {
             ),
           ),
           Flexible(
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: widget.catalog.length,
-              itemBuilder: (context, index) {
-                final section = widget.catalog[index];
-                final isOn = _selected.contains(section.id);
-
-                return CheckboxListTile(
-                  value: isOn,
-                  onChanged: (value) => setState(() {
-                    if (value ?? false) {
-                      _selected.add(section.id);
-                    } else {
-                      _selected.remove(section.id);
-                    }
-                  }),
-                  title: Text(
-                    section.name,
-                    style: const TextStyle(color: AppColors.textPrimary),
-                  ),
-                  subtitle: Text(
-                    '${section.items.length} delova',
-                    style: const TextStyle(color: AppColors.textSecondary),
-                  ),
-                  activeColor: AppColors.accent,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  secondary: widget.onEditItems == null
-                      ? null
-                      : IconButton(
-                          onPressed: () {
-                            // Izmena delova otvara svoj ekran, pa se ovaj
-                            // list zatvara sa dosad izabranim kategorijama.
-                            Navigator.of(context).pop(_selected.toList());
-                            widget.onEditItems!(section);
-                          },
-                          icon: const Icon(Icons.edit_rounded),
-                          iconSize: 18,
-                          color: AppColors.accent,
-                          tooltip: 'Izmeni delove',
-                        ),
-                );
-              },
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  // Dugmići kao u „Ko radi": pregledniji od spiska sa
+                  // kvačicama, i odmah se vidi šta je uzeto a šta nije.
+                  for (final section in widget.catalog)
+                    FilterChip(
+                      label: Text('${section.name} · ${section.items.length}'),
+                      selected: _selected.contains(section.id),
+                      onSelected: (value) => setState(() {
+                        if (value) {
+                          _selected.add(section.id);
+                        } else {
+                          _selected.remove(section.id);
+                        }
+                      }),
+                      // Dug pritisak otvara delove te kategorije — retka
+                      // radnja, pa ne zauzima mesto u samom dugmetu.
+                      onDeleted: widget.onEditItems == null
+                          ? null
+                          : () {
+                              Navigator.of(context).pop(_selected.toList());
+                              widget.onEditItems!(section);
+                            },
+                      deleteIcon: widget.onEditItems == null
+                          ? null
+                          : const Icon(Icons.edit_rounded, size: 16),
+                      deleteButtonTooltipMessage: 'Izmeni delove',
+                    ),
+                  if (widget.catalog.isEmpty)
+                    Text(
+                      'Nijedna kategorija još nije napravljena. Prave se u '
+                      'konzoli, pod „Oprema firme".',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
           const Divider(),

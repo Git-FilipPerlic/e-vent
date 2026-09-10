@@ -31,6 +31,11 @@ class _FailingService implements EventService {
   @override
   Future<List<String>> loadTeamMembers() => throw UnimplementedError();
   @override
+  Future<ChecklistSection> createCategory(String name) =>
+      throw UnimplementedError();
+  @override
+  Future<void> deleteCategory(String categoryId) => throw UnimplementedError();
+  @override
   Future<List<Vehicle>> loadVehicles() => throw UnimplementedError();
   @override
   Future<Vehicle> addVehicle(String name) => throw UnimplementedError();
