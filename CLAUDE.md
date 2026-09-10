@@ -735,7 +735,7 @@ popunjavanje tabele koja se posle deli timu.
 | ADMIN-005 | Izbor kategorija opreme za događaj + dodela vozila | gotovo |
 | ADMIN-006 | Izmena delova kategorije iz konzole | gotovo |
 | ADMIN-007 | „Create and share" — dodela događaja timu | gotovo |
-| ADMIN-008 | Zamena lokalne prijave Firebase Auth-om | sledeće |
+| ADMIN-008 | Zamena lokalne prijave Firebase Auth-om | gotovo |
 
 **Ime pod kojim te ekipa vidi menja se u konzoli.** Podrazumevano stoji deo
 mejla pre `@`, jer se **ljudi pamte po imenu, ne po adresi** — a to ime stoji
