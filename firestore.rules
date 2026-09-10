@@ -1,0 +1,87 @@
+rules_version = '2';
+
+// Pravila pristupa — **jedina prava zaštita podataka.**
+//
+// `firebase_options.dart` i `google-services.json` sadrže javne
+// identifikatore projekta i sami po sebi ne štite ništa: ko ih ima, može da
+// pokuca na bazu. Šta će mu baza dati, odlučuje se ovde.
+//
+// Osnovno pravilo: **ništa bez prijave.** Sve ispod toga je razrada.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Ko je prijavljen.
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Profil prijavljenog: ime i uloga stoje u `users/{uid}`, ne u samom
+    // nalogu. Nalog zna samo mejl; ko je ko u ekipi je podatak firme.
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid))
+          .data;
+    }
+
+    // Vodi ekipu. Sve što menja podatke tima traži ovu ulogu.
+    function isGlavni() {
+      return signedIn()
+          && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && profile().role == 'glavni';
+    }
+
+    // Ime pod kojim se korisnik pojavljuje u `assignedTo` i `createdBy`.
+    function myName() {
+      return profile().name;
+    }
+
+    // --- Ekipa -------------------------------------------------------------
+    //
+    // Spisak ekipe čita svako prijavljen — iz njega se bira kome se događaj
+    // dodeljuje. Menja ga samo onaj ko vodi ekipu.
+    //
+    // Izuzetak: **svako sme da napravi svoj profil** pri prvoj prijavi, i to
+    // samo kao običan izvođač. Unapređenje u `glavni` ide iz konzole ili od
+    // nekoga ko je već `glavni` — inače bi svako sebe proglasio šefom.
+    match /users/{userId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+                    && request.auth.uid == userId
+                    && request.resource.data.role == 'user';
+      allow update, delete: if isGlavni();
+    }
+
+    // --- Događaji ----------------------------------------------------------
+    //
+    // Vidi ih onaj kome su dodeljeni i onaj ko ih je napravio. Ostali ne —
+    // zato spisak filtrira baza, a ne ekran: da ekran prosejava, tuđi podaci
+    // bi mu već stigli na telefon.
+    match /events/{eventId} {
+      allow read: if signedIn()
+                  && (isGlavni()
+                      || resource.data.createdBy == myName()
+                      || myName() in resource.data.get('assignedTo', []));
+      allow create, update, delete: if isGlavni();
+    }
+
+    // --- Vozila i katalog opreme -------------------------------------------
+    //
+    // Čita ih cela ekipa: vozilo i spisak opreme se gledaju na terenu.
+    // Menja ih samo onaj ko vodi ekipu — katalog je zajednički, pa bi izmena
+    // jednog čoveka promenila pakovanje svima.
+    match /vehicles/{vehicleId} {
+      allow read: if signedIn();
+      allow write: if isGlavni();
+    }
+
+    match /checklistTemplates/{sectionId} {
+      allow read: if signedIn();
+      allow write: if isGlavni();
+    }
+
+    // Sve ostalo je zatvoreno. Nova kolekcija ne postaje javna time što je
+    // neko zaboravi ovde.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

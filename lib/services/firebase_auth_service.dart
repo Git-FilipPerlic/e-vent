@@ -32,6 +32,9 @@ class FirebaseAuthService extends AuthService {
   @override
   AppUser? get currentUser => _currentUser;
 
+  @override
+  bool get usesEmail => true;
+
   Future<void> _onAuthChanged(fb.User? user) async {
     if (user == null) {
       _currentUser = null;
@@ -57,7 +60,17 @@ class FirebaseAuthService extends AuthService {
     try {
       final doc = await _db.collection('users').doc(user.uid).get();
       final data = doc.data();
-      if (data == null) return fallback;
+      if (data == null) {
+        // Prva prijava: profil se pravi sam, kao **običan izvođač**.
+        // Unapređenje u `glavni` ide iz konzole ili od nekoga ko to već
+        // jeste — inače bi svako sebe proglasio šefom, što pravila i brane.
+        await doc.reference.set({
+          'name': fallback.name,
+          'role': UserRole.user,
+          'email': user.email,
+        });
+        return fallback;
+      }
 
       final name = (data['name'] as String?)?.trim();
       final role = (data['role'] as String?)?.trim();

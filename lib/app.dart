@@ -13,6 +13,8 @@ import 'screens/led_screen.dart';
 import 'screens/music_screen.dart';
 import 'services/auth_service.dart';
 import 'services/event_service.dart';
+import 'services/firebase_auth_service.dart';
+import 'services/firestore_event_service.dart';
 import 'services/mock_event_service.dart';
 import 'services/background_audio.dart';
 import 'services/team_logo_service.dart';
@@ -89,12 +91,21 @@ class _RootNavigationState extends State<RootNavigation> {
   /// Jedina mesta gde se biraju servisi. Kad stigne pravi login i baza,
   /// menjaju se ove dve linije.
   /// Ko je prijavljen. Bez prijave aplikacija radi, samo se ništa ne menja.
-  final AuthService _auth = MockAuthService();
+  /// **Jedino mesto gde se biraju izvori podataka.**
+  ///
+  /// Kad je Firebase podignut, radi se sa pravom bazom i pravom prijavom; kad
+  /// nije (nema mreže pri prvom pokretanju), aplikacija se i dalje otvara sa
+  /// lokalnim podacima. Ekrani razliku ne vide — oba servisa poštuju isti
+  /// interfejs, i zbog toga je ovde jedna linija umesto prepravke aplikacije.
+  late final AuthService _auth = widget.hasFirebase
+      ? FirebaseAuthService()
+      : MockAuthService();
 
-  /// **Jedino mesto gde se bira izvor podataka.** Spisak, Home i Lager dele
-  /// isti servis — inače svaki ekran ima svoje podatke, pa izmena napravljena
-  /// na Home tabu ne stigne do spiska.
-  final EventService _events = MockEventService();
+  /// Spisak, Home i Lager dele isti servis — inače svaki ekran ima svoje
+  /// podatke, pa izmena napravljena na Home tabu ne stigne do spiska.
+  late final EventService _events = widget.hasFirebase
+      ? FirestoreEventService()
+      : MockEventService();
   final TeamLogoService _logoService = const TeamLogoService();
 
   final ImagePicker _picker = ImagePicker();

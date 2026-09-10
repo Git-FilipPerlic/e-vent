@@ -48,6 +48,10 @@ abstract class AuthService extends ChangeNotifier {
 
   bool get isSignedIn => currentUser != null;
 
+  /// Da li se prijavljuje **mejlom i lozinkom** (prava prijava), ili imenom
+  /// i PIN-om (lokalna, za probu). Ekran po tome ispisuje nazive polja.
+  bool get usesEmail => false;
+
   /// Prijava. Vraća `null` kad je prošla, ili poruku o grešci.
   Future<String?> signIn({required String name, required String pin});
 
