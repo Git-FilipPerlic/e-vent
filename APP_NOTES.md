@@ -1510,6 +1510,36 @@ Pogrešno ubačena pesma ostajala bi zauvek.
   sledećem pokretanju.
 - `flutter analyze` čist, `flutter test` 337/337, uz osam novih testova.
 
+## 10. septembar 2026 — četiri primedbe posle prve prave prijave
+
+Sve četiri je korisnik našao čim je aplikacija počela da radi sa pravom
+bazom — što je i bila poenta: test podaci ovakve stvari ne pokažu.
+
+**1. Birač sata se raspao.** Brojčanik je na 320 dp sa fontom 1,3× izbacivao
+brojke jednu preko druge. Sat se sada unosi **brojkama**
+(`TimePickerEntryMode.input`), a oba sistemska birača se crtaju sa
+**ograničenim uvećanjem teksta** (do 1,15). Ti ekrani su tuđi i imaju čvrste
+mere; ostatak aplikacije i dalje poštuje sistemsko uvećanje u celosti.
+
+**2. LED tab je delovao prazno.** Kontrole su se pojavljivale tek posle
+povezivanja, pa korisnik nije ni video da postoje boje. Sada se **vide uvek**,
+samo su zaključane dok se kontroler ne poveže, uz jasno „Nije povezano".
+
+**3. Dodati efekti (LED-008).** Sedam ugrađenih: duga, duga skokovito, tri
+prelaza između boja i dva stroba, uz klizač brzine. Bitno: **efekat vrti sam
+kontroler**, pa radi i kad se telefon zaključa ili izgubi Wi-Fi — na nastupu
+rasveta ne sme da stane zbog telefona. Efekat i boja se međusobno isključuju.
+
+**4. Mejl umesto imena.** Posle prave prijave je u headeru i u „Ko radi"
+pisala mejl adresa. Tri izmene:
+- **ime se u headeru više ne ispisuje** — stajalo je preko banera, a piše u
+  konzoli
+- podrazumevano ime je sada **deo mejla pre `@`**, ne cela adresa
+- u konzoli se **ime menja olovkom**; pravila baze dozvoljavaju svakome da
+  popravi svoje ime, ali **ne i ulogu** — inače bi se svako proglasio vođom
+
+`flutter analyze` čist, `flutter test` 340/340.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

@@ -60,6 +60,7 @@ class _EventWhenSheetState extends State<_EventWhenSheet> {
       // spisak popunjava unazad. Zato godina unazad, a ne od danas.
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 3),
+      builder: _withReadableText,
     );
     if (picked == null) return;
 
@@ -79,6 +80,11 @@ class _EventWhenSheetState extends State<_EventWhenSheet> {
       initialTime: current != null
           ? TimeOfDay(hour: current.hour, minute: current.minute)
           : const TimeOfDay(hour: 16, minute: 0),
+      // Brojčanik se na uskom telefonu sa uvećanim fontom raspao — brojke su
+      // se preklapale. Unos brojkama je i brži: sat se zna napamet, ne
+      // pogađa se prstom po krugu.
+      initialEntryMode: TimePickerEntryMode.input,
+      builder: _withReadableText,
     );
     if (picked == null) return;
 
@@ -205,6 +211,21 @@ class _EventWhenSheetState extends State<_EventWhenSheet> {
       ),
     );
   }
+}
+
+/// Sistemski birači se crtaju sa **ograničenim uvećanjem teksta**.
+///
+/// Oni imaju svoje čvrste mere; pri uvećanju preko ~1,15 njihovi elementi
+/// izlaze jedan preko drugog. Ostatak aplikacije poštuje sistemsko
+/// podešavanje u celosti — ovo je izuzetak samo za tuđe, gotove ekrane.
+Widget _withReadableText(BuildContext context, Widget? child) {
+  final media = MediaQuery.of(context);
+  return MediaQuery(
+    data: media.copyWith(
+      textScaler: media.textScaler.clamp(maxScaleFactor: 1.15),
+    ),
+    child: child ?? const SizedBox.shrink(),
+  );
 }
 
 /// Jedan red koji otvara sistemski birač.

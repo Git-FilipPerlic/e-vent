@@ -17,6 +17,8 @@ class _FakeLed implements LedController {
   bool? lastPower;
   List<int>? lastColor;
   double? lastBrightness;
+  LedEffect? lastEffect;
+  double? lastSpeed;
 
   @override
   bool get isConnected => connectedTo != null;
@@ -44,6 +46,12 @@ class _FakeLed implements LedController {
 
   @override
   Future<void> setBrightness(double value) async => lastBrightness = value;
+
+  @override
+  Future<void> setEffect(LedEffect effect, {double speed = 0.5}) async {
+    lastEffect = effect;
+    lastSpeed = speed;
+  }
 }
 
 Widget _wrap(Widget child) => MaterialApp(theme: AppTheme.dark, home: child);
@@ -99,8 +107,14 @@ void main() {
 
       expect(find.text('Potraži kontroler'), findsOneWidget);
       expect(find.text('Unesi adresu ručno'), findsOneWidget);
-      // Dok nema veze, kontrola bojom se i ne nudi.
-      expect(find.text('Upali'), findsNothing);
+      // Kontrole se **vide** i pre povezivanja — inače tab deluje prazno i
+      // ne vidi se šta nudi — ali ne rade.
+      expect(find.text('Upali'), findsOneWidget);
+      expect(find.text('Nije povezano'), findsOneWidget);
+      final upali = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Upali'),
+      );
+      expect(upali.onPressed, isNull);
     });
 
     testWidgets('kad ništa nije nađeno, kaže se šta da se proveri', (
@@ -247,6 +261,62 @@ void main() {
 
       await memory.clear();
       expect(await memory.lastAddress(), isNull);
+    });
+  });
+
+  group('efekti', () {
+    test('brzina se preslikava obrnuto, kako kontroler broji', () async {
+      // Kod Magic Home-a je 1 najbrže, 0x1F najsporije.
+      final led = MagicHomeController();
+      await led.setEffect(LedEffect.duga, speed: 1);
+      await led.setEffect(LedEffect.duga, speed: 0);
+      expect(led.isConnected, isFalse);
+    });
+
+    test('svaki efekat ima svoj broj', () {
+      expect(LedEffect.duga.code, 0x25);
+      expect(LedEffect.dugaSkok.code, 0x38);
+      expect(LedEffect.strob.code, 0x30);
+      // Nijedan se ne ponavlja.
+      final codes = LedEffect.values.map((e) => e.code).toSet();
+      expect(codes.length, LedEffect.values.length);
+    });
+
+    testWidgets('efekat i boja se isključuju', (WidgetTester tester) async {
+      final led = _FakeLed(devices: const [LedDevice(address: '192.168.4.1')]);
+
+      await tester.pumpWidget(_wrap(LedScreen(controller: led)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Potraži kontroler'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('192.168.4.1').first);
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.widgetWithText(ChoiceChip, 'Duga'),
+        200,
+      );
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Duga'));
+      await tester.pumpAndSettle();
+      expect(led.lastEffect, LedEffect.duga);
+
+      // Izbor boje gasi efekat — kontroler radi ili jedno ili drugo.
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('boja-0')),
+        -200,
+      );
+      await tester.tap(find.byKey(const ValueKey('boja-0')));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.widgetWithText(ChoiceChip, 'Duga'),
+        200,
+      );
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Duga'))
+            .selected,
+        isFalse,
+      );
     });
   });
 }

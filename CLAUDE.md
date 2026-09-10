@@ -118,7 +118,8 @@ Uz to na Home ekranu:
 - **pull-to-refresh** (povlačenje nadole ponovo učitava podatke o događaju)
 - **greška pri učitavanju**: poruka + dugme "Pokušaj ponovo" umesto praznog ekrana (HOME-021)
 - **header sa logotipom tima** (iznad tabova): logo bira korisnik sa ulogom `glavni`,
-  ostali ga samo vide. **Izabrana slika se prekopira u trajni folder
+  ostali ga samo vide. **Ime prijavljenog se u headeru ne ispisuje** — stajalo
+  je preko banera, a piše u konzoli, gde mu je i mesto. **Izabrana slika se prekopira u trajni folder
   aplikacije**, a ne ostavlja tamo gde je `image_picker` spusti — njegov
   folder je privremen i Android ga briše, pa je logotip nestajao pri
   reinstalaciji. Svaka nova slika dobija novo ime (nosi vreme čuvanja), jer
@@ -581,7 +582,17 @@ bajt svake poruke.
 | LED-005 | Izbor redosleda boja (RGB / GRB / BRG) | gotovo |
 | LED-006 | Jačina svetla | gotovo |
 | LED-007 | Pamćenje poslednjeg kontrolera | gotovo |
-| LED-008 | Scene i efekti | |
+| LED-008 | Scene i efekti (ugrađeni u kontroler) | gotovo |
+
+**Efekte vrti sam kontroler, ne telefon.** Zato rade i kad se telefon
+zaključa ili izgubi mrežu — na nastupu presudno: rasveta ne sme da stane zato
+što je nekome pao Wi-Fi. Aplikacija samo pošalje broj efekta i brzinu.
+**Efekat i boja se isključuju** — kontroler radi ili jedno ili drugo, pa izbor
+boje gasi efekat i obrnuto.
+
+**Kontrole se vide i pre povezivanja**, samo ne rade. Ranije ih uopšte nije
+bilo dok se kontroler ne nađe, pa je tab delovao prazno i nije se videlo šta
+uopšte nudi.
 
 **Jačina svetla nema svoju komandu.** Magic Home je nema — šalje se **ista
 boja, utamnjena**. Zato boja i jačina žive zajedno u kontroleru: kad bi se
@@ -718,6 +729,17 @@ popunjavanje tabele koja se posle deli timu.
 | ADMIN-006 | Izmena delova kategorije iz konzole | gotovo |
 | ADMIN-007 | „Create and share" — dodela događaja timu | gotovo |
 | ADMIN-008 | Zamena lokalne prijave Firebase Auth-om | sledeće |
+
+**Ime pod kojim te ekipa vidi menja se u konzoli.** Podrazumevano stoji deo
+mejla pre `@`, jer se **ljudi pamte po imenu, ne po adresi** — a to ime stoji
+i u „Ko radi", gde bi spisak mejlova bio neupotrebljiv. Svako sme da promeni
+svoje ime; **ulogu ne sme**, to brane i pravila baze.
+
+**Sistemski birači datuma i sata crtaju se sa ograničenim uvećanjem teksta**
+(do ~1,15) i sat se unosi **brojkama, ne brojčanikom**. Brojčanik se na uskom
+telefonu sa uvećanim fontom raspadao — brojke su izlazile jedna preko druge.
+Ostatak aplikacije poštuje sistemsko uvećanje u celosti; ovo je izuzetak samo
+za tuđe, gotove ekrane.
 
 **Nalozi za probu** (upisani u kodu, samo za razvoj):
 `filip` / `1234` — uloga `glavni`; `ana` / `1111` — uloga `user`.

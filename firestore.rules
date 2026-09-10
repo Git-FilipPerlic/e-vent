@@ -47,7 +47,13 @@ service cloud.firestore {
       allow create: if signedIn()
                     && request.auth.uid == userId
                     && request.resource.data.role == 'user';
-      allow update, delete: if isGlavni();
+      // Svako sme da popravi **svoje ime** — ljudi se pamte po imenu, a ne
+      // po mejlu. Ulogu pritom ne sme da dira: kad bi svako mogao da se
+      // proglasi vođom, prijava ne bi značila ništa.
+      allow update: if isGlavni()
+                    || (request.auth.uid == userId
+                        && request.resource.data.role == resource.data.role);
+      allow delete: if isGlavni();
     }
 
     // --- Događaji ----------------------------------------------------------

@@ -24,7 +24,9 @@ class AppHeader extends StatelessWidget {
   /// Vraća na spisak događaja. `null` kad je spisak već otvoren.
   final VoidCallback? onBack;
 
-  /// Ime prijavljenog korisnika, ako je neko prijavljen.
+  /// Ko je prijavljen. **Ne ispisuje se u headeru** — samo određuje da li
+  /// dugme vodi u prijavu ili u konzolu. Ime je stajalo preko banera, a piše
+  /// u konzoli, gde mu je i mesto.
   final String? signedInAs;
 
   /// Otvara prijavu, odnosno konzolu kad je neko već prijavljen.
@@ -111,18 +113,6 @@ class AppHeader extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                   children: [
-                  // Ko je prijavljen — da se ne greši čiji su podaci na ekranu.
-                  if (signedInAs != null)
-                    Flexible(
-                      child: Text(
-                        signedInAs!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ),
                   if (onOpenConsole != null)
                     IconButton(
                       onPressed: onOpenConsole,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
+import '../services/firebase_auth_service.dart';
+import '../widgets/common/edit_text_sheet.dart';
 import '../theme/app_theme.dart';
 
 /// Prijava, a posle prijave i **konzola**.
@@ -73,6 +75,34 @@ class _LoginScreenState extends State<LoginScreen> {
     Navigator.of(context).pop(true);
   }
 
+  /// Menja ime pod kojim te ekipa vidi.
+  ///
+  /// Podrazumevano stoji deo mejla pre @, a ljudi se pamte po imenu — pa se
+  /// ovde upiše „Zvrk", „Mina", „Lole".
+  Future<void> _editName() async {
+    final auth = widget.auth;
+    if (auth is! FirebaseAuthService) return;
+
+    final name = await showEditTextSheet(
+      context,
+      label: 'Kako te ekipa vidi',
+      value: auth.currentUser?.name,
+      hint: 'na primer Zvrk',
+    );
+    if (name == null || !mounted) return;
+
+    final error = await auth.setDisplayName(name);
+    if (!mounted) return;
+
+    if (error != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(error)));
+      return;
+    }
+    setState(() {});
+  }
+
   Future<void> _signOut() async {
     await widget.auth.signOut();
     if (!mounted) return;
@@ -102,11 +132,28 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Prijavljen: ${user.name}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (widget.auth is FirebaseAuthService)
+              EditFieldButton(label: 'Kako te ekipa vidi', onTap: _editName),
+          ],
+        ),
         Text(
-          'Prijavljen: ${user.name}',
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w600,
+          // Ovo je ono što ekipa vidi u „Ko radi" — zato se i menja odavde.
+          'Pod ovim imenom te ekipa vidi kad ti se dodeli događaj.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),

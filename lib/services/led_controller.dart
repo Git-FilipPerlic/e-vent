@@ -26,6 +26,28 @@ enum ColorOrder {
   }
 }
 
+/// Gotov efekat ugrađen u sam kontroler.
+///
+/// Efekte vrti **kontroler**, ne telefon. Zato rade i kad se telefon zaključa
+/// ili izgubi mrežu — što je na nastupu presudno: rasveta ne sme da stane
+/// zato što je nekome pao Wi-Fi.
+enum LedEffect {
+  duga('Duga', 0x25),
+  dugaSkok('Duga, skokovito', 0x38),
+  crvenoZeleno('Crveno–zeleno', 0x2D),
+  crvenoPlavo('Crveno–plavo', 0x2E),
+  zelenoPlavo('Zeleno–plavo', 0x2F),
+  strob('Strob, sve boje', 0x30),
+  strobBelo('Strob, belo', 0x37);
+
+  const LedEffect(this.label, this.code);
+
+  final String label;
+
+  /// Broj efekta koji Magic Home prepoznaje.
+  final int code;
+}
+
 /// Nađen kontroler na mreži.
 class LedDevice {
   const LedDevice({required this.address, this.mac, this.model});
@@ -70,6 +92,9 @@ abstract interface class LedController {
   /// utamnjena**. Zato jačina i boja moraju da se pamte zajedno, inače bi
   /// promena jednog poništila drugo.
   Future<void> setBrightness(double value);
+
+  /// Pokreće ugrađeni efekat. [speed] je 0..1, gde je 1 najbrže.
+  Future<void> setEffect(LedEffect effect, {double speed});
 }
 
 /// Uređaj se ne javlja (nije na mreži, ili telefon nije na njegovoj mreži).
@@ -229,6 +254,14 @@ class MagicHomeController implements LedController {
     );
     // Peti bajt je bela dioda; nju ne diramo dok se ne zna ima li je uređaj.
     return _send([0x31, ...ordered, 0x00, 0x00, 0x0F]);
+  }
+
+  @override
+  Future<void> setEffect(LedEffect effect, {double speed = 0.5}) {
+    // Kontroler broji obrnuto: 1 je najbrže, 0x1F najsporije.
+    final step = (1 - speed.clamp(0.0, 1.0)) * 0x1E;
+    final value = (step.round() + 1).clamp(0x01, 0x1F);
+    return _send([0x61, effect.code, value, 0x0F]);
   }
 
   Future<void> _send(List<int> payload) async {

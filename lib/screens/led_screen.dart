@@ -36,6 +36,12 @@ class _LedScreenState extends State<LedScreen> {
   /// Jačina svetla, 0..1.
   double _brightness = 1;
 
+  /// Pokrenut efekat, ako je pokrenut. Boja i efekat se isključuju.
+  LedEffect? _effect;
+
+  /// Brzina efekta, 0..1.
+  double _speed = 0.5;
+
   bool _isSearching = false;
   bool _isBusy = false;
   String? _message;
@@ -152,6 +158,7 @@ class _LedScreenState extends State<LedScreen> {
   }
 
   Future<void> _setColor(Color color) async {
+    setState(() => _effect = null);
     await _led.setColor(
       (color.r * 255).round(),
       (color.g * 255).round(),
@@ -177,16 +184,12 @@ class _LedScreenState extends State<LedScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            if (_connectedTo == null) ..._connectSection() else ..._controls(),
-            if (_message != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                _message!,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+            // Kontrole se vide **i pre povezivanja**, samo ne rade. Ranije
+            // ih uopšte nije bilo dok se ne poveže, pa je tab delovao prazno
+            // i nije se videlo šta uopšte nudi.
+            ..._connectSection(),
+            const SizedBox(height: AppSpacing.lg),
+            ..._controls(),
           ],
         ),
       ),
@@ -232,6 +235,17 @@ class _LedScreenState extends State<LedScreen> {
         icon: const Icon(Icons.keyboard_rounded, size: 20),
         label: const Text('Unesi adresu ručno'),
       ),
+      // Poruka stoji **uz dugmad za povezivanje**, a ne na dnu ekrana:
+      // govori o povezivanju, a dole se ne bi ni videla.
+      if (_message != null) ...[
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          _message!,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
       if (_lastAddress != null) ...[
         const SizedBox(height: AppSpacing.sm),
         // Kontroler gotovo uvek dobije istu adresu, pa se ovo isplati:
@@ -267,19 +281,20 @@ class _LedScreenState extends State<LedScreen> {
 
   List<Widget> _controls() {
     final theme = Theme.of(context);
+    final on = _connectedTo != null;
 
     return [
       Row(
         children: [
-          const Icon(
-            Icons.lightbulb_rounded,
-            color: AppColors.success,
+          Icon(
+            on ? Icons.lightbulb_rounded : Icons.lightbulb_outline_rounded,
+            color: on ? AppColors.success : AppColors.textSecondary,
             size: 20,
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
-              'Povezano: $_connectedTo',
+              on ? 'Povezano: $_connectedTo' : 'Nije povezano',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -294,14 +309,14 @@ class _LedScreenState extends State<LedScreen> {
         children: [
           Expanded(
             child: FilledButton(
-              onPressed: () => _power(true),
+              onPressed: on ? () => _power(true) : null,
               child: const Text('Upali'),
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: OutlinedButton(
-              onPressed: () => _power(false),
+              onPressed: on ? () => _power(false) : null,
               child: const Text('Ugasi'),
             ),
           ),
@@ -326,7 +341,7 @@ class _LedScreenState extends State<LedScreen> {
               key: ValueKey('boja-$index'),
               color: color,
               isSelected: _color == color,
-              onTap: () => _setColor(color),
+              onTap: on ? () => _setColor(color) : null,
             ),
         ],
       ),
@@ -354,7 +369,9 @@ class _LedScreenState extends State<LedScreen> {
       Slider(
         value: _brightness,
         min: 0.05,
-        onChanged: (value) => setState(() => _brightness = value),
+        onChanged: on
+            ? (value) => setState(() => _brightness = value)
+            : null,
         // Šalje se tek kad se prst podigne: svaki pomeraj bi bio nova poruka
         // kontroleru, pa bi svetlo poskakivalo.
         onChangeEnd: _setBrightness,
@@ -383,11 +400,77 @@ class _LedScreenState extends State<LedScreen> {
             ChoiceChip(
               label: Text(order.label),
               selected: _orderOf(_led) == order,
-              onSelected: (_) => _setOrder(order),
+              onSelected: on ? (_) => _setOrder(order) : null,
             ),
         ],
       ),
+
+      const SizedBox(height: AppSpacing.lg),
+      Text(
+        'Efekti',
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: AppColors.textSecondary,
+          letterSpacing: 0.5,
+        ),
+      ),
+      const SizedBox(height: AppSpacing.xs),
+      Text(
+        // Bitno za nastup: rasveta ne staje ako telefonu padne mreža.
+        'Efekat vrti sam kontroler, pa nastavlja da radi i kad se telefon '
+        'zaključa ili izgubi Wi-Fi.',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: AppColors.textSecondary,
+        ),
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      Wrap(
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
+        children: [
+          for (final effect in LedEffect.values)
+            ChoiceChip(
+              label: Text(effect.label),
+              selected: _effect == effect,
+              onSelected: on ? (_) => _setEffect(effect) : null,
+            ),
+        ],
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      Row(
+        children: [
+          Text(
+            'Brzina',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textSecondary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          Expanded(
+            child: Slider(
+              value: _speed,
+              onChanged: on ? (value) => setState(() => _speed = value) : null,
+              // Kao i kod jačine: šalje se tek kad se prst podigne.
+              onChangeEnd: on ? (_) => _applySpeed() : null,
+            ),
+          ),
+        ],
+      ),
     ];
+  }
+
+  Future<void> _setEffect(LedEffect effect) async {
+    setState(() {
+      _effect = effect;
+      // Efekat i boja se isključuju: kontroler radi ili jedno ili drugo.
+      _color = null;
+    });
+    await _led.setEffect(effect, speed: _speed);
+  }
+
+  Future<void> _applySpeed() async {
+    final effect = _effect;
+    if (effect == null) return;
+    await _led.setEffect(effect, speed: _speed);
   }
 
   ColorOrder? _orderOf(LedController led) =>
@@ -416,7 +499,9 @@ class _Swatch extends StatelessWidget {
 
   final Color color;
   final bool isSelected;
-  final VoidCallback onTap;
+
+  /// `null` dok kontroler nije povezan — polje se tada vidi, ali ne radi.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
