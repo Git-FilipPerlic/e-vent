@@ -171,6 +171,31 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
 
+        if (widget.onOpenEquipment != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Oprema firme',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textSecondary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Spisak svih kategorija koje firma ima — Vatra, Svila, Tehnika, '
+            'Kablovi… Na svakom događaju biraš koje se tog dana nose.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            onPressed: widget.onOpenEquipment,
+            icon: const Icon(Icons.checklist_rounded, size: 20),
+            label: const Text('Uredi spisak opreme'),
+          ),
+        ],
+
         if (canEditLogo) ...[
           const SizedBox(height: AppSpacing.lg),
           Text(
@@ -202,31 +227,6 @@ class _LoginScreenState extends State<LoginScreen> {
               label: const Text('Ukloni logotip'),
             ),
           ],
-        ],
-
-        if (widget.onOpenEquipment != null) ...[
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'Oprema firme',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: AppColors.textSecondary,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            'Spisak svih kategorija koje firma ima — Vatra, Svila, Tehnika, '
-            'Kablovi… Na svakom događaju biraš koje se tog dana nose.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          OutlinedButton.icon(
-            onPressed: widget.onOpenEquipment,
-            icon: const Icon(Icons.checklist_rounded, size: 20),
-            label: const Text('Uredi spisak opreme'),
-          ),
         ],
 
         const SizedBox(height: AppSpacing.xl),

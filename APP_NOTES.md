@@ -1608,6 +1608,16 @@ delova.
 `flutter analyze` čist, `flutter test` 339/339. **Nije još viđeno na
 telefonu** — uređaj je bio isključen.
 
+## 10. septembar 2026 — „Oprema firme" na vrh konzole
+
+Korisnik je javio da u konzoli ne vidi ništa novo. Dugme je bilo tu, ali
+**ispod odeljka za logotip** — a konzola na njegovom ekranu (320 dp, uvećan
+font) ne stane odjednom, pa je trebalo skrolovati da bi se videlo.
+
+Premešteno odmah ispod imena, iznad logotipa. Razlog je prost: **logotip se
+postavi jednom u životu, a oprema se dira stalno.** Redosled u konzoli sada
+prati koliko se šta koristi, a ne kojim je redom pravljeno.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

@@ -724,7 +724,9 @@ Iz toga slede dva pravila:
   logotip se menja retko i ionako samo uz prijavu.
 
   Konzola je isti onaj ekran prijave: kad je neko već prijavljen, pokazuje
-  **ko je prijavljen, logotip tima i odjavu**. Izvođaču bez dozvole se
+  **ko je prijavljen, opremu firme, logotip tima i odjavu** — tim redom.
+  **Oprema stoji iznad logotipa** jer se logotip postavi jednom u životu, a
+  oprema se dira stalno; kad je stajala dole, korisnik je nije ni našao. Izvođaču bez dozvole se
   logotip tu i ne nudi.
 
 Login ekran izgleda kao Home ekran; razlika je samo u tome što on ima
