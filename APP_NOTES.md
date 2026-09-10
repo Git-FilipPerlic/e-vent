@@ -1618,6 +1618,28 @@ Premešteno odmah ispod imena, iznad logotipa. Razlog je prost: **logotip se
 postavi jednom u životu, a oprema se dira stalno.** Redosled u konzoli sada
 prati koliko se šta koristi, a ne kojim je redom pravljeno.
 
+## 10. septembar 2026 — Lager nije pratio izbor opreme
+
+Korisniku je bilo „nešto sumnjivo" i bio je u pravu. Provereno na uređaju:
+u izboru opreme je stajala **samo Muzika**, a Lager je prikazivao **i Muziku
+i Džambo**. Isto u oba smera — dodaš kategoriju, Lager se ne promeni; skineš
+je, Lager je i dalje pokazuje.
+
+Uzrok je isti kao ranije kod spiska događaja: `LagerScreen` učitava kategorije
+**samo u `initState`**, a sve vreme stoji u `IndexedStack`-u (da bi mu se
+sačuvale kvačice). Oprema se pritom bira na Home tabu, tik pored.
+
+Popravka: `LagerScreen` je dobio `reloadSignal`, a `app.dart` kucne kad se
+otvori Lager tab. Kvačice preživljavaju, jer se čuvaju odvojeno od kataloga.
+
+Dva testa u `lager_test.dart` pokrivaju oba smera. Prvi pokušaj testiranja je
+išao kroz celu aplikaciju i zaglavio se — mock servis čeka 400 ms, a u widget
+testu vreme stoji dok se ne pumpa; poziv servisa u telu testa zato mora u
+`tester.runAsync`. Test je na kraju pisan direktno nad `LagerScreen`-om, gde
+i pripada.
+
+`flutter analyze` čist, `flutter test` 341/341.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

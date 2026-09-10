@@ -127,6 +127,10 @@ class _RootNavigationState extends State<RootNavigation> {
   /// događaj je u međuvremenu mogao da se izmeni.
   final ValueNotifier<int> _eventsRevision = ValueNotifier<int>(0);
 
+  /// Kucne kad se otvori Lager tab, da ponovo pročita kategorije događaja.
+  /// One se biraju na Home tabu, a Lager sve vreme stoji u stablu.
+  final ValueNotifier<int> _lagerRevision = ValueNotifier<int>(0);
+
   /// Da li se header i tabovi trenutno vide.
   bool _chromeVisible = true;
 
@@ -152,6 +156,7 @@ class _RootNavigationState extends State<RootNavigation> {
     _auth.removeListener(_onAuthChanged);
     _auth.dispose();
     _eventsRevision.dispose();
+    _lagerRevision.dispose();
     super.dispose();
   }
 
@@ -232,8 +237,14 @@ class _RootNavigationState extends State<RootNavigation> {
     setState(() => _logoPath = null);
   }
 
+  /// Redni broj Lager taba u traci.
+  static const int _lagerTab = 3;
+
   void _onTabSelected(int index) {
     setState(() => _currentIndex = index);
+    // Oprema se bira na Home tabu; Lager mora da je pročita ponovo kad se
+    // otvori, inače pokazuje ono što je zateklo pri prvom otvaranju.
+    if (index == _lagerTab) _lagerRevision.value++;
   }
 
   /// Otvara događaj: tabovi od sada pokazuju baš njegove podatke.
@@ -352,6 +363,7 @@ class _RootNavigationState extends State<RootNavigation> {
                             eventId: eventId,
                             auth: _auth,
                             service: _events,
+                            reloadSignal: _lagerRevision,
                           ),
                   ],
                 ),

@@ -1,5 +1,6 @@
 import 'package:event_app/models/checklist.dart';
 import 'package:event_app/screens/lager_screen.dart';
+import 'package:event_app/services/mock_event_service.dart';
 import 'package:event_app/services/auth_service.dart';
 import 'package:event_app/theme/app_theme.dart';
 import 'package:event_app/widgets/lager/checklist_progress.dart';
@@ -156,6 +157,83 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Dodaj stavku'), findsNothing);
+    });
+  });
+
+  group('Lager prati izbor opreme', () {
+    testWidgets('promena kategorija se vidi kad se Lager ponovo otvori', (
+      WidgetTester tester,
+    ) async {
+      final service = MockEventService();
+      final signal = ValueNotifier<int>(0);
+      addTearDown(signal.dispose);
+
+      await tester.pumpWidget(
+        _wrap(
+          LagerScreen(
+            eventId: 'evt-001',
+            service: service,
+            reloadSignal: signal,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // evt-001 nosi tehniku i animaciju; vatre nema.
+      expect(find.text('Tehnika'), findsOneWidget);
+      expect(find.text('Vatreni rekviziti'), findsNothing);
+
+      // Manager na Home tabu dodaje vatru u opremu događaja.
+      // `runAsync` je nužan: mock servis čeka 400 ms, a u widget testu vreme
+      // stoji dok se ne pumpa — bez ovoga se test zaglavi.
+      await tester.runAsync(() async {
+        final event = await service.loadEvent('evt-001');
+        await service.saveEvent(
+          event.copyWith(
+            categoryIds: [...event.categoryIds, 'sec-vatreni-rekviziti'],
+          ),
+        );
+      });
+
+      // Lager sve vreme stoji u stablu — bez ovog signala bi i dalje
+      // pokazivao staro stanje, a oprema se bira tik pored, na Home tabu.
+      signal.value++;
+      await tester.pumpAndSettle();
+
+      expect(find.text('Vatreni rekviziti'), findsOneWidget);
+    });
+
+    testWidgets('skinuta kategorija nestaje sa Lagera', (
+      WidgetTester tester,
+    ) async {
+      final service = MockEventService();
+      final signal = ValueNotifier<int>(0);
+      addTearDown(signal.dispose);
+
+      await tester.pumpWidget(
+        _wrap(
+          LagerScreen(
+            eventId: 'evt-001',
+            service: service,
+            reloadSignal: signal,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Tehnika'), findsOneWidget);
+
+      await tester.runAsync(() async {
+        final event = await service.loadEvent('evt-001');
+        await service.saveEvent(
+          event.copyWith(categoryIds: const ['sec-animacija']),
+        );
+      });
+
+      signal.value++;
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tehnika'), findsNothing);
+      expect(find.text('Animacija'), findsOneWidget);
     });
   });
 }

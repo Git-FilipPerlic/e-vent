@@ -45,7 +45,15 @@ class LagerScreen extends StatefulWidget {
     this.eventId = 'evt-001',
     this.auth,
     this.service,
+    this.reloadSignal,
   });
+
+  /// Javlja da treba ponovo učitati kategorije događaja.
+  ///
+  /// Lager ostaje u stablu dok se gleda isti događaj, pa se sam od sebe ne bi
+  /// osvežio — a kategorije se biraju na Home tabu, tik pored. Bez ovoga si
+  /// birao opremu i na Lageru video staro stanje.
+  final Listenable? reloadSignal;
 
   /// Izvor podataka. `null` znači sopstveni mock; u aplikaciji je isti onaj
   /// koji koriste spisak i Home tab.
@@ -89,6 +97,7 @@ class _LagerScreenState extends State<LagerScreen> {
   void initState() {
     super.initState();
     widget.auth?.addListener(_onAuthChanged);
+    widget.reloadSignal?.addListener(_loadTemplate);
     _loadTemplate();
   }
 
@@ -97,6 +106,7 @@ class _LagerScreenState extends State<LagerScreen> {
   @override
   void dispose() {
     widget.auth?.removeListener(_onAuthChanged);
+    widget.reloadSignal?.removeListener(_loadTemplate);
     super.dispose();
   }
 

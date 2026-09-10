@@ -167,11 +167,15 @@ Iz toga sledi:
 2. Izbor po događaju stoji kao **dugmići, ne spisak sa kvačicama** — isto
    kao „Ko radi". Preglednije je i odmah se vidi šta je uzeto; olovka na
    dugmetu otvara delove te kategorije.
-3. **Lager tab prikazuje izabrane kategorije i sve delove koji im pripadaju.**
+3. **Lager čita izbor iznova svaki put kad se otvori taj tab.** Oprema se
+   bira na Home tabu, a Lager sve vreme stoji u stablu (da bi mu se sačuvale
+   kvačice), pa se sam od sebe ne bi osvežio. Bez toga si birao opremu i na
+   Lageru gledao staro stanje.
+4. **Lager tab prikazuje izabrane kategorije i sve delove koji im pripadaju.**
    Kategorija je sekcija u checklisti, a njeni delovi su stavke u njoj.
    Ono što nije izabrano se ne prikazuje — na nastupu ne treba prelistavati
    opremu koja se ne nosi.
-4. **Delovi kategorije se takođe menjaju iz manager konzole** — kad se u
+5. **Delovi kategorije se takođe menjaju iz manager konzole** — kad se u
    *Vatru* doda nov rekvizit, on se pojavi na svakom događaju koji ima tu
    kategoriju.
 
