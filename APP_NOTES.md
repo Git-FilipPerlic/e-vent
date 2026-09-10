@@ -1490,6 +1490,26 @@ Redosled se pamti jer je svojstvo samog uređaja.
 
 `flutter analyze` čist, `flutter test` 328/328.
 
+## 10. septembar 2026 — MUSIC-027: skidanje numera sa spiska
+
+Korisnik je uočio rupu: numere su mogle da se dodaju, ali ne i da se sklone.
+Pogrešno ubačena pesma ostajala bi zauvek.
+
+- **Dug pritisak na red** otvara potvrdu. Namerno nije prevlačenje: usred
+  nastupa se prst lako okrzne o ekran, a prevlačenje bi skidalo numere samo
+  od sebe.
+- List za potvrdu izričito kaže **„fajl ostaje na telefonu"**. Bez te
+  rečenice „skloni" zvuči kao brisanje muzike, a to niko ne bi smeo da
+  rizikuje pred nastup.
+- **Numera koja svira se ne skida** — ni ona, ni njene kopije. Prvo rešenje
+  je skidalo kopije a original ostavljalo, što je pravilo činilo
+  nepredvidivim; sada je odbijanje potpuno, uz poruku.
+- U traci je i **praznjenje celog spiska**, kad je ceo folder pogrešan.
+  Dugmeta nema dok je spisak prazan.
+- Skidanje se odmah **upisuje u zapamćeni spisak**, da se numera ne vrati pri
+  sledećem pokretanju.
+- `flutter analyze` čist, `flutter test` 337/337, uz osam novih testova.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

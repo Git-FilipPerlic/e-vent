@@ -257,6 +257,56 @@ void main() {
       expect(find.byType(EdgeProgressRing), findsOneWidget);
     });
   });
+  group('skidanje numera sa spiska', () {
+    testWidgets('dug pritisak nudi skidanje, uz jasno „fajl ostaje"', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(MusicScreen(service: _SampleMusicService())),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Druga'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Skloni'), findsOneWidget);
+      // Bez ovoga bi „skloni" zvučalo kao brisanje muzike sa telefona.
+      expect(find.textContaining('ostaje na telefonu'), findsOneWidget);
+    });
+
+    testWidgets('odustajanje ostavlja spisak kakav jeste', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(MusicScreen(service: _SampleMusicService())),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Druga'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Odustani'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Druga'), findsOneWidget);
+    });
+
+    testWidgets('potvrda skida numeru sa spiska', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _wrap(MusicScreen(service: _SampleMusicService())),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Druga'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Skloni'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Druga'), findsNothing);
+      // Ostale numere ostaju.
+      expect(find.text('Prva'), findsOneWidget);
+    });
+  });
+
   group('naziv fajla', () {
     test('nastavak se skida', () {
       expect(Track.withoutExtension('Beat It.mp3'), 'Beat It');

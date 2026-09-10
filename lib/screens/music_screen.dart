@@ -142,6 +142,58 @@ class _MusicScreenState extends State<MusicScreen> {
     await _fillMetadata(remembered);
   }
 
+  /// Pita da li se numera skida sa spiska.
+  ///
+  /// **Fajl ostaje na telefonu** — ovo briše samo red iz spiska. To i piše u
+  /// listu, jer bi inače „ukloni" zvučalo kao brisanje muzike.
+  Future<void> _confirmRemove(Track track) async {
+    final removed = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) => _RemoveSheet(title: track.displayTitle),
+    );
+    if (removed != true || !mounted) return;
+
+    final wasRemoved = await _player.removeFromQueue(track.id);
+    if (!mounted) return;
+
+    if (!wasRemoved) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Numera koja svira ne može da se skloni.'),
+          ),
+        );
+      return;
+    }
+
+    setState(() {
+      _tracks = [..._tracks]..removeWhere((t) => t.id == track.id);
+      _pickedTracks.removeWhere((t) => t.id == track.id);
+    });
+    unawaited(_library.save(_pickedTracks));
+  }
+
+  /// Skida sve numere sa spiska, kad je ceo folder pogrešan.
+  Future<void> _confirmRemoveAll() async {
+    final removed = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) => const _RemoveSheet(title: null),
+    );
+    if (removed != true || !mounted) return;
+
+    setState(() {
+      _tracks = const [];
+      _pickedTracks.clear();
+    });
+    await _player.setQueue(const []);
+    unawaited(_library.save(const []));
+  }
+
   Future<void> _browse() async {
     final tracks = await Navigator.of(context).push<List<Track>>(
       MaterialPageRoute(builder: (_) => const FileBrowserScreen()),
@@ -253,6 +305,11 @@ class _MusicScreenState extends State<MusicScreen> {
                           track: track,
                           isSelected: track.id == _player.selected?.id,
                           onTap: () => _player.onTrackTapped(track),
+                          // Dug pritisak skida numeru sa spiska. Nije
+                          // prevlačenje: usred nastupa se prst lako okrzne o
+                          // ekran, pa bi prevlačenje brisalo numere samo od
+                          // sebe.
+                          onLongPress: () => _confirmRemove(track),
                         );
                       },
                     ),
@@ -266,6 +323,7 @@ class _MusicScreenState extends State<MusicScreen> {
             controller: _player,
             onOpenPlayer: _openPlayer,
             onBrowse: _browse,
+            onClearList: _tracks.isEmpty ? null : _confirmRemoveAll,
           ),
       ],
     );
@@ -291,6 +349,74 @@ class _MusicScreenState extends State<MusicScreen> {
               onPressed: _browse,
               icon: const Icon(Icons.folder_open_rounded, size: 20),
               label: const Text('Pregledaj fajlove'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Potvrda skidanja sa spiska.
+///
+/// [title] je naziv numere; `null` znači „ceo spisak". Tekst izričito kaže da
+/// fajl ostaje na telefonu — bez toga bi „ukloni" zvučalo kao brisanje muzike.
+class _RemoveSheet extends StatelessWidget {
+  const _RemoveSheet({required this.title});
+
+  final String? title;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isAll = title == null;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          0,
+          AppSpacing.md,
+          AppSpacing.md,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              isAll ? 'Skloni sve numere sa spiska?' : title!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Skida se samo sa spiska. Fajl ostaje na telefonu i može '
+              'ponovo da se doda kroz pregled fajlova.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Odustani'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: Text(isAll ? 'Skloni sve' : 'Skloni'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

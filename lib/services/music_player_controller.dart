@@ -261,6 +261,60 @@ class MusicPlayerController extends ChangeNotifier {
     await _select(slot);
   }
 
+  /// Izbacuje numeru iz reda čekanja.
+  ///
+  /// Vraća `false` ako je ta numera **upravo ta koja svira** — nju ne diramo:
+  /// usred nastupa muzika ne sme da stane zbog sređivanja spiska. Sve njene
+  /// kopije koje ne sviraju se uklanjaju.
+  Future<bool> removeFromQueue(String trackId) async {
+    if (sounding?.id == trackId) return false;
+
+    final selectedRemoved = selected?.id == trackId;
+
+    final kept = <Track>[];
+    var newSounding = -1;
+    var newSelected = -1;
+
+    for (var i = 0; i < _queue.length; i++) {
+      final isSoundingRow = i == _soundingIndex;
+      // Numera koja svira ostaje čak i ako se poklapa sa traženom.
+      if (_queue[i].id == trackId && !isSoundingRow) continue;
+
+      if (isSoundingRow) newSounding = kept.length;
+      if (i == _selectedIndex) newSelected = kept.length;
+      kept.add(_queue[i]);
+    }
+
+    if (kept.length == _queue.length) return true;
+
+    _queue
+      ..clear()
+      ..addAll(kept);
+    _soundingIndex = newSounding;
+
+    if (!selectedRemoved) {
+      _selectedIndex = newSelected;
+      notifyListeners();
+      return true;
+    }
+
+    // Izabrana numera je izbačena: izabranom postaje ono što je došlo na
+    // njeno mesto, a ako reda više nema — nijedna.
+    if (_queue.isEmpty) {
+      _selectedIndex = -1;
+      _duration = null;
+      _position = Duration.zero;
+      waveform.value = null;
+      _updateProgress();
+      notifyListeners();
+      return true;
+    }
+
+    final target = _selectedIndex.clamp(0, _queue.length - 1);
+    await _select(target);
+    return true;
+  }
+
   /// Zamenjuje numere u redu dopunjenim podacima iz fajlova.
   ///
   /// Ne dira ni izabranu ni onu koja svira — menja se samo ono što piše, da

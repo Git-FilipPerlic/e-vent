@@ -699,6 +699,80 @@ void main() {
     });
   });
 
+  group('skidanje iz reda čekanja', () {
+    test('numera koja svira se ne dira', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      final removed = await controller.removeFromQueue('trk-001');
+
+      // Usred nastupa muzika ne sme da stane zbog sređivanja spiska.
+      expect(removed, isFalse);
+      expect(controller.sounding?.id, 'trk-001');
+      expect(controller.queue.length, 3);
+      controller.dispose();
+    });
+
+    test('numera koja ne svira izlazi iz reda', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      final removed = await controller.removeFromQueue('trk-003');
+
+      expect(removed, isTrue);
+      expect(controller.queue.map((t) => t.id), ['trk-001', 'trk-002']);
+      // Ono što svira ostaje netaknuto.
+      expect(controller.sounding?.id, 'trk-001');
+      controller.dispose();
+    });
+
+    test('ni kopija numere koja svira se ne skida dok svira', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+      // Dodir na numeru koja svira pravi njenu kopiju — trik za ponavljanje
+      // uvoda.
+      await controller.onTrackTapped(_tracks[0]);
+      expect(controller.queue.length, 4);
+
+      final removed = await controller.removeFromQueue('trk-001');
+
+      // Odbija se u celosti: dok ta numera svira, njen red se ne dira. Tako
+      // je pravilo jedno i predvidivo, umesto „kopija da, original ne".
+      expect(removed, isFalse);
+      expect(controller.queue.length, 4);
+      controller.dispose();
+    });
+
+    test('skidanje izabrane numere pomera izbor', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      // Ništa ne svira; izabrana je prva.
+      expect(controller.selected?.id, 'trk-001');
+      await controller.removeFromQueue('trk-001');
+
+      expect(controller.queue.map((t) => t.id), ['trk-002', 'trk-003']);
+      expect(controller.selected?.id, 'trk-002');
+      controller.dispose();
+    });
+
+    test('prazan red ostaje bez izabrane numere', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      for (final track in _tracks) {
+        await controller.removeFromQueue(track.id);
+      }
+
+      expect(controller.queue, isEmpty);
+      expect(controller.selected, isNull);
+      controller.dispose();
+    });
+  });
+
   group('pauza', () {
     test('nikad ne seče naglo, ni kad je Fade isključen', () {
       // Pola sekunde: dovoljno da nestane „klik" na prekidu, prekratko da bi

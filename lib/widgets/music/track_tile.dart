@@ -26,11 +26,18 @@ class TrackTile extends StatelessWidget {
     required this.track,
     required this.isSelected,
     required this.onTap,
+    this.onLongPress,
   });
 
   final Track track;
   final bool isSelected;
   final VoidCallback onTap;
+
+  /// Dug pritisak otvara uklanjanje sa spiska.
+  ///
+  /// Namerno **nije prevlačenje**: usred nastupa se prst lako okrzne o ekran,
+  /// a prevlačenje bi tada obrisalo numeru. Dug pritisak traži nameru.
+  final VoidCallback? onLongPress;
 
   /// Visina jednog reda.
   static const double height = 36;
@@ -61,6 +68,7 @@ class TrackTile extends StatelessWidget {
       color: isSelected ? AppColors.surfaceAlt : Colors.transparent,
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Container(
           height: height,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),

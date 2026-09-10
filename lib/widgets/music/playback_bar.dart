@@ -18,6 +18,7 @@ class PlaybackBar extends StatelessWidget {
     required this.controller,
     required this.onOpenPlayer,
     required this.onBrowse,
+    this.onClearList,
   });
 
   final MusicPlayerController controller;
@@ -25,6 +26,9 @@ class PlaybackBar extends StatelessWidget {
 
   /// Otvara pregled fajlova. Stoji kao **sama ikonica foldera**, bez natpisa.
   final VoidCallback onBrowse;
+
+  /// Skida sve numere sa spiska. `null` kad spisak ionako nije popunjen.
+  final VoidCallback? onClearList;
 
   @override
   Widget build(BuildContext context) {
@@ -175,6 +179,16 @@ class PlaybackBar extends StatelessWidget {
                     height: _shortRow,
                     onPressed: onOpenPlayer,
                   ),
+                  if (onClearList != null) ...[
+                    const SizedBox(width: AppSpacing.lg),
+                    _BarButton(
+                      icon: Icons.playlist_remove_rounded,
+                      label: 'Skloni sve numere sa spiska',
+                      size: 26,
+                      height: _shortRow,
+                      onPressed: onClearList,
+                    ),
+                  ],
                   const SizedBox(width: AppSpacing.lg),
                   // Jačina: jedno slovo koje se vrti L → E → F. Tri
                   // stepenika umesto klizača — na nastupu se ne pogađa
