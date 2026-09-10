@@ -466,7 +466,7 @@ Iz spiska stare muzičke aplikacije **ne prenosi se**:
 
 ### LED tab
 
-Nije započet. Pre prvog feature-a treba potvrditi koji hardver/protokol se
+Započet 10. septembra 2026. Pre prvog feature-a treba potvrditi koji hardver/protokol se
 koristi i šta se dešava kada Bluetooth nije dostupan.
 
 **Analiza konkurencije:** postoji zaseban dokument `LED_CHORD_ANALIZA.md` —
@@ -513,15 +513,59 @@ preko lokalne mreže.
 - Treba i dalje saznati **tačan model kontrolera** (piše na samom uređaju ili
   na kutiji), jer se protokol razlikuje od modela do modela.
 
-**Pitanja koja još stoje pre prvog LED feature-a**
-(ostatak iz analize):
+**Kontroler je Magic Home** (odgovor korisnika, 10. septembra 2026). To je
+poznata porodica Wi-Fi LED kontrolera (LEDENET / Magic Home / „Flux LED"),
+pa je protokol poznat i ne mora da se pogađa:
 
-1. koji je tačno model kontrolera — jedan konkretan protokol ili generički
-   pristup sa spiskom podržanih čipova?
+| Šta | Kako |
+|---|---|
+| Veza | **TCP, port 5577** |
+| Pronalaženje uređaja | **UDP broadcast na port 48899**, poruka `HF-A11ASSISTHREAD`; uređaj odgovara sa `IP,MAC,MODEL` |
+| Uključivanje | `71 23 0F` + kontrolni zbir |
+| Isključivanje | `71 24 0F` + kontrolni zbir |
+| Boja | `31 RR GG BB WW 00 0F` + kontrolni zbir |
+| Stanje uređaja | `81 8A 8B` + kontrolni zbir |
+
+**Kontrolni zbir** je zbir svih prethodnih bajtova po modulu 256 — poslednji
+bajt svake poruke.
+
+Šta iz toga sledi za našu izvedbu:
+
+- **Nije potreban nijedan nov paket.** Sve staje u `dart:io`: `RawDatagramSocket`
+  za pronalaženje uređaja i `Socket` za komande. `INTERNET` dozvola već stoji
+  u manifestu, a lokalna mreža na Androidu ne traži ništa posebno.
+- **Redosled boja se ne pretpostavlja.** Magic Home kontroleri dolaze kao RGB,
+  GRB ili BRG. Najčešća pritužba na konkurenciju je bila da „plavo daje
+  zeleno". Zato u podešavanjima stoji izbor redosleda, a proverava se sa
+  uređajem na stolu.
+- **Ručni unos IP adrese mora da postoji** pored automatskog pronalaženja:
+  broadcast ume da ne prođe kroz neke rutere, a bez rezervnog puta bi tada
+  ceo tab bio neupotrebljiv.
+- **Kad telefon nije na mreži kontrolera**, ekran to kaže i vodi u Wi-Fi
+  podešavanja, umesto da ćuti ili da se vrti u prazno.
+
+#### Spisak LED feature-a
+
+| ID | Šta | Status |
+|---|---|---|
+| LED-001 | Pronalaženje kontrolera na mreži (UDP broadcast) | gotovo |
+| LED-002 | Ručni unos IP adrese, kad broadcast ne prođe | gotovo |
+| LED-003 | Paljenje i gašenje | gotovo |
+| LED-004 | Izbor boje iz palete | gotovo |
+| LED-005 | Izbor redosleda boja (RGB / GRB / BRG) | gotovo |
+| LED-006 | Jačina svetla | |
+| LED-007 | Pamćenje poslednjeg kontrolera | |
+| LED-008 | Scene i efekti | |
+
+**Prvo što treba proveriti sa uređajem na stolu:** da li boje izlaze tačno.
+Ako plavo daje zeleno, menja se redosled u samom tabu — to je stvar
+kontrolera, ne aplikacije, i zato izbor stoji na ekranu.
+
+**Pitanja koja još stoje** (odgovoriti pre nego što se pređe na efekte):
+
+1. da li su u planu i 2D paneli (matrix) ili samo trake?
 2. da li treba zvučni/reaktivni režim, i da li se napaja iz mikrofona telefona
    ili iz onoga što svira na Muzika tabu?
-3. da li su u planu i 2D paneli (matrix), ili samo trake — to određuje da li
-   kontrolni ekran od početka treba prekidač tipa uređaja
 
 ### Više događaja (dogovoreno 9. septembra 2026)
 

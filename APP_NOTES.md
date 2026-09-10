@@ -1435,6 +1435,33 @@ main page".
   „Prijavljen: Filip" sa oba dugmeta za logotip i odjavom.
 - `flutter analyze` čist, `flutter test` 312/312, uz pet novih testova.
 
+## 10. septembar 2026 — LED-001..005: prvi rad sa Magic Home kontrolerom
+
+Korisnik je rekao model: **Magic Home**. Time je pao poslednji blokator za
+LED tab, jer je protokol te porodice kontrolera poznat.
+
+- Nov `lib/services/led_controller.dart`. **Nije trebao nijedan paket** —
+  `RawDatagramSocket` za pronalaženje uređaja i `Socket` za komande, oboje iz
+  `dart:io`. `INTERNET` dozvola je već stajala u manifestu.
+- Protokol: TCP **5577** za komande, UDP **48899** i poruka
+  `HF-A11ASSISTHREAD` za pronalaženje. Paljenje `71 23 0F`, gašenje
+  `71 24 0F`, boja `31 RR GG BB 00 00 0F`; svakoj poruci se dodaje
+  **kontrolni bajt** — zbir prethodnih po modulu 256. Bez njega kontroler
+  poruku tiho odbaci, pa je to prvo mesto za proveru ako svetlo ne reaguje.
+- **Redosled boja se bira na ekranu** (RGB / GRB / BRG). Magic Home
+  kontroleri dolaze u sve tri varijante, a najčešća pritužba na slične
+  aplikacije je da „plavo daje zeleno". Promena redosleda odmah ponovo šalje
+  izabranu boju, da se vidi bez ponovnog biranja.
+- **Ručni unos IP adrese** stoji pored automatskog traženja: broadcast ne
+  prolazi kroz svaki ruter, a bez rezervnog puta bi tab tada bio mrtav.
+- Kad ništa nije nađeno, ekran kaže **da telefon treba da bude na Wi-Fi mreži
+  kontrolera** — to je najčešći razlog zašto ovakve aplikacije „ne rade".
+- Provereno: `flutter analyze` čist, `flutter test` 321/321, uz nov
+  `test/led_test.dart` (9 testova: kontrolni bajt, redosled boja, portovi,
+  i ceo tok na ekranu preko lažnog kontrolera).
+- **Nije još probano sa pravim uređajem** — za to telefon mora da bude na
+  mreži kontrolera. To proverava korisnik.
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`
