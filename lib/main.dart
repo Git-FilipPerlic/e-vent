@@ -1,7 +1,9 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'app.dart';
+import 'firebase_options.dart';
 import 'services/background_audio.dart';
 import 'utils/date_format.dart';
 
@@ -25,6 +27,18 @@ Future<void> main() async {
     ),
   );
 
-  // Kasnije ovde ide Firebase.initializeApp() pre runApp().
-  runApp(EventApp(audioHandler: audioHandler));
+  // Firebase se podiže pre prvog ekrana: bez toga svaki poziv ka bazi ili
+  // prijavi puca. Ako podizanje ne uspe (nema mreže pri prvom pokretanju),
+  // aplikacija se **i dalje otvara** — samo radi sa lokalnim podacima, što je
+  // bolje nego crn ekran pred nastup.
+  var hasFirebase = true;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (_) {
+    hasFirebase = false;
+  }
+
+  runApp(EventApp(audioHandler: audioHandler, hasFirebase: hasFirebase));
 }

@@ -23,11 +23,15 @@ import 'widgets/common/top_tab_bar.dart';
 
 /// Koren aplikacije: tema i navigacija sa 4 taba.
 class EventApp extends StatelessWidget {
-  const EventApp({super.key, this.audioHandler});
+  const EventApp({super.key, this.audioHandler, this.hasFirebase = false});
 
   /// Veza sa notifikacijom i kontrolama van aplikacije.
   /// `null` u testovima, gde servis ne postoji.
   final BackgroundAudioHandler? audioHandler;
+
+  /// Da li se Firebase podigao. Kad nije, aplikacija radi sa lokalnim
+  /// podacima — bolje nego da uopšte ne krene.
+  final bool hasFirebase;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +54,10 @@ class EventApp extends StatelessWidget {
       ],
       // Aplikacija je samo tamna, bez obzira na podešavanje telefona.
       theme: AppTheme.dark,
-      home: RootNavigation(audioHandler: audioHandler),
+      home: RootNavigation(
+        audioHandler: audioHandler,
+        hasFirebase: hasFirebase,
+      ),
     );
   }
 }
@@ -63,9 +70,16 @@ class EventApp extends StatelessWidget {
 ///
 /// Stanje je običan [setState] — bez Riverpod-a/Provider-a u MVP fazi.
 class RootNavigation extends StatefulWidget {
-  const RootNavigation({super.key, this.audioHandler});
+  const RootNavigation({
+    super.key,
+    this.audioHandler,
+    this.hasFirebase = false,
+  });
 
   final BackgroundAudioHandler? audioHandler;
+
+  /// Da li je Firebase dostupan.
+  final bool hasFirebase;
 
   @override
   State<RootNavigation> createState() => _RootNavigationState();
