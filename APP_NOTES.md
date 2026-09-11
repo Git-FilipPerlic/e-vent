@@ -1640,6 +1640,32 @@ i pripada.
 
 `flutter analyze` čist, `flutter test` 341/341.
 
+## 11. septembar 2026 — proba „zlatno-crno" (grana `proba-zlatno-crno`)
+
+Samo proba izgleda, napravljena na ljubičastoj grani (zadržan je njen sjaj
+koji diše, sad u zlatu).
+
+- **Paleta:** gotovo čisto crno, akcenat sjajno zlato (`#E2B84C`), okviri u
+  tamnom, izlizanom zlatu. Upozorenje je narandžasto, jer se žuto ne bi
+  razlikovalo od zlata. Nova boja `accentHighlight` služi samo listićima.
+- **Zupčanici u pozadini** (`animated_backdrop.dart`): dva niza zakačenih
+  zupčanika, zubi upadaju u međuzublje i okreću se srazmerno broju zuba.
+  Kreću se kao sat: kucnu na 1,4 s, pa stoje. Vreme teče bez kruga, pa nema
+  skoka nazad.
+- **Prelaz tabova** klizne, malo prebaci i legne na mesto (mehanički
+  „škljoc"); providnost ide glatko.
+- **Zlatni listići** (`gold_burst.dart`): na dodir prasak listića, varnica i
+  kratak zlatni talas; prevlačenje ostavlja trag. Stoji preko cele aplikacije
+  ali ne hvata dodire, a sat za crtanje radi samo dok ima listića u vazduhu.
+  Uz „smanjen pokret" listića nema.
+- **Ključ za potpisivanje:** u ovom folderu ga nema, pa `android/key.properties`
+  pokazuje na ključ u glavnom folderu (`D:/All Work/event_app/android/app/`) —
+  ključ nije kopiran.
+- Provereno: `flutter analyze` čist, `flutter test` 344/344 (3 nova za
+  listiće); potpisan release APK.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

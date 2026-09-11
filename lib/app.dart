@@ -23,6 +23,7 @@ import 'theme/app_theme.dart';
 import 'utils/date_format.dart';
 import 'widgets/common/animated_backdrop.dart';
 import 'widgets/common/app_header.dart';
+import 'widgets/common/gold_burst.dart';
 import 'widgets/common/top_tab_bar.dart';
 
 /// Koren aplikacije: tema i navigacija sa 4 taba.
@@ -58,6 +59,10 @@ class EventApp extends StatelessWidget {
       ],
       // Aplikacija je samo tamna, bez obzira na podešavanje telefona.
       theme: AppTheme.dark,
+      // Zlatni listići na dodir (proba) — preko svih ekrana, i onih koji se
+      // otvaraju preko tabova.
+      builder: (context, child) =>
+          GoldBurst(child: child ?? const SizedBox.shrink()),
       home: RootNavigation(
         audioHandler: audioHandler,
         hasFirebase: hasFirebase,
@@ -92,10 +97,11 @@ class RootNavigation extends StatefulWidget {
 class _RootNavigationState extends State<RootNavigation>
     with SingleTickerProviderStateMixin {
   /// Prelaz između tabova (proba): novi sadržaj se pretopi i klizne u stranu
-  /// u koju se išlo. Vrednost 1 znači da prelaza nema.
+  /// u koju se išlo, pa malo prebaci i legne na mesto — kao mehanizam koji
+  /// škljocne. Vrednost 1 znači da prelaza nema.
   late final AnimationController _tabTransition = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 280),
+    duration: const Duration(milliseconds: 380),
     value: 1,
   );
 
@@ -373,15 +379,17 @@ class _RootNavigationState extends State<RootNavigation>
                     child: AnimatedBuilder(
                       animation: _tabTransition,
                       builder: (context, child) {
-                        final t = Curves.easeOutCubic.transform(
-                          _tabTransition.value,
-                        );
+                        final v = _tabTransition.value;
+                        // Pomeraj prebaci preko cilja pa se vrati; providnost
+                        // ide glatko, jer ne sme da pređe 1.
+                        final slide = Curves.easeOutBack.transform(v);
+                        final fade = Curves.easeOut.transform(v);
                         return FractionalTranslation(
                           translation: Offset(
-                            0.08 * (1 - t) * _slideDirection,
+                            0.1 * (1 - slide) * _slideDirection,
                             0,
                           ),
-                          child: Opacity(opacity: t, child: child),
+                          child: Opacity(opacity: fade, child: child),
                         );
                       },
                       child: IndexedStack(
