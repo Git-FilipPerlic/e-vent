@@ -39,7 +39,7 @@ class TopTabBar extends StatelessWidget {
     return Container(
       height: height,
       decoration: const BoxDecoration(
-        color: AppColors.background,
+        // Bez sopstvene boje, da se vidi pozadina u pokretu (proba).
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       padding: const EdgeInsets.all(AppSpacing.sm),

@@ -1,48 +1,49 @@
 import 'package:flutter/material.dart';
 
-/// Paleta aplikacije. Vizuelni pravac: skoro crno sa hladnim, tamno-tirkiznim
-/// prizvukom. Crna je osnova, tirkiz se pojavljuje kao nagoveštaj — punom
-/// jačinom samo tamo gde nešto može da se dodirne.
+/// Paleta aplikacije — **proba „toplo zlatno"**: skoro crno sa toplim,
+/// smeđkastim prizvukom, akcenat zlatno-narandžast. Crna je osnova, zlato se
+/// punom jačinom pojavljuje samo tamo gde nešto može da se dodirne.
 ///
 /// Ovo je jedino mesto u projektu gde stoje hex vrednosti boja.
 /// Nijedan widget nema boju napisanu u sebi.
 abstract final class AppColors {
   /// Osnovna pozadina ekrana.
-  static const Color background = Color(0xFF0A0C0C);
+  static const Color background = Color(0xFF0D0B09);
 
   /// Gornja boja pozadinskog gradijenta.
-  static const Color backgroundTop = Color(0xFF0E1312);
+  static const Color backgroundTop = Color(0xFF15110D);
 
   /// Donja boja pozadinskog gradijenta.
-  static const Color backgroundBottom = Color(0xFF070909);
+  static const Color backgroundBottom = Color(0xFF080706);
 
   /// Kartice.
-  static const Color surface = Color(0xFF121716);
+  static const Color surface = Color(0xFF1A1612);
 
   /// Istaknute kartice, polja za unos, aktivni red u listi.
-  static const Color surfaceAlt = Color(0xFF182120);
+  static const Color surfaceAlt = Color(0xFF231D17);
 
   /// Okviri kartica i razdelnici.
-  static const Color border = Color(0xFF1F2A29);
+  static const Color border = Color(0xFF2E261E);
 
   /// Glavni tekst — namerno nije čisto belo, da ne para oči u mraku.
-  static const Color textPrimary = Color(0xFFECECEC);
+  static const Color textPrimary = Color(0xFFEEEAE4);
 
-  /// Pomoćni tekst: hladno siva sa zelenkastim tonom.
-  static const Color textSecondary = Color(0xFF8A9A98);
+  /// Pomoćni tekst: topla siva.
+  static const Color textSecondary = Color(0xFFA39686);
 
   /// Sve što se dodiruje: dugmad, ikonice, aktivni tab.
-  static const Color accent = Color(0xFF2FA89C);
+  static const Color accent = Color(0xFFE8A33D);
 
   /// Gradijenti, sjaj, neaktivni deo prstena na Muzici.
   /// Isključivo dekorativan — nikad za tekst ni za ikonicu koja nešto znači.
-  static const Color accentDeep = Color(0xFF14403C);
+  static const Color accentDeep = Color(0xFF4A3316);
 
   /// Spremno, završeno.
   static const Color success = Color(0xFF3FA46A);
 
-  /// Uskoro, nedostaje podatak.
-  static const Color warning = Color(0xFFE0B341);
+  /// Uskoro, nedostaje podatak. Pomereno ka limun-žutoj, jer bi stara
+  /// zlatno-žuta bila skoro ista kao novi akcenat.
+  static const Color warning = Color(0xFFF2DA5C);
 
   /// Greška, problem.
   static const Color danger = Color(0xFFE5645E);
@@ -63,7 +64,7 @@ abstract final class AppGradients {
   static const LinearGradient surface = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF141A19), Color(0xFF0C1010)],
+    colors: [Color(0xFF1C1713), Color(0xFF0F0C0A)],
   );
 
   /// Sjaj oko aktivnih elemenata (veliko dugme za reprodukciju,

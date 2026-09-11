@@ -23,6 +23,17 @@ void main() {
   // pa nazive meseci mora da učita sam.
   setUpAll(() => AppDate.init());
 
+  // Pozadina u pokretu se vrti bez kraja, pa `pumpAndSettle` nikad ne bi
+  // dočekao mirno stanje. Uz sistemski „smanjen pokret" ona stoji.
+  setUp(() {
+    TestWidgetsFlutterBinding
+        .instance
+        .platformDispatcher
+        .accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+      disableAnimations: true,
+    );
+  });
+
   testWidgets('otvara se spiskom događaja, bez tabova', (
     WidgetTester tester,
   ) async {
@@ -126,5 +137,4 @@ void main() {
     expect(find.text('2h'), findsNothing);
     expect(find.text('3h'), findsNWidgets(2));
   });
-
 }
