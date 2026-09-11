@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/music_player_controller.dart';
 import '../../theme/app_theme.dart';
+import '../common/neon_glow.dart';
 import 'track_tile.dart';
 
 /// Kontrole uz sam spisak numera: naziv trenutne numere, preskakanje po
@@ -131,13 +132,23 @@ class PlaybackBar extends StatelessWidget {
                         ? () => controller.skip(const Duration(seconds: -10))
                         : null,
                   ),
-                  _BarButton(
-                    icon: controller.isPlaying
-                        ? Icons.pause_circle_filled_rounded
-                        : Icons.play_circle_filled_rounded,
-                    label: controller.isPlaying ? 'Pauza' : 'Pusti',
-                    size: 44,
-                    onPressed: ready ? controller.toggle : null,
+                  // Neonski sjaj (proba): dok muzika svira, diše brže i
+                  // jače, pa se stanje vidi i krajičkom oka.
+                  NeonGlow(
+                    active: ready,
+                    circle: true,
+                    intensity: controller.isPlaying ? 1.2 : 0.6,
+                    period: controller.isPlaying
+                        ? const Duration(milliseconds: 900)
+                        : const Duration(milliseconds: 1800),
+                    child: _BarButton(
+                      icon: controller.isPlaying
+                          ? Icons.pause_circle_filled_rounded
+                          : Icons.play_circle_filled_rounded,
+                      label: controller.isPlaying ? 'Pauza' : 'Pusti',
+                      size: 44,
+                      onPressed: ready ? controller.toggle : null,
+                    ),
                   ),
                   _BarButton(
                     icon: Icons.forward_10_rounded,

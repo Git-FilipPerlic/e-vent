@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../services/music_player_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/common/neon_glow.dart';
 import '../widgets/music/edge_progress_ring.dart';
 import '../widgets/music/track_tile.dart';
 
@@ -262,26 +263,32 @@ class _PlayerScreenState extends State<PlayerScreen> {
     return Semantics(
       button: true,
       label: 'Pusti',
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          // Kvadrat, ne krug: iz istog prostora se dobija veća meta, a
-          // uglovi su blago zaobljeni da ne seku ekran.
-          borderRadius: BorderRadius.circular(kCardRadius * 2),
-          border: Border.all(color: AppColors.accentDeep, width: 2),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(kCardRadius * 2),
-          child: InkWell(
+      // Neonska ivica koja diše (proba).
+      child: NeonGlow(
+        borderRadius: kCardRadius * 2,
+        intensity: 0.9,
+        period: const Duration(milliseconds: 2200),
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            // Kvadrat, ne krug: iz istog prostora se dobija veća meta, a
+            // uglovi su blago zaobljeni da ne seku ekran.
             borderRadius: BorderRadius.circular(kCardRadius * 2),
-            onTap: _onPlayPressed,
-            child: Icon(
-              // Nikad pauza: ovaj ekran samo pušta.
-              Icons.play_arrow_rounded,
-              size: size * 0.55,
-              color: AppColors.accent,
+            border: Border.all(color: AppColors.accent, width: 2),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(kCardRadius * 2),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(kCardRadius * 2),
+              onTap: _onPlayPressed,
+              child: Icon(
+                // Nikad pauza: ovaj ekran samo pušta.
+                Icons.play_arrow_rounded,
+                size: size * 0.55,
+                color: AppColors.accent,
+              ),
             ),
           ),
         ),

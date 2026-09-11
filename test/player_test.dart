@@ -34,6 +34,17 @@ Future<MusicPlayerController> _controllerWith(
 }
 
 void main() {
+  // Neonski sjaj se vrti bez kraja, pa `pumpAndSettle` nikad ne bi dočekao
+  // mirno stanje. Uz sistemski „smanjen pokret" on stoji.
+  setUp(() {
+    TestWidgetsFlutterBinding
+        .instance
+        .platformDispatcher
+        .accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+      disableAnimations: true,
+    );
+  });
+
   group('red čekanja', () {
     test('postavljanje reda učita prvu numeru, ali je ne pusti', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
@@ -560,13 +571,21 @@ void main() {
   });
 
   group('pretapanje naslova', () {
+    // Ovde se proverava baš animacija, pa pokret mora da bude uključen. Sjaj
+    // na velikom dugmetu tada diše bez kraja, zato umesto `pumpAndSettle`
+    // stoji pola sekunde — pretapanje naslova traje najviše 200 ms.
+    setUp(() {
+      TestWidgetsFlutterBinding.instance.platformDispatcher
+          .clearAccessibilityFeaturesTestValue();
+    });
+
     testWidgets('pri prelasku na drugu numeru oba naslova nakratko stoje',
         (WidgetTester tester) async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
 
       await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
       expect(find.text('Uvodna špica'), findsOneWidget);
 
       await controller.onTrackTapped(_tracks[1]);
@@ -576,7 +595,7 @@ void main() {
       expect(find.text('Uvodna špica'), findsOneWidget);
       expect(find.text('Igre za decu'), findsOneWidget);
 
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
       expect(find.text('Uvodna špica'), findsNothing);
       expect(find.text('Igre za decu'), findsOneWidget);
 

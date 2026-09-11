@@ -101,6 +101,17 @@ Widget _scaled(double textScale, Widget child) {
 void main() {
   setUpAll(() => AppDate.init());
 
+  // Neonski sjaj se vrti bez kraja, pa `pumpAndSettle` nikad ne bi dočekao
+  // mirno stanje. Uz sistemski „smanjen pokret" on stoji.
+  setUp(() {
+    TestWidgetsFlutterBinding
+        .instance
+        .platformDispatcher
+        .accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+      disableAnimations: true,
+    );
+  });
+
   for (final size in _screens) {
     for (final scale in _textScales) {
       final label = '${size.width.toInt()}x${size.height.toInt()}'

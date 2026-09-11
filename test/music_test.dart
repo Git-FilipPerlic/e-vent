@@ -56,6 +56,17 @@ final List<Track> _sample = [
 ];
 
 void main() {
+  // Neonski sjaj se vrti bez kraja, pa `pumpAndSettle` nikad ne bi dočekao
+  // mirno stanje. Uz sistemski „smanjen pokret" on stoji.
+  setUp(() {
+    TestWidgetsFlutterBinding
+        .instance
+        .platformDispatcher
+        .accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+      disableAnimations: true,
+    );
+  });
+
   group('numera', () {
     test('naziv pada na naziv fajla, pa na objašnjenje', () {
       expect(

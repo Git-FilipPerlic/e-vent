@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
+import 'neon_glow.dart';
 
 /// Jedan tab u gornjoj navigaciji.
 class TopTab {
@@ -96,81 +97,87 @@ class _TabButton extends StatelessWidget {
     return Semantics(
       selected: isSelected,
       button: true,
-      child: AnimatedContainer(
-        duration: duration,
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.all(_bevel),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(_radius),
-          // Spoljni sloj = zakošena ivica. Izdignuto: svetlo gore, tama dole.
-          // Utisnuto: obrnuto, pa dugme deluje uvučeno u podlogu.
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isSelected
-                ? const [AppColors.accent, AppColors.accentDeep]
-                : const [AppColors.backgroundBottom, AppColors.border],
-          ),
-          boxShadow: isSelected
-              ? const [
-                  // Senka ispod izdignutog dugmeta.
-                  BoxShadow(
-                    color: AppColors.backgroundBottom,
-                    offset: Offset(0, 3),
-                    blurRadius: 8,
-                  ),
-                  // Blagi sjaj oko izabranog taba.
-                  BoxShadow(
-                    color: AppColors.accentDeep,
-                    blurRadius: 14,
-                    spreadRadius: -2,
-                  ),
-                ]
-              : null,
-        ),
+      // Izabrani tab svetli kao neon i polako diše (proba).
+      child: NeonGlow(
+        active: isSelected,
+        borderRadius: _radius,
+        intensity: 0.8,
         child: AnimatedContainer(
           duration: duration,
           curve: Curves.easeOut,
+          padding: const EdgeInsets.all(_bevel),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(_radius - _bevel),
-            // Unutrašnji sloj = lice dugmeta.
+            borderRadius: BorderRadius.circular(_radius),
+            // Spoljni sloj = zakošena ivica. Izdignuto: svetlo gore, tama dole.
+            // Utisnuto: obrnuto, pa dugme deluje uvučeno u podlogu.
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: isSelected
-                  ? const [AppColors.surfaceAlt, AppColors.surface]
-                  : const [AppColors.surface, AppColors.backgroundBottom],
+                  ? const [AppColors.accent, AppColors.accentDeep]
+                  : const [AppColors.backgroundBottom, AppColors.border],
             ),
+            boxShadow: isSelected
+                ? const [
+                    // Senka ispod izdignutog dugmeta.
+                    BoxShadow(
+                      color: AppColors.backgroundBottom,
+                      offset: Offset(0, 3),
+                      blurRadius: 8,
+                    ),
+                    // Blagi sjaj oko izabranog taba.
+                    BoxShadow(
+                      color: AppColors.accentDeep,
+                      blurRadius: 14,
+                      spreadRadius: -2,
+                    ),
+                  ]
+                : null,
           ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
+          child: AnimatedContainer(
+            duration: duration,
+            curve: Curves.easeOut,
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(_radius - _bevel),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(tab.icon, size: 28, color: color),
-                  const SizedBox(height: 2),
-                  // Nazivi tabova su kratki, ali sistemski font ume da bude
-                  // uvećan — tekst se skuplja umesto da se lomi u dva reda.
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        tab.label,
-                        maxLines: 1,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: color,
-                          fontWeight: isSelected
-                              ? FontWeight.w700
-                              : FontWeight.w500,
+              // Unutrašnji sloj = lice dugmeta.
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: isSelected
+                    ? const [AppColors.surfaceAlt, AppColors.surface]
+                    : const [AppColors.surface, AppColors.backgroundBottom],
+              ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(_radius - _bevel),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(tab.icon, size: 28, color: color),
+                    const SizedBox(height: 2),
+                    // Nazivi tabova su kratki, ali sistemski font ume da bude
+                    // uvećan — tekst se skuplja umesto da se lomi u dva reda.
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          tab.label,
+                          maxLines: 1,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: color,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
