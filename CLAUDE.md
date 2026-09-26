@@ -263,6 +263,10 @@ dugmetom.
 6. **Svaki podatak može da nedostaje.** Numera bez naziva pada na naziv fajla,
    numera bez poznatog trajanja prikazuje `--:--`, numera koja ne može da se
    otvori javlja grešku umesto da obori plejer.
+   Kontrole iznad plejliste (Fade, God mode, jačina, Ekran 2) **nemaju okvire**
+   (odluka od 26. septembra 2026). Bele kartice oko njih su jele visinu, a
+   prekidač i slovo se i sami prepoznaju; red je time spušten sa 60 na 44 dp.
+
 7. **Jačina zvuka ima tri stepenika, ne klizač** (odluka od 9. septembra
    2026). Prikazuje se **jednim slovom** u traci uz spisak, koje se dodirom
    vrti u krug:
@@ -372,6 +376,16 @@ Uz ivicu bi premotavanje prevlačenjem padalo u pojas kojim se otvara sistemska
 zavesa, a usred nastupa promašen prst ne sme da isključi Wi-Fi ni da izbaci
 aplikaciju. Jednostavnije je skloniti liniju nego se boriti sa sistemskim
 pokretima. Uz to plejer radi bez sistemskih traka, kao druga brana.
+
+**Talas se crta kao crtice sa razmakom, ne kao puna površina** (ispravka od
+26. septembra 2026). Puna površina je na današnjoj, izravnatoj muzici
+izgledala kao blok boje — sve je bilo na vrhu, pa se od talasa ništa nije
+videlo. Uz razmak između crtica i blagu krivu (amplituda na 1,6) razlika
+između tihog i glasnog se vidi.
+
+**Gornja traka ekrana sa talasom ne pripada talasu.** Zadržavanje prsta tamo
+ne pušta numeru: pored prekidača Fade i dugmeta za zatvaranje se prst lako
+zadrži, a muzika ne sme da krene od toga.
 
 **Dok se talas računa, na ekranu piše dokle je stiglo.** Izvlačenje traje
 nekoliko sekundi po numeri, a dotle se crta samo tanka, tiha linija — ranije

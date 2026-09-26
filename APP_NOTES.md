@@ -1811,6 +1811,28 @@ i pripada.
 - Sledeće: po korisnikovom spisku ostaju registracija u aplikaciji,
   prebacivanje uloge iz konzole i dodela po nalogu (uid) umesto po imenu
 
+## 26. septembar 2026 — talas kao crtice, kontrole bez okvira
+
+- Urađeno:
+  - **Talas se crta kao crtice sa razmakom**, uz blagu krivu (amplituda na
+    1,6). Na telefonu se videlo da puna površina daje blok boje: numera je
+    izravnata, pa je sve bilo na vrhu
+  - **Kontrole iznad plejliste nemaju okvire** (korisnikov zahtev). Red je
+    spušten sa 60 na 44 dp, a na ekranu se sada vidi sedam numera umesto tri
+    pre današnjih izmena
+  - **Gornja traka ekrana sa talasom izuzeta je iz zone za zadržavanje prsta.**
+    Pored prekidača Fade se prst lako zadrži, a to je puštalo numeru
+- Provereno na telefonu (`adb`): prevlačenje između stranica radi, tačkice
+  pokazuju gde si, kontrole su bez okvira, talas se izvlači i crta, a natpis
+  „Talas se računa · NN%" stoji dok traje. **Zvuk nije proveren** — pretapanje
+  se sluša, ne vidi
+- Otvoreni problemi: tokom probe na telefonu ekran sa talasom se jednom
+  zatvorio i pustio numeru odmah po prevlačenju prekidača Fade. Nije
+  utvrđeno da li je to bio sudar pokreta ili korisnikov dodir; izuzimanje
+  gornje trake iz zone zadržavanja je urađeno kao zaštita
+- Sledeće: korisnik sluša pretapanje i javlja da li sada izlazi i ulazi kako
+  treba
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

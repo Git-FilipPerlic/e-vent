@@ -4,10 +4,11 @@ import '../../services/music_player_controller.dart';
 import '../../theme/app_theme.dart';
 import '../common/slide_switch.dart';
 
-/// Red od četiri niske kartice iznad plejliste (od 25. septembra 2026).
+/// Red od četiri kontrole iznad plejliste.
 ///
-/// **Bez natpisa** — svaka kartica se prepoznaje po ikonici, da bi red bio
-/// nizak i da plejlista dobije prostor:
+/// **Bez natpisa i bez okvira** (okviri su otpali 26. septembra 2026) —
+/// svaka se prepoznaje po ikonici, a red je time nizak i plejlista dobija
+/// prostor:
 ///
 /// 1. **Fade** — prekidač sa talasićima u kružiću
 /// 2. **God mode** — prekidač sa zvezdicama. Isključen: dodir na numeru je
@@ -47,82 +48,47 @@ class MusicControls extends StatelessWidget {
   /// Prekidač je samo dodirnut, a ne prevučen — ekran objasni kako se menja.
   final VoidCallback onTapWithoutSlide;
 
-  /// Visina kartica — namerno niska.
-  static const double height = 60;
+  /// Visina reda. Bez okvira oko dugmadi red je niži nego ranije — prostor
+  /// dobija plejlista, koja je ono zbog čega se ekran otvara.
+  static const double height = 44;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: height,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Expanded(
-            flex: 3,
-            child: _Tile(
-              child: SlideSwitch(
-                value: fade,
-                onChanged: onFadeChanged,
-                label: 'Fade',
-                icon: Icons.waves_rounded,
-                onTapWithoutSlide: onTapWithoutSlide,
-              ),
-            ),
+          SlideSwitch(
+            value: fade,
+            onChanged: onFadeChanged,
+            label: 'Fade',
+            icon: Icons.waves_rounded,
+            onTapWithoutSlide: onTapWithoutSlide,
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            flex: 3,
-            child: _Tile(
-              child: SlideSwitch(
-                value: godMode,
-                onChanged: onGodModeChanged,
-                label: 'God mode',
-                icon: Icons.auto_awesome_rounded,
-                onTapWithoutSlide: onTapWithoutSlide,
-              ),
-            ),
+          SlideSwitch(
+            value: godMode,
+            onChanged: onGodModeChanged,
+            label: 'God mode',
+            icon: Icons.auto_awesome_rounded,
+            onTapWithoutSlide: onTapWithoutSlide,
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            flex: 2,
-            child: _VolumeTile(volume: volume, onTap: onCycleVolume),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            flex: 2,
-            child: _CueTile(enabled: cueEnabled, onTap: onOpenCue),
-          ),
+          _VolumeButton(volume: volume, onTap: onCycleVolume),
+          _CueButton(enabled: cueEnabled, onTap: onOpenCue),
         ],
       ),
     );
   }
 }
 
-/// Bela zaobljena kartica sa blagom senkom.
-class _Tile extends StatelessWidget {
-  const _Tile({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: kSoftShadow,
-      ),
-      alignment: Alignment.center,
-      // Na uskom telefonu se sadržaj skuplja umesto da se prelije.
-      child: FittedBox(fit: BoxFit.scaleDown, child: child),
-    );
-  }
-}
-
-/// Jačina u tri stepenika. Slovo je u safirnoj boji kad je puna jačina, a
-/// u boji upozorenja na breskvi kad je stišano — stišan zvuk je stanje na
-/// koje treba obratiti pažnju.
-class _VolumeTile extends StatelessWidget {
-  const _VolumeTile({required this.volume, required this.onTap});
+/// Jačina u tri stepenika. Slovo je u safirnoj boji kad je puna jačina, a u
+/// boji upozorenja kad je stišano — stišan zvuk je stanje na koje treba
+/// obratiti pažnju.
+///
+/// Bez okvira: slovo je dovoljno, a okvir je samo jeo visinu (odluka od
+/// 26. septembra 2026).
+class _VolumeButton extends StatelessWidget {
+  const _VolumeButton({required this.volume, required this.onTap});
 
   final VolumeStep volume;
   final VoidCallback onTap;
@@ -140,22 +106,18 @@ class _VolumeTile extends StatelessWidget {
       button: true,
       label: 'Jačina: ${_spoken[volume]}',
       excludeSemantics: true,
-      child: Material(
-        color: reduced ? AppColors.peach : AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        shadowColor: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: onTap,
+      child: InkResponse(
+        onTap: onTap,
+        radius: 28,
+        child: SizedBox(
+          width: 48,
+          height: MusicControls.height,
           child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                volume.label,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: reduced ? AppColors.warning : AppColors.accent,
-                ),
+            child: Text(
+              volume.label,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: reduced ? AppColors.warning : AppColors.accent,
               ),
             ),
           ),
@@ -166,8 +128,8 @@ class _VolumeTile extends StatelessWidget {
 }
 
 /// Ulaz na Ekran 2. Safirna kad je dostupna, utišana kad nije.
-class _CueTile extends StatelessWidget {
-  const _CueTile({required this.enabled, required this.onTap});
+class _CueButton extends StatelessWidget {
+  const _CueButton({required this.enabled, required this.onTap});
 
   final bool enabled;
   final VoidCallback onTap;
@@ -179,24 +141,16 @@ class _CueTile extends StatelessWidget {
       enabled: enabled,
       label: 'Ekran 2',
       excludeSemantics: true,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: enabled ? kAccentShadow : kSoftShadow,
-        ),
-        child: Material(
-          color: enabled ? AppColors.accent : AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: onTap,
-            child: Center(
-              child: Icon(
-                Icons.play_circle_rounded,
-                size: 30,
-                color: enabled ? AppColors.onAccent : AppColors.textSecondary,
-              ),
-            ),
+      child: InkResponse(
+        onTap: onTap,
+        radius: 28,
+        child: SizedBox(
+          width: 48,
+          height: MusicControls.height,
+          child: Icon(
+            Icons.play_circle_rounded,
+            size: 32,
+            color: enabled ? AppColors.accent : AppColors.textSecondary,
           ),
         ),
       ),

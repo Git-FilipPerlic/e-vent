@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -228,57 +230,66 @@ class _WaveScreenState extends State<WaveScreen>
       backgroundColor: AppColors.backgroundTop,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          _viewport = constraints.maxHeight;
+          // Gornja traka (zatvaranje i Fade) ne pripada talasu. Bez toga
+          // zadržavanje prsta pri prevlačenju prekidača ume da se upiše
+          // kao „pusti odavde" — a muzika ne sme da krene od okrznutog
+          // prsta pored prekidača.
+          final bar = MediaQuery.of(context).padding.top + 72;
+          _viewport = constraints.maxHeight - bar;
           final width = constraints.maxWidth;
           final half = _viewport / 2;
+          final lineY = bar + half;
           WidgetsBinding.instance.addPostFrameCallback((_) => _positionOnce());
 
           return Stack(
             children: [
-              RawGestureDetector(
-                gestures: {
-                  // Zadržavanje kreće posle kratkih 200 ms, pa se krug puni
-                  // još 650 ms. Pomeranje prsta je skrol i poništava ga.
-                  LongPressGestureRecognizer:
-                      GestureRecognizerFactoryWithHandlers<
-                        LongPressGestureRecognizer
-                      >(
-                        () => LongPressGestureRecognizer(
-                          duration: const Duration(milliseconds: 200),
+              Positioned.fill(
+                top: bar,
+                child: RawGestureDetector(
+                  gestures: {
+                    // Zadržavanje kreće posle kratkih 200 ms, pa se krug puni
+                    // još 650 ms. Pomeranje prsta je skrol i poništava ga.
+                    LongPressGestureRecognizer:
+                        GestureRecognizerFactoryWithHandlers<
+                          LongPressGestureRecognizer
+                        >(
+                          () => LongPressGestureRecognizer(
+                            duration: const Duration(milliseconds: 200),
+                          ),
+                          (instance) {
+                            instance
+                              ..onLongPressStart = (_) {
+                                HapticFeedback.selectionClick();
+                                _hold.forward();
+                              }
+                              ..onLongPressEnd = (_) {
+                                if (!_hold.isCompleted) _hold.reverse();
+                              }
+                              ..onLongPressCancel = () {
+                                if (!_hold.isCompleted) _hold.reverse();
+                              };
+                          },
                         ),
-                        (instance) {
-                          instance
-                            ..onLongPressStart = (_) {
-                              HapticFeedback.selectionClick();
-                              _hold.forward();
-                            }
-                            ..onLongPressEnd = (_) {
-                              if (!_hold.isCompleted) _hold.reverse();
-                            }
-                            ..onLongPressCancel = () {
-                              if (!_hold.isCompleted) _hold.reverse();
-                            };
-                        },
-                      ),
-                  DoubleTapGestureRecognizer:
-                      GestureRecognizerFactoryWithHandlers<
-                        DoubleTapGestureRecognizer
-                      >(
-                        DoubleTapGestureRecognizer.new,
-                        (instance) => instance.onDoubleTap = _toggleZoom,
-                      ),
-                },
-                child: SingleChildScrollView(
-                  controller: _scroll,
-                  child: AnimatedBuilder(
-                    animation: _scroll,
-                    builder: (context, _) => CustomPaint(
-                      size: Size(width, _contentHeight + _viewport),
-                      painter: _WavePainter(
-                        amplitudes: _amplitudes,
-                        top: half,
-                        height: _contentHeight,
-                        playheadY: half + _fraction * _contentHeight,
+                    DoubleTapGestureRecognizer:
+                        GestureRecognizerFactoryWithHandlers<
+                          DoubleTapGestureRecognizer
+                        >(
+                          DoubleTapGestureRecognizer.new,
+                          (instance) => instance.onDoubleTap = _toggleZoom,
+                        ),
+                  },
+                  child: SingleChildScrollView(
+                    controller: _scroll,
+                    child: AnimatedBuilder(
+                      animation: _scroll,
+                      builder: (context, _) => CustomPaint(
+                        size: Size(width, _contentHeight + _viewport),
+                        painter: _WavePainter(
+                          amplitudes: _amplitudes,
+                          top: half,
+                          height: _contentHeight,
+                          playheadY: half + _fraction * _contentHeight,
+                        ),
                       ),
                     ),
                   ),
@@ -288,7 +299,7 @@ class _WaveScreenState extends State<WaveScreen>
               Positioned(
                 left: 0,
                 right: 0,
-                top: half - 1,
+                top: lineY - 1,
                 child: IgnorePointer(
                   child: Container(height: 2, color: AppColors.textPrimary),
                 ),
@@ -296,7 +307,7 @@ class _WaveScreenState extends State<WaveScreen>
               // Krug koji se puni dok prst stoji.
               Positioned(
                 left: width / 2 - 40,
-                top: half - 40,
+                top: lineY - 40,
                 child: IgnorePointer(
                   child: AnimatedBuilder(
                     animation: _hold,
@@ -320,7 +331,7 @@ class _WaveScreenState extends State<WaveScreen>
               Positioned(
                 left: 0,
                 right: 0,
-                top: half + 16,
+                top: lineY + 16,
                 child: IgnorePointer(
                   child: Center(
                     child: AnimatedBuilder(
@@ -433,10 +444,9 @@ class _WavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
-    final maxHalf = size.width * 0.46;
+    final maxHalf = size.width * 0.42;
     final values = amplitudes;
 
-    final path = Path();
     if (values == null || values.isEmpty) {
       // Dok se talas računa stoji tanka, tiha linija. Ranije je bila
       // debela i u boji numere, pa je ličila na kvar.
@@ -447,32 +457,27 @@ class _WavePainter extends CustomPainter {
       return;
     }
 
-    final n = values.length;
-    final step = height / n;
-    path.moveTo(cx, top);
-    for (var i = 0; i < n; i++) {
-      final a = values[i].clamp(0.02, 1.0);
-      path.lineTo(cx + a * maxHalf, top + (i + 0.5) * step);
-    }
-    path.lineTo(cx, top + height);
-    for (var i = n - 1; i >= 0; i--) {
-      final a = values[i].clamp(0.02, 1.0);
-      path.lineTo(cx - a * maxHalf, top + (i + 0.5) * step);
-    }
-    path.close();
-
     final past = Paint()..color = AppColors.peachWave;
     final ahead = Paint()..color = AppColors.accent;
 
-    canvas.save();
-    canvas.clipRect(Rect.fromLTRB(0, 0, size.width, playheadY));
-    canvas.drawPath(path, past);
-    canvas.restore();
+    final n = values.length;
+    final step = height / n;
+    // Crtice poprečno na putanju, sa razmakom između njih. Puna površina je
+    // izgledala kao blok boje: glasna numera je svuda na vrhu, pa se od nje
+    // ništa nije videlo. Razmak vraća oblik.
+    final bar = math.max(1.0, step * 0.55);
 
-    canvas.save();
-    canvas.clipRect(Rect.fromLTRB(0, playheadY, size.width, size.height));
-    canvas.drawPath(path, ahead);
-    canvas.restore();
+    for (var i = 0; i < n; i++) {
+      // Blaga kriva razvlači razliku između tihog i glasnog: današnja
+      // muzika je izravnata, pa bi bez toga sve bilo podjednako široko.
+      final a = math.pow(values[i].clamp(0.0, 1.0), 1.6).toDouble();
+      final half = math.max(1.0, a * maxHalf);
+      final y = top + i * step;
+      canvas.drawRect(
+        Rect.fromLTWH(cx - half, y, half * 2, bar),
+        y + bar / 2 < playheadY ? past : ahead,
+      );
+    }
   }
 
   @override
