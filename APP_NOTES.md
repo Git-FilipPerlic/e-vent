@@ -1751,8 +1751,9 @@ i pripada.
 - Provereno: `flutter analyze` bez primedbi, **355 testova prolazi**.
   Testovi navigacije prepisani sa dodira na prevlačenje; dodat test koji
   drži da Muzika stranica ostaje u stablu i kad se ode na Lager
-- Otvoreni problemi: `top_tab_bar.dart` je ostao u projektu, ali se više
-  nigde ne koristi — briše se kad bude jasno da se traka ne vraća
+- Otvoreni problemi: nema. `top_tab_bar.dart` je obrisan istog dana, na
+  korisnikov zahtev — traka se ne vraća, pa nema razloga da stoji kao
+  mrtav kod
 - Sledeće: provera na telefonu (prevlačenje preko klizača na LED stranici i
   preko prekidača na Muzici — oba su horizontalni pokreti)
 

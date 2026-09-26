@@ -877,21 +877,13 @@ spremiti se za dečji rođendan i za svadbu. Zato je vrsta **zaseban podatak**
 - Ugovoreno trajanje ujedno određuje i kada je status događaja "završeno" —
   ranija pretpostavka od 4 sata koristi se samo ako trajanje nije uneto.
 
-### Navigacija (odluka od 8. septembra 2026)
+### Navigacija (odluka od 26. septembra 2026)
 
-Tabovi stoje **gore, odmah ispod headera** — ne dole. Odluka je korisnikova:
-telefon se često koristi u držaču u vozilu i na sastanku, gde se prilazi
-kažiprstom odozgo, a ne palcem odozdo.
-
-Tabovi su izvedeni kao dugmad sa **zakošenom ivicom (bevel)**: izabrani je
-izdignut, sa svetlom ivicom gore i senkom ispod, i u boji `accent`; neizabrani
-su utisnuti u podlogu i mirni. Cilj je da se **sa ispružene ruke**, u vožnji
-ili tokom programa, na prvi pogled vidi šta je izabrano.
-
-Izvedba: zakošenje se pravi od dva sloja (spoljni tanak okvir sa gradijentom
-svetlo→tamno, unutrašnji je lice dugmeta). Flutter ne dozvoljava zaobljen okvir
-sa različitim bojama stranica, pa je ovo jedini način da bevel i zaobljeni
-uglovi idu zajedno.
+Ranije su tabovi stajali **gore, odmah ispod headera**, kao dugmad sa
+zakošenom ivicom. Ta traka je uklonjena 26. septembra 2026 zajedno sa
+widgetom `top_tab_bar.dart`; ono što je od nje ostalo jeste razlog zašto
+ništa nije otišlo dole — telefon se često drži u držaču u vozilu i na
+sastanku, gde se prilazi kažiprstom odozgo, a ne palcem odozdo.
 
 **Između stranica se prevlači** (urađeno 26. septembra 2026). Redosled je
 **Home · Muzika · LED · Lager**, a stranica se menja prevlačenjem levo-desno.
