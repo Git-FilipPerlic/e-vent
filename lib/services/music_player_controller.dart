@@ -149,10 +149,13 @@ class MusicPlayerController extends ChangeNotifier {
   ///
   /// Ide kroz isti keš kao talas izabrane numere, pa se ista pesma ne
   /// obrađuje dvaput. `null` kad fajl ne može da se pročita.
-  Future<List<double>?> amplitudesFor(Track track) async {
+  Future<List<double>?> amplitudesFor(
+    Track track, {
+    void Function(double progress)? onProgress,
+  }) async {
     final path = track.path;
     if (path == null) return null;
-    return _waveforms.amplitudes(path);
+    return _waveforms.amplitudes(path, onProgress: onProgress);
   }
 
   /// Pauza i nastavak **numere koja svira** — dugme u kartici „Sada svira".

@@ -1,17 +1,9 @@
 import 'package:event_app/models/track.dart';
-import 'package:event_app/screens/player_screen.dart';
 import 'package:event_app/services/audio_playback.dart';
 import 'package:event_app/services/music_player_controller.dart';
-import 'package:event_app/theme/app_theme.dart';
-import 'package:event_app/widgets/music/edge_progress_ring.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fakes.dart';
-
-Widget _wrap(Widget child) {
-  return MaterialApp(theme: AppTheme.dark, home: child);
-}
 
 const List<Track> _tracks = [
   Track(
@@ -34,6 +26,32 @@ Future<MusicPlayerController> _controllerWith(
 }
 
 void main() {
+  group('kriva pretapanja', () {
+    // Jačina koja se čuje ne prati amplitudu pravolinijski: pola amplitude
+    // je oko −6 dB, što se jedva primeti. Zbog toga je pravolinijsko
+    // pretapanje zvučalo kao da numera koja izlazi ne izlazi, a ona koja
+    // ulazi kao da upada.
+    test('krajevi su tišina i puna jačina', () {
+      expect(JustAudioPlayback.fadeCurve(0), 0);
+      expect(JustAudioPlayback.fadeCurve(1), 1);
+    });
+
+    test('na pola puta je zvuk znatno tiši nego pola jačine', () {
+      final half = JustAudioPlayback.fadeCurve(0.5);
+      expect(half, lessThan(0.2));
+      expect(half, greaterThan(0.0));
+    });
+
+    test('raste bez skokova', () {
+      var previous = 0.0;
+      for (var i = 1; i <= 20; i++) {
+        final value = JustAudioPlayback.fadeCurve(i / 20);
+        expect(value, greaterThan(previous));
+        previous = value;
+      }
+    });
+  });
+
   group('red čekanja', () {
     test('postavljanje reda učita prvu numeru, ali je ne pusti', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
@@ -205,139 +223,6 @@ void main() {
   });
 
   group('nastupni ekran', () {
-    testWidgets('prikazuje numeru i vreme, bez puštanja',
-        (WidgetTester tester) async {
-      final playback = FakePlayback(
-        trackDuration: const Duration(seconds: 154),
-      );
-      final controller = await _controllerWith(playback);
-
-      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Uvodna špica'), findsOneWidget);
-      expect(find.text('0:00 / 2:34'), findsOneWidget);
-      expect(playback.playCalls, 0);
-      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
-
-      controller.dispose();
-    });
-
-    testWidgets('veliko dugme pusti numeru i vrati na spisak',
-        (WidgetTester tester) async {
-      final playback = FakePlayback(
-        trackDuration: const Duration(seconds: 154),
-      );
-      final controller = await _controllerWith(playback);
-
-      await tester.pumpWidget(
-        _wrap(
-          Builder(
-            builder: (context) => Scaffold(
-              body: Center(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => PlayerScreen(controller: controller),
-                    ),
-                  ),
-                  child: const Text('Otvori'),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.tap(find.text('Otvori'));
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
-
-      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
-      await tester.pumpAndSettle();
-
-      expect(playback.playCalls, 1);
-      // Pesma je krenula, a ruke su slobodne za sledeću — nazad na spisak.
-      expect(find.text('Otvori'), findsOneWidget);
-      expect(find.byType(PlayerScreen), findsNothing);
-
-      controller.dispose();
-    });
-
-    testWidgets('uključen fade in se prosleđuje plejeru',
-        (WidgetTester tester) async {
-      final playback = FakePlayback(
-        trackDuration: const Duration(seconds: 154),
-      );
-      final controller = await _controllerWith(playback);
-
-      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
-      await tester.pumpAndSettle();
-
-      await tester.ensureVisible(find.byType(Switch).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(Switch).first);
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.byIcon(Icons.play_arrow_rounded));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
-      await tester.pumpAndSettle();
-
-      expect(playback.lastFadeIn, isTrue);
-      controller.dispose();
-    });
-
-    testWidgets('vreme i prsten prate poziciju', (WidgetTester tester) async {
-      final playback = FakePlayback(
-        trackDuration: const Duration(seconds: 200),
-      );
-      final controller = await _controllerWith(playback);
-
-      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
-      await tester.pumpAndSettle();
-
-      playback.emitPosition(const Duration(seconds: 50));
-      await tester.pumpAndSettle();
-
-      expect(find.text('0:50 / 3:20'), findsOneWidget);
-
-      final ring = tester.widget<EdgeProgressRing>(
-        find.byType(EdgeProgressRing),
-      );
-      // 50 od 200 sekundi je četvrtina kruga.
-      expect(ring.progress.value, closeTo(0.25, 0.001));
-
-      controller.dispose();
-    });
-
-    testWidgets('numera koja ne može da se otvori javlja grešku',
-        (WidgetTester tester) async {
-      final playback = FakePlayback(failsToLoad: true);
-      final controller = await _controllerWith(playback);
-
-      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Numera se ne može otvoriti.'), findsOneWidget);
-      expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
-
-      controller.dispose();
-    });
-
-    testWidgets('izlazak sa ekrana ne gasi plejer — muzika ide dalje',
-        (WidgetTester tester) async {
-      final playback = FakePlayback(trackDuration: const Duration(seconds: 10));
-      final controller = await _controllerWith(playback);
-
-      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
-      await tester.pumpAndSettle();
-
-      await tester.pumpWidget(_wrap(const SizedBox()));
-      await tester.pumpAndSettle();
-
-      expect(playback.disposed, isFalse);
-      controller.dispose();
-    });
   });
 
   group('fade-out', () {
@@ -396,26 +281,6 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(playback.lastFadeToSilence, isNull);
-      controller.dispose();
-    });
-
-    testWidgets('nastupni ekran ima jedan prekidač za pretapanje',
-        (WidgetTester tester) async {
-      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
-      final controller = await _controllerWith(playback);
-
-      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Fade'), findsOneWidget);
-
-      // Veliko dugme zauzima skoro ceo ekran, pa prekidač zna da bude ispod
-      // ivice — u testu se do njega mora skrolovati.
-      await tester.ensureVisible(find.text('Fade'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Fade'));
-      await tester.pumpAndSettle();
-      expect(controller.fade, isTrue);
       controller.dispose();
     });
   });
@@ -478,21 +343,6 @@ void main() {
 
       expect(controller.sounding?.id, 'trk-001');
       expect(playback.lastSeek, isNull);
-      controller.dispose();
-    });
-
-    testWidgets('nastupni ekran kaže šta svira kad je izabrana druga numera',
-        (WidgetTester tester) async {
-      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
-      final controller = await _controllerWith(playback);
-      await controller.play();
-      await controller.onTrackTapped(_tracks[2]);
-
-      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Finale'), findsOneWidget);
-      expect(find.text('svira: Uvodna špica'), findsOneWidget);
       controller.dispose();
     });
   });
@@ -560,28 +410,6 @@ void main() {
   });
 
   group('pretapanje naslova', () {
-    testWidgets('pri prelasku na drugu numeru oba naslova nakratko stoje',
-        (WidgetTester tester) async {
-      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
-      final controller = await _controllerWith(playback);
-
-      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
-      await tester.pumpAndSettle();
-      expect(find.text('Uvodna špica'), findsOneWidget);
-
-      await controller.onTrackTapped(_tracks[1]);
-      await tester.pump();
-      // Usred pretapanja se vide oba naslova — stari izlazi, novi ulazi.
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('Uvodna špica'), findsOneWidget);
-      expect(find.text('Igre za decu'), findsOneWidget);
-
-      await tester.pumpAndSettle();
-      expect(find.text('Uvodna špica'), findsNothing);
-      expect(find.text('Igre za decu'), findsOneWidget);
-
-      controller.dispose();
-    });
   });
 
   group('jačina zvuka', () {
@@ -610,52 +438,6 @@ void main() {
   });
 
   group('veliko dugme uvek pušta', () {
-    testWidgets('nema pauze ni dok numera svira', (WidgetTester tester) async {
-      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
-      final controller = await _controllerWith(playback);
-      await controller.play();
-
-      await tester.pumpWidget(_wrap(PlayerScreen(controller: controller)));
-      await tester.pumpAndSettle();
-
-      // Muzika pred publikom ne sme da stane zbog promašenog dodira.
-      expect(find.byIcon(Icons.pause_rounded), findsNothing);
-      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
-      controller.dispose();
-    });
-
-    testWidgets('dodir pušta i vraća na spisak', (WidgetTester tester) async {
-      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
-      final controller = await _controllerWith(playback);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.dark,
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: TextButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => PlayerScreen(controller: controller),
-                  ),
-                ),
-                child: const Text('otvori'),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.tap(find.text('otvori'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.play_arrow_rounded));
-      await tester.pumpAndSettle();
-
-      expect(playback.playCalls, 1);
-      // Ekran se zatvorio — ruke su slobodne za sledeću numeru.
-      expect(find.text('otvori'), findsOneWidget);
-      controller.dispose();
-    });
   });
 
   group('pretapanje se ne prekida premotavanjem', () {

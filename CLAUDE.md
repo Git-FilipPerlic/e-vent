@@ -373,6 +373,12 @@ zavesa, a usred nastupa promašen prst ne sme da isključi Wi-Fi ni da izbaci
 aplikaciju. Jednostavnije je skloniti liniju nego se boriti sa sistemskim
 pokretima. Uz to plejer radi bez sistemskih traka, kao druga brana.
 
+**Dok se talas računa, na ekranu piše dokle je stiglo.** Izvlačenje traje
+nekoliko sekundi po numeri, a dotle se crta samo tanka, tiha linija — ranije
+je ta linija bila debela i u boji numere, pa je ličila na kvar. Sama obrada
+ide na 10 tačaka po sekundi zvuka: iz zapisa se ionako svodi na ~600
+vrednosti, a finije samo duže traje na telefonu.
+
 **Podaci i izvedba (bitno za performanse):**
 
 - amplitude se računaju **jednom po pesmi**, pri učitavanju fajla — niz od N
@@ -471,6 +477,15 @@ prekidu; naglo sečenje ne postoji ni u jednom slučaju.
 Ostalo traje **10 sekundi** — osim ulaska iz tišine kad ga pokrene **obično plej dugme u
 traci**, koji traje **5 sekundi**: traka služi za usputno paljenje i pauzu, a
 ne za uvod pred publiku, pa je deset sekundi tamo predugo čekanje.
+
+**Pretapanje ide po glasnoći koja se čuje, ne po amplitudi** (ispravka od
+26. septembra 2026). Pola amplitude nije pola glasnoće nego oko −6 dB, što se
+jedva primeti; zbog toga je pravolinijsko pretapanje zvučalo pogrešno na oba
+kraja — numera koja izlazi kao da ne izlazi, a ona koja ulazi kao da upada.
+Rampa je zato pravolinijska **u decibelima**, preko 45 dB: svaki deo puta
+oduzme isto toliko glasnoće. U sredini preklopa se obe numere čuju tiše, i to
+je namerno — jedna se povlači, druga dolazi. Isto važi i za ulazak iz tišine i
+za izlazak na pauzu.
 
 **Premotavanje ne prekida pretapanje** (odluka od 9. septembra 2026). Dok
 preklapanje traje, izvođač sme da prevlači po prstenu ili da preskače, i da
@@ -1117,7 +1132,7 @@ za proveru praznih stanja) mogu da posluže kao seed za Firestore.
 | Namena | RN verzija | Flutter paket |
 |---|---|---|
 | Poziv, SMS, otvaranje mapa | `Linking` | `url_launcher` |
-| Mapa u kartici adrese | `react-native-maps` | `flutter_map` ili `google_maps_flutter` |
+| Mapa u kartici adrese | `react-native-maps` | — **otpalo 26. septembra 2026**; adresa otvara navigaciju u tuđoj aplikaciji |
 | Datum/vreme na srpskom | `Intl.DateTimeFormat('sr-Latn-RS')` | `intl` (`DateFormat.yMMMMd('sr')`) |
 | Kopiranje u clipboard | `expo-clipboard` | ugrađeno: `Clipboard.setData` |
 | Logo tima iz galerije | `expo-image-picker` | `image_picker` |

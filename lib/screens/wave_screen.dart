@@ -90,6 +90,12 @@ class _WaveScreenState extends State<WaveScreen>
   List<double>? _amplitudes;
   bool _loaded = false;
 
+  /// Dokle je stiglo izvlačenje talasa, 0..1.
+  ///
+  /// Izvlačenje traje nekoliko sekundi po numeri, a dotle se crta samo
+  /// tanka linija — bez ovoga je delovalo kao da je ekran pokvaren.
+  double _progress = 0;
+
   /// 1 = cela pesma na jednom ekranu; veće = razvučeno.
   double _zoom = 1;
   static const double _zoomedIn = 4;
@@ -125,7 +131,13 @@ class _WaveScreenState extends State<WaveScreen>
   }
 
   Future<void> _loadWave() async {
-    final amplitudes = await widget.controller.amplitudesFor(widget.track);
+    final amplitudes = await widget.controller.amplitudesFor(
+      widget.track,
+      onProgress: (value) {
+        if (!mounted || _loaded) return;
+        setState(() => _progress = value);
+      },
+    );
     if (!mounted) return;
     setState(() {
       _amplitudes = amplitudes;
@@ -186,10 +198,23 @@ class _WaveScreenState extends State<WaveScreen>
     Navigator.of(context).pop(true);
   }
 
+  /// Šta piše u pilulici na sredini: dok se talas računa — dokle je stiglo,
+  /// posle — vreme, a ako talasa nema — i to.
+  String _waveLabel() {
+    if (!_loaded) {
+      final percent = (_progress * 100).clamp(0, 99).round();
+      return 'Talas se računa · $percent%';
+    }
+    if (_amplitudes == null) return 'Talas nije dostupan · ${_timeLabel()}';
+    return _timeLabel();
+  }
+
   String _timeLabel() {
     final total = _duration;
     if (total == null) return '--:-- / --:--';
-    final at = Duration(milliseconds: (total.inMilliseconds * _fraction).round());
+    final at = Duration(
+      milliseconds: (total.inMilliseconds * _fraction).round(),
+    );
     final zoom = _zoom == 1 ? '' : ' · zum';
     return '${TrackTile.formatDuration(at)} / '
         '${TrackTile.formatDuration(total)}$zoom';
@@ -311,9 +336,7 @@ class _WaveScreenState extends State<WaveScreen>
                           boxShadow: kSoftShadow,
                         ),
                         child: Text(
-                          _loaded && _amplitudes == null
-                              ? 'Talas nije dostupan · ${_timeLabel()}'
-                              : _timeLabel(),
+                          _waveLabel(),
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                             fontFeatures: const [FontFeature.tabularFigures()],
@@ -334,7 +357,9 @@ class _WaveScreenState extends State<WaveScreen>
                     Text(
                       'Fade',
                       style: theme.textTheme.labelLarge?.copyWith(
-                        color: _fade ? AppColors.accent : AppColors.textSecondary,
+                        color: _fade
+                            ? AppColors.accent
+                            : AppColors.textSecondary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -348,7 +373,9 @@ class _WaveScreenState extends State<WaveScreen>
                         ..hideCurrentSnackBar()
                         ..showSnackBar(
                           const SnackBar(
-                            content: Text('Prevuci prekidač — dodir ga ne menja'),
+                            content: Text(
+                              'Prevuci prekidač — dodir ga ne menja',
+                            ),
                           ),
                         ),
                     ),
@@ -406,32 +433,33 @@ class _WavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
-    final maxHalf = size.width * 0.42;
+    final maxHalf = size.width * 0.46;
     final values = amplitudes;
 
     final path = Path();
     if (values == null || values.isEmpty) {
-      path.addRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(cx - 2, top, 4, height),
-          const Radius.circular(2),
-        ),
+      // Dok se talas računa stoji tanka, tiha linija. Ranije je bila
+      // debela i u boji numere, pa je ličila na kvar.
+      canvas.drawRect(
+        Rect.fromLTWH(cx - 0.5, top, 1, height),
+        Paint()..color = AppColors.border,
       );
-    } else {
-      final n = values.length;
-      final step = height / n;
-      path.moveTo(cx, top);
-      for (var i = 0; i < n; i++) {
-        final a = values[i].clamp(0.02, 1.0);
-        path.lineTo(cx + a * maxHalf, top + (i + 0.5) * step);
-      }
-      path.lineTo(cx, top + height);
-      for (var i = n - 1; i >= 0; i--) {
-        final a = values[i].clamp(0.02, 1.0);
-        path.lineTo(cx - a * maxHalf, top + (i + 0.5) * step);
-      }
-      path.close();
+      return;
     }
+
+    final n = values.length;
+    final step = height / n;
+    path.moveTo(cx, top);
+    for (var i = 0; i < n; i++) {
+      final a = values[i].clamp(0.02, 1.0);
+      path.lineTo(cx + a * maxHalf, top + (i + 0.5) * step);
+    }
+    path.lineTo(cx, top + height);
+    for (var i = n - 1; i >= 0; i--) {
+      final a = values[i].clamp(0.02, 1.0);
+      path.lineTo(cx - a * maxHalf, top + (i + 0.5) * step);
+    }
+    path.close();
 
     final past = Paint()..color = AppColors.peachWave;
     final ahead = Paint()..color = AppColors.accent;

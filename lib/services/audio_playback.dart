@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:just_audio/just_audio.dart';
 
@@ -158,6 +159,26 @@ class JustAudioPlayback implements AudioPlayback {
   /// progovori preko toga.
   static const Duration pauseFadeDuration = Duration(seconds: 6);
 
+  /// Raspon pretapanja u decibelima.
+  ///
+  /// **Jačina koja se čuje ne prati amplitudu pravolinijski.** Pola amplitude
+  /// nije pola glasnoće nego otprilike −6 dB, što se jedva primeti; zato je
+  /// pravolinijsko stišavanje zvučalo kao da numera koja izlazi uopšte ne
+  /// izlazi, a ona koja ulazi kao da upada. Rampa je zato pravolinijska **u
+  /// decibelima**: svaki deo puta oduzme isto toliko glasnoće, pa se izlazak
+  /// čuje od prve sekunde, a ulazak se penje mirno.
+  ///
+  /// 45 dB je izabrano namerno: 60 bi ostavilo predugu tišinu na početku
+  /// ulaska, a 30 se i dalje čuje kao skok.
+  static const double _fadeRangeDb = 45;
+
+  /// Amplituda za napredak [t] (0..1) po rampi iz [_fadeRangeDb].
+  static double fadeCurve(double t) {
+    if (t <= 0) return 0;
+    if (t >= 1) return 1;
+    return math.pow(10, (t - 1) * _fadeRangeDb / 20).toDouble();
+  }
+
   /// **Pauza nikad ne seče naglo.** I kad je `Fade` isključen, zvuk se spusti
   /// za pola sekunde — dovoljno da nestane onaj „klik" na prekidu, a
   /// prekratko da bi se osetilo kao pretapanje. Sa uključenim `Fade` izlazak
@@ -259,8 +280,11 @@ class JustAudioPlayback implements AudioPlayback {
     _crossfadeTimer = Timer.periodic(_fadeStep, (timer) {
       step++;
       final t = (step / steps).clamp(0.0, 1.0);
-      incoming.setVolume(t * _masterVolume);
-      outgoing.setVolume((1 - t) * _masterVolume);
+      // Obe strane idu po istoj rampi: ona koja ulazi napred, ona koja
+      // izlazi unazad. Tako se u sredini preklopa obe čuju tiše, što je
+      // i smisao — jedna se povlači, druga dolazi.
+      incoming.setVolume(fadeCurve(t) * _masterVolume);
+      outgoing.setVolume(fadeCurve(1 - t) * _masterVolume);
       if (t >= 1) {
         timer.cancel();
         _crossfadeTimer = null;
@@ -287,7 +311,10 @@ class JustAudioPlayback implements AudioPlayback {
     _fadeTimer = Timer.periodic(_fadeStep, (timer) {
       step++;
       final t = (step / steps).clamp(0.0, 1.0);
-      player.setVolume(start + (target - start) * t);
+      // Rampa ide po glasnoći koja se čuje, a ne po amplitudi; kad se
+      // zvuk spušta, ista kriva se čita unazad.
+      final eased = target > start ? fadeCurve(t) : 1 - fadeCurve(1 - t);
+      player.setVolume(start + (target - start) * eased);
       if (t >= 1) {
         timer.cancel();
         _fadeTimer = null;

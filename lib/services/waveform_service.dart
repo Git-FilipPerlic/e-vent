@@ -32,6 +32,7 @@ class WaveformService {
   Future<List<double>?> amplitudes(
     String path, {
     int samples = defaultSampleCount,
+    void Function(double progress)? onProgress,
   }) async {
     final cached = _cache[path];
     if (cached != null) return cached;
@@ -56,10 +57,14 @@ class WaveformService {
       );
 
       Waveform? waveform;
+      // Gušće od ovoga nema smisla: iz celog zapisa se ionako svodi na
+      // ~600 vrednosti, a finija obrada samo duže traje na telefonu.
       await for (final progress in JustWaveform.extract(
         audioInFile: audio,
         waveOutFile: out,
+        zoom: const WaveformZoom.pixelsPerSecond(10),
       )) {
+        onProgress?.call(progress.progress);
         if (progress.waveform != null) waveform = progress.waveform;
       }
 

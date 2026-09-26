@@ -1780,6 +1780,37 @@ i pripada.
 - Sledeće: po korisnikovom spisku ostaju registracija u aplikaciji,
   prebacivanje uloge iz konzole i dodela po nalogu (uid) umesto po imenu
 
+## 26. septembar 2026 — pretapanje po glasnoći, talas sa napretkom, čišćenje
+
+- Urađeno:
+  - **Pretapanje ide po glasnoći koja se čuje.** Rampa je sada pravolinijska
+    u decibelima (45 dB), a ne po amplitudi. Pola amplitude je oko −6 dB, pa
+    je numera koja izlazi zvučala kao da ne izlazi, a ona koja ulazi kao da
+    upada. Ista kriva važi za ulazak iz tišine, izlazak na pauzu i obe strane
+    preklapanja
+  - **Talas javlja dokle je stigao** („Talas se računa · 42%"). Dok ga nema,
+    crta se tanka tiha linija umesto debele u boji numere — ta linija je i
+    bila ono što je ličilo na bug. Obrada je spuštena na 10 tačaka po sekundi
+    zvuka, jer se ionako svodi na ~600 vrednosti
+  - **Obrisano što je ostalo iz ranijih verzija:** `player_screen.dart`,
+    `edge_progress_ring.dart`, `playback_bar.dart`, `placeholder_body.dart` i
+    testovi koji su ih pokrivali. Nastupni ekran sa prstenom zamenio je ekran
+    sa talasom, pa je prsten bio mrtav kod
+  - **Izbačena četiri nekorišćena paketa:** `flutter_map`, `latlong2`
+    (mini mapa je otpala — adresa otvara navigaciju u tuđoj aplikaciji),
+    `file_picker` (aplikacija ima sopstveni pregled fajlova) i
+    `cupertino_icons` (nikad korišćen)
+  - **Build se deli po arhitekturi** (`--split-per-abi`): za telefon ide
+    `app-arm64-v8a-release.apk` od 22 MB umesto univerzalnih 60 MB. Univerzalni
+    je nosio i `x86_64`, koji služi samo emulatoru
+- Provereno: `flutter analyze` bez primedbi, **332 testa prolaze** (28 je
+  otišlo sa obrisanim ekranima). Dodati testovi krive pretapanja i testa da
+  puštanje sa talasa preklapa umesto da seče. APK instaliran na telefon
+- Otvoreni problemi: da li talas na telefonu stiže dovoljno brzo — to se vidi
+  tek prstom, sa pravim fajlovima
+- Sledeće: po korisnikovom spisku ostaju registracija u aplikaciji,
+  prebacivanje uloge iz konzole i dodela po nalogu (uid) umesto po imenu
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`
