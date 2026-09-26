@@ -40,7 +40,12 @@ class AppHeader extends StatelessWidget {
   final ImageProvider? logo;
 
   /// Visina trake, bez statusne trake telefona.
-  static const double height = 72;
+  ///
+  /// Spuštena sa 72 na 48 dp (26. septembra 2026): otkad se između
+  /// stranica prevlači, gornji pojas više ne nosi dugmad, pa nema šta ni
+  /// da zauzima visinu. 48 dp je tačno dodirna meta — niže se dugme za
+  /// konzolu ne bi moglo pogoditi.
+  static const double height = 48;
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +136,7 @@ class AppHeader extends StatelessWidget {
             ),
           ),
 
-          // Razdelnik prema tabovima ispod.
+          // Razdelnik prema sadržaju ispod.
           const Align(
             alignment: Alignment.bottomCenter,
             child: Divider(height: 1),
@@ -157,7 +162,7 @@ class _Wordmark extends StatelessWidget {
       child: Text(
         'e-vent',
         style:
-            theme.textTheme.headlineSmall?.copyWith(
+            theme.textTheme.titleLarge?.copyWith(
               color: AppColors.accent,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.5,

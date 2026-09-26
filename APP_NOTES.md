@@ -1732,6 +1732,30 @@ i pripada.
 - Sledeće: navigacija bez headera i trake sa tabovima, uz prevlačenje između
   prozora (upisano u `CLAUDE.md`)
 
+## 26. septembar 2026 — prevlačenje umesto trake sa tabovima
+
+- Urađeno:
+  - **Između stranica se prevlači** (`PageView` u `app.dart`), redom
+    Home · Muzika · LED · Lager. Traka sa četiri dugmeta je uklonjena
+  - umesto nje u headeru stoje **tačkice** (`page_dots.dart`): oznaka gde si,
+    bez dodira. Čitaču ekrana izgovaraju naziv stranice
+  - **header spušten sa 72 na 48 dp**, a ime aplikacije je za jedan stepen
+    sitnije da stane u nižu traku
+  - **Home ostaje kao stranica** (korisnikova odluka), samo bez svog dugmeta
+  - svaka stranica je `_KeepAlivePage`: `PageView` inače ukloni stranicu koja
+    nije uz trenutnu, pa bi sa Muzikom otišao i plejer i muzika bi stala čim
+    se ode na Lager. Spisak događaja i stranice i dalje stoje jedno pored
+    drugog u `IndexedStack`, iz istog razloga
+  - Lager i dalje ponovo čita kategorije kad se dođe na njegovu stranicu —
+    sada preko `onPageChanged`, ne preko dugmeta
+- Provereno: `flutter analyze` bez primedbi, **355 testova prolazi**.
+  Testovi navigacije prepisani sa dodira na prevlačenje; dodat test koji
+  drži da Muzika stranica ostaje u stablu i kad se ode na Lager
+- Otvoreni problemi: `top_tab_bar.dart` je ostao u projektu, ali se više
+  nigde ne koristi — briše se kad bude jasno da se traka ne vraća
+- Sledeće: provera na telefonu (prevlačenje preko klizača na LED stranici i
+  preko prekidača na Muzici — oba su horizontalni pokreti)
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

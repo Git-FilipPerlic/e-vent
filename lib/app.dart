@@ -22,7 +22,7 @@ import 'services/team_logo_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/date_format.dart';
 import 'widgets/common/app_header.dart';
-import 'widgets/common/top_tab_bar.dart';
+import 'widgets/common/page_dots.dart';
 
 /// Koren aplikacije: tema i navigacija sa 4 taba.
 class EventApp extends StatelessWidget {
@@ -135,12 +135,14 @@ class _RootNavigationState extends State<RootNavigation> {
   /// Da li se header i tabovi trenutno vide.
   bool _chromeVisible = true;
 
-  static const List<TopTab> _destinations = [
-    TopTab(label: 'Home', icon: Icons.home_rounded),
-    TopTab(label: 'Muzika', icon: Icons.music_note_rounded),
-    TopTab(label: 'LED', icon: Icons.lightbulb_rounded),
-    TopTab(label: 'Lager', icon: Icons.checklist_rounded),
-  ];
+  /// Nazivi stranica, redom. Ne ispisuju se nigde — traka sa dugmadima
+  /// je otpala kad se prešlo na prevlačenje — ali ih čitač ekrana
+  /// izgovara uz tačkice.
+  static const List<String> _pageLabels = ['Home', 'Muzika', 'LED', 'Lager'];
+
+  /// Stranice jednog događaja. Prevlačenjem se ide s leva na desno;
+  /// sve stoje u stablu, da muzika ne stane kad se ode na Lager.
+  final PageController _pages = PageController();
 
   @override
   void initState() {
@@ -158,6 +160,7 @@ class _RootNavigationState extends State<RootNavigation> {
     _auth.dispose();
     _eventsRevision.dispose();
     _lagerRevision.dispose();
+    _pages.dispose();
     super.dispose();
   }
 
@@ -238,14 +241,15 @@ class _RootNavigationState extends State<RootNavigation> {
     setState(() => _logoPath = null);
   }
 
-  /// Redni broj Lager taba u traci.
-  static const int _lagerTab = 3;
+  /// Redni broj Lager stranice.
+  static const int _lagerPage = 3;
 
-  void _onTabSelected(int index) {
+  void _onPageChanged(int index) {
     setState(() => _currentIndex = index);
-    // Oprema se bira na Home tabu; Lager mora da je pročita ponovo kad se
-    // otvori, inače pokazuje ono što je zateklo pri prvom otvaranju.
-    if (index == _lagerTab) _lagerRevision.value++;
+    // Oprema se bira na Home stranici; Lager mora da je pročita ponovo
+    // kad se otvori, inače pokazuje ono što je zatekao pri prvom
+    // otvaranju.
+    if (index == _lagerPage) _lagerRevision.value++;
   }
 
   /// Otvara događaj: tabovi od sada pokazuju baš njegove podatke.
@@ -256,6 +260,8 @@ class _RootNavigationState extends State<RootNavigation> {
       _currentIndex = 0;
       _chromeVisible = true;
     });
+    // Svaki događaj se otvara na prvoj stranici, ma gde stao prethodni.
+    if (_pages.hasClients) _pages.jumpToPage(0);
   }
 
   /// Nazad na spisak. Muzika se **ne prekida** — plejer ostaje u stablu,
@@ -316,13 +322,14 @@ class _RootNavigationState extends State<RootNavigation> {
                             onOpenConsole: _openConsole,
                             onBack: _inEvent ? _backToList : null,
                           ),
-                          // Na spisku događaja tabova nema — oni pripadaju
-                          // jednom događaju, a tada nijedan nije otvoren.
+                          // Na spisku događaja tačkica nema — stranice
+                          // pripadaju jednom događaju, a tada nijedan
+                          // nije otvoren.
                           if (_inEvent)
-                            TopTabBar(
-                              tabs: _destinations,
+                            PageDots(
+                              count: _pageLabels.length,
                               currentIndex: _currentIndex,
-                              onSelected: _onTabSelected,
+                              labels: _pageLabels,
                             ),
                         ],
                       )
@@ -334,10 +341,10 @@ class _RootNavigationState extends State<RootNavigation> {
               child: SafeArea(
                 top: false,
                 child: IndexedStack(
-                  // Nulti sloj je spisak događaja, pa tabovi. Sve stoji u
-                  // stablu da bi Muzika nastavila da svira i dok se bira
-                  // drugi događaj.
-                  index: _inEvent ? _currentIndex + 1 : 0,
+                  // Spisak događaja i stranice jednog događaja stoje jedno
+                  // pored drugog. Oboje ostaje u stablu: muzika ne prestaje
+                  // dok se bira drugi događaj, a spisak ne gubi svoje mesto.
+                  index: _inEvent ? 1 : 0,
                   children: [
                     EventsScreen(
                       auth: _auth,
@@ -345,27 +352,44 @@ class _RootNavigationState extends State<RootNavigation> {
                       onOpen: _openEvent,
                       reloadSignal: _eventsRevision,
                     ),
-                    // Ključ po događaju: kad se otvori drugi, ekran se gradi
-                    // iz početka umesto da prikaže tuđe podatke.
-                    eventId == null
-                        ? const SizedBox.shrink()
-                        : HomeScreen(
-                            key: ValueKey('home-$eventId'),
-                            eventId: eventId,
-                            auth: _auth,
-                            service: _events,
-                          ),
-                    MusicScreen(audioHandler: widget.audioHandler),
-                    const LedScreen(),
-                    eventId == null
-                        ? const SizedBox.shrink()
-                        : LagerScreen(
-                            key: ValueKey('lager-$eventId'),
-                            eventId: eventId,
-                            auth: _auth,
-                            service: _events,
-                            reloadSignal: _lagerRevision,
-                          ),
+                    // Između stranica se **prevlači** (odluka od 26.
+                    // septembra 2026). Svaka je `_KeepAlivePage`, jer
+                    // `PageView` inače ukloni stranicu koja nije uz
+                    // trenutnu — a sa Muzika stranicom bi otišao i plejer,
+                    // pa bi muzika stala čim se ode na Lager.
+                    PageView(
+                      controller: _pages,
+                      onPageChanged: _onPageChanged,
+                      children: [
+                        // Ključ po događaju: kad se otvori drugi, ekran se
+                        // gradi iz početka umesto da prikaže tuđe podatke.
+                        _KeepAlivePage(
+                          child: eventId == null
+                              ? const SizedBox.shrink()
+                              : HomeScreen(
+                                  key: ValueKey('home-$eventId'),
+                                  eventId: eventId,
+                                  auth: _auth,
+                                  service: _events,
+                                ),
+                        ),
+                        _KeepAlivePage(
+                          child: MusicScreen(audioHandler: widget.audioHandler),
+                        ),
+                        const _KeepAlivePage(child: LedScreen()),
+                        _KeepAlivePage(
+                          child: eventId == null
+                              ? const SizedBox.shrink()
+                              : LagerScreen(
+                                  key: ValueKey('lager-$eventId'),
+                                  eventId: eventId,
+                                  auth: _auth,
+                                  service: _events,
+                                  reloadSignal: _lagerRevision,
+                                ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -374,5 +398,31 @@ class _RootNavigationState extends State<RootNavigation> {
         ),
       ),
     );
+  }
+}
+
+/// Stranica koja ostaje u stablu i kad se sa nje ode.
+///
+/// `PageView` čuva samo susedne stranice. Bez ovoga bi odlazak sa Muzike na
+/// Lager ugasio plejer — a reprodukcija pripada Muzika stranici i ne sme da
+/// stane zato što je neko proverio opremu.
+class _KeepAlivePage extends StatefulWidget {
+  const _KeepAlivePage({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_KeepAlivePage> createState() => _KeepAlivePageState();
+}
+
+class _KeepAlivePageState extends State<_KeepAlivePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

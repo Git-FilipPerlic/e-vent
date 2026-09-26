@@ -893,36 +893,37 @@ svetlo→tamno, unutrašnji je lice dugmeta). Flutter ne dozvoljava zaobljen okv
 sa različitim bojama stranica, pa je ovo jedini način da bevel i zaobljeni
 uglovi idu zajedno.
 
-Prevlačenje između tabova se **ne koristi** — sadržaj stoji u `IndexedStack`,
-da bi prevlačenje ostalo slobodno za prsten na Muzici.
+**Između stranica se prevlači** (urađeno 26. septembra 2026). Redosled je
+**Home · Muzika · LED · Lager**, a stranica se menja prevlačenjem levo-desno.
 
-#### Sledeća izmena navigacije (dogovoreno 26. septembra 2026)
+**Trake sa dugmadima Home / Muzika / LED / Lager više nema.** Otkad se
+prevlači, ta dugmad su bila samo ponavljanje pokreta, a trošila su 82 dp —
+na Muzika stranici je to razlika između tri i sedam numera na ekranu. Umesto
+njih u headeru stoje **tačkice**: kažu na kojoj si stranici i koliko ih ima.
+Tačkice se **ne dodiruju** — one su oznaka, ne dugme; meta od 6 dp bi ionako
+bila premala za prst usred programa. Čitač ekrana uz njih izgovara naziv
+stranice, jer bez trake nema odakle drugačije da ga sazna.
 
-Ovo je **sledeći feature**, još nije urađeno. Menja dve odluke iznad, pa stoji
-uz njih, a ne u zasebnom spisku:
+**Header je spušten sa 72 na 48 dp.** Gornji pojas više ne nosi dugmad, pa
+nema šta ni da zauzima visinu; 48 dp je tačno dodirna meta, niže se dugme za
+konzolu ne bi moglo pogoditi.
 
-1. **Između prozora se prevlači.** Prevlačenje prestaje da bude zabranjeno —
-   prsten po ivici ekrana se više ne otvara sa Muzika taba, pa pokret koji je
-   za njega bio rezervisan postaje slobodan.
-2. **Home taba više nema.** Ostaje da se dogovori gde odlaze podaci o događaju
-   koje je nosio (organizator, adresa, učesnici, scenario, oprema).
-3. **Gore nema ni headera ni trake sa tabovima.** Traka Home / Muzika / LED /
-   Lager odlazi zajedno sa prelaskom na prevlačenje — kad se između tabova
-   prevlači, dugmad za njih su suvišna i samo jedu visinu. I sam header sa
-   natpisom „e-vent" se smanjuje. Cilj je da ekran dobije nazad onih
-   ~250 dp koje ta dva pojasa danas zauzimaju.
-4. **Plejlista ne sme da menja veličinu.** To je pravilo, ne želja: kad se
-   kartica plejera raširi ili skupi, spisak numera poskoči i izvođač izgubi
-   red koji je gledao. Na nastupu je to zbunjujuće, pa **spisak ima istu visinu
-   u svakom stanju** — bez numere koja svira, sa njom, i sa izabranom numerom
-   u God mode-u.
-5. **U preview režimu plejera se vidi više numera.** Visina koju treba dobiti
-   dolazi od nižeg headera i zbijenije kartice plejera, ne od skraćivanja
-   spiska.
+**Home ostaje kao stranica**, samo bez svog dugmeta: podaci o događaju
+(organizator, adresa, učesnici, scenario, oprema) i dalje se vide, do njih se
+stiže prevlačenjem.
 
+**Sve stranice ostaju u stablu.** `PageView` inače ukloni stranicu koja nije
+uz trenutnu, a sa Muzika stranicom bi otišao i plejer — muzika bi stala čim se
+ode na Lager. Zato je svaka stranica `_KeepAlivePage`. Iz istog razloga spisak
+događaja i stranice događaja stoje jedno pored drugog u `IndexedStack`: muzika
+svira i dok se bira drugi događaj.
 
-**Header i tabovi se sklanjaju pri skrolovanju nadole** i vraćaju čim se krene
-nagore. Time spisak dobija oko 150 dp, a tabovi su na dohvat jednim pokretom.
+**Plejlista ne sme da menja veličinu.** Kad se kartica plejera raširi ili
+skupi, spisak numera poskoči i izvođač izgubi red koji je gledao. Zato kartica
+ima **istu visinu u svakom stanju**.
+
+**Header i tačkice se sklanjaju pri skrolovanju nadole** i vraćaju čim se krene
+nagore.
 
 **Izuzetak od pravila o dodirnoj meti** postoji samo na spisku numera
 (36 dp umesto 48) — objašnjen je u odeljku „Muzika tab". Svuda drugde

@@ -1,15 +1,25 @@
 // Osnovni test skeleta: aplikacija se otvara spiskom događaja, izbor
-// događaja otvara 4 taba, strelica nazad vraća na spisak.
+// događaja otvara 4 stranice kroz koje se prevlači, strelica nazad
+// vraća na spisak.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:event_app/app.dart';
 import 'package:event_app/widgets/common/edit_text_sheet.dart';
-import 'package:event_app/widgets/common/top_tab_bar.dart';
+import 'package:event_app/screens/music_screen.dart';
+import 'package:event_app/widgets/common/page_dots.dart';
 import 'package:event_app/utils/date_format.dart';
 
 /// Podiže aplikaciju i otvara prvi događaj sa spiska.
+/// Prevlači ulevo zadati broj puta — jedna stranica po prevlačenju.
+Future<void> _swipePages(WidgetTester tester, int times) async {
+  for (var i = 0; i < times; i++) {
+    await tester.drag(find.byType(PageView), const Offset(-500, 0));
+    await tester.pumpAndSettle();
+  }
+}
+
 Future<void> _openFirstEvent(WidgetTester tester) async {
   await tester.pumpWidget(const EventApp());
   await tester.pumpAndSettle();
@@ -23,7 +33,7 @@ void main() {
   // pa nazive meseci mora da učita sam.
   setUpAll(() => AppDate.init());
 
-  testWidgets('otvara se spiskom događaja, bez tabova', (
+  testWidgets('otvara se spiskom događaja, bez tačkica', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const EventApp());
@@ -33,17 +43,17 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    // Tabovi pripadaju jednom događaju, a nijedan još nije otvoren.
-    expect(find.byType(TopTabBar), findsNothing);
+    // Stranice pripadaju jednom događaju, a nijedan još nije otvoren.
+    expect(find.byType(PageDots), findsNothing);
     expect(find.text('7 Mia'), findsOneWidget);
   });
 
-  testWidgets('izbor događaja otvara 4 taba sa njegovim podacima', (
+  testWidgets('izbor događaja otvara 4 stranice sa njegovim podacima', (
     WidgetTester tester,
   ) async {
     await _openFirstEvent(tester);
 
-    expect(find.byType(TopTabBar), findsOneWidget);
+    expect(find.byType(PageDots), findsOneWidget);
     // Ime i trajanje su u istom redu: "7 Mia / 2h".
     expect(find.textContaining('7 Mia'), findsOneWidget);
   });
@@ -54,39 +64,54 @@ void main() {
     await tester.tap(find.byTooltip('Nazad na spisak događaja'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(TopTabBar), findsNothing);
+    expect(find.byType(PageDots), findsNothing);
     // Spisak je i dalje tu, sa svojim grupama.
     expect(find.text('7 Mia'), findsOneWidget);
   });
 
-  testWidgets('Prebacivanje na Lager tab', (WidgetTester tester) async {
-    await _openFirstEvent(tester);
-
-    await tester.tap(find.text('Lager'));
-    await tester.pumpAndSettle();
-
-    // Lager tab pokazuje checklist opreme, sa režimima pakovanja.
-    expect(find.text('Pakovanje'), findsOneWidget);
-    expect(find.text('Tehnika'), findsOneWidget);
-  });
-
-  testWidgets('skrolovanje nadole sklanja header i tabove, nagore ih vraća', (
+  testWidgets('prevlačenjem se stiže do Lager stranice', (
     WidgetTester tester,
   ) async {
     await _openFirstEvent(tester);
 
-    expect(find.byType(TopTabBar), findsOneWidget);
+    // Home · Muzika · LED · Lager — tri prevlačenja do poslednje.
+    await _swipePages(tester, 3);
+
+    // Lager stranica pokazuje checklist opreme, sa režimima pakovanja.
+    expect(find.text('Pakovanje'), findsOneWidget);
+    expect(find.text('Tehnika'), findsOneWidget);
+  });
+
+  // Reprodukcija pripada Muzika stranici, pa ta stranica mora da ostane u
+  // stablu i kad se sa nje ode. Bez `_KeepAlivePage` bi je `PageView` uklonio
+  // čim se dve stranice udalji — i muzika bi stala nasred nastupa.
+  testWidgets('Muzika stranica ostaje u stablu i sa Lagera', (
+    WidgetTester tester,
+  ) async {
+    await _openFirstEvent(tester);
+    await _swipePages(tester, 3);
+
+    expect(find.text('Pakovanje'), findsOneWidget);
+    expect(find.byType(MusicScreen, skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('skrolovanje nadole sklanja header i tačkice, nagore ih vraća', (
+    WidgetTester tester,
+  ) async {
+    await _openFirstEvent(tester);
+
+    expect(find.byType(PageDots), findsOneWidget);
 
     // Povlačenje nagore = skrolovanje nadole kroz spisak.
     await tester.drag(find.byType(ListView).first, const Offset(0, -300));
     await tester.pumpAndSettle();
 
-    expect(find.byType(TopTabBar), findsNothing);
+    expect(find.byType(PageDots), findsNothing);
 
     await tester.drag(find.byType(ListView).first, const Offset(0, 300));
     await tester.pumpAndSettle();
 
-    expect(find.byType(TopTabBar), findsOneWidget);
+    expect(find.byType(PageDots), findsOneWidget);
   });
 
   testWidgets('izmena datuma se vidi na spisku po povratku', (
