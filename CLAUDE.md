@@ -208,17 +208,28 @@ dugmetom.
 
 #### Pravila koja se ne menjaju
 
-1. **Dodir na numeru nikada ne pokreće zvuk.** Usred programa prst ume da
-   okrzne ekran; pogrešna pesma u zvučniku je skuplja greška od jednog dodira
-   više. Puštanje i pauza idu isključivo preko velikog dugmeta u plejeru.
+1. **Dodir na numeru je pušta — osim u God mode-u** (promenjeno 25.
+   septembra 2026; ranije dodir nikada nije puštao zvuk). Korisnici su se
+   žalili da nije intuitivno da za slušanje muzike ima toliko koraka.
+   - **God mode isključen:** dodir odmah pušta numeru, uz pretapanje ako je
+     Fade uključen. Dodir na numeru koja već svira ne radi ništa (ne vraća
+     je na početak); pauzirana numera na dodir nastavlja.
+   - **God mode uključen:** dodir samo bira numeru (breskva red + kvačica) i
+     sprema je u pozadini. Pušta se sa **Ekrana 2**: ogromno okruglo dugme i
+     veliki prekidač Fade in, koji važi samo za to jedno puštanje.
+   - Prekidači Fade i God mode se menjaju **samo prevlačenjem** (`SlideSwitch`)
+     — dodir ih ne menja i ekran kaže „Prevuci prekidač". Tako ih okrznut
+     prst ne prebaci usred programa.
 2. **Izvor numere se uvek vidi** (folder ili plejlista). U žurbi se lako pomeša
    pesma iz telefona sa pesmom pripremljenom za nastup. U zbijenom spisku izvor
    se prikazuje ikonicom, jer za tekst nema mesta.
-3. **Numera se skida sa spiska dugim pritiskom** (MUSIC-027). Dodavanje je
-   postojalo od početka, skidanje nije — pa je pogrešno ubačena pesma ostajala
-   zauvek.
+3. **Numera se skida sa spiska kroz „Uredi"** (MUSIC-027; do 25. septembra
+   2026 dugim pritiskom). Dug pritisak sada otvara **talasni oblik**: ceo
+   ekran, talas odozgo nadole, skrol kroz pesmu, dva dodira za zum,
+   zadržavanje prsta pušta numeru od tog mesta (sa pretapanjem ako nešto
+   već svira). U režimu „Uredi" uz svaku numeru stoji crveni minus.
 
-   - **Dug pritisak, ne prevlačenje.** Usred nastupa se prst lako okrzne o
+   - **Ni prevlačenje.** Usred nastupa se prst lako okrzne o
      ekran; prevlačenje bi tada skidalo numere samo od sebe.
    - List za potvrdu izričito kaže da **fajl ostaje na telefonu**. Bez toga
      „skloni" zvuči kao brisanje muzike.
@@ -878,35 +889,35 @@ važi 48 dp.
 
 ### Pravila dizajna
 
-- **Aplikacija je samo tamna** (čuva noćni vid i bateriju na večernjim nastupima)
+- **Aplikacija je svetla** (odluka od 25. septembra 2026: nežan „Apple"
+  izgled — topla bela, safir, breskva, cimet; jako zaobljeni oblici). Ranije
+  je bila samo tamna; tamna varijanta se za sada ne pravi.
 - Minimalna dodirna meta **48x48 dp** — rad jednom rukom tokom nastupa
 - Visok kontrast, krupan tekst za ključne informacije (naziv, vreme, adresa)
 - Minimalistički UI: na ekranu samo ono što treba u tom trenutku
 
 ### Paleta (koristiti tačno ove vrednosti)
 
-Vizuelni pravac: **skoro crno sa hladnim, tamno-tirkiznim prizvukom.** Crna je
-osnova, tirkiz se pojavljuje kao nagoveštaj — u gradijentima, okvirima i sjaju,
-a punom jačinom samo tamo gde nešto može da se dodirne.
-
-Aplikacija je **samo tamna** — svetla tema se ne pravi. Događaji su uveče i
-noću, a jedna tema znači i upola manje posla oko provere izgleda.
+Vizuelni pravac (od 25. septembra 2026): **svetao, nežan, „Apple" osećaj.**
+Topla bela podloga, safirno plava za sve što se dodiruje, breskva i cimet kao
+topli akcenti. Oblici su jako zaobljeni (kartice 22–32, dugmad kao pilule), da
+aplikacija deluje prijateljski. Tačne vrednosti su u `app_theme.dart`.
 
 | Uloga | Hex | Gde se koristi |
 |---|---|---|
-| `background` | `#0A0C0C` | osnovna pozadina ekrana |
-| `backgroundTop` | `#0E1312` | gornja boja pozadinskog gradijenta |
-| `backgroundBottom` | `#070909` | donja boja pozadinskog gradijenta |
-| `surface` | `#121716` | kartice |
-| `surfaceAlt` | `#182120` | istaknute kartice, polja, aktivni red |
-| `border` | `#1F2A29` | okviri kartica i razdelnici |
-| `textPrimary` | `#ECECEC` | glavni tekst (namerno nije čisto belo) |
-| `textSecondary` | `#8A9A98` | pomoćni tekst, hladno siva sa zelenkastim tonom |
-| `accent` | `#2FA89C` | sve što se dodiruje: dugmad, ikonice, aktivni tab |
-| `accentDeep` | `#14403C` | gradijenti, sjaj, neaktivni deo prstena — **nikad za tekst** |
-| `success` | `#3FA46A` | spremno, završeno |
-| `warning` | `#E0B341` | uskoro, nedostaje podatak |
-| `danger` | `#E5645E` | greška, problem |
+| `background` | `#F5F4F2` | osnovna pozadina ekrana |
+| `surface` | `#FFFFFF` | kartice |
+| `surfaceAlt` | `#F1EFEC` | polja, aktivni red |
+| `border` | `#E6E3DF` | okviri i razdelnici |
+| `textPrimary` | `#1D1D1F` | glavni tekst |
+| `textSecondary` | `#6E6E73` | pomoćni tekst |
+| `accent` | `#2F5BEA` | safir: sve što se dodiruje |
+| `accentDeep` | `#DCE4FB` | svetli safir: sjaj, gradijenti — **nikad za tekst** |
+| `peach` / `peachStrong` | `#FFF1E8` / `#FFD6BF` | kartica „Sada svira", izabran red, oznake |
+| `cinnamon` | `#8F4A22` | sitan tekst na breskvi |
+| `success` | `#2E9E5B` | spremno, završeno |
+| `warning` | `#A86A12` | uskoro, nedostaje podatak, stišan zvuk |
+| `danger` | `#D1453B` | greška, problem |
 
 **Pravila za boju:**
 

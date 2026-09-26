@@ -1,5 +1,6 @@
 import 'package:event_app/models/checklist.dart';
 import 'package:event_app/models/track.dart';
+import 'package:event_app/screens/cue_screen.dart';
 import 'package:event_app/screens/events_screen.dart';
 import 'package:event_app/screens/lager_screen.dart';
 import 'package:event_app/screens/music_screen.dart';
@@ -129,6 +130,32 @@ void main() {
         await _atSize(tester, size, scale, () async {
           await tester.pumpWidget(
             _wrap(_scaled(scale, PlayerScreen(controller: controller))),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+        });
+      });
+
+      testWidgets('Ekran 2 staje $label', (WidgetTester tester) async {
+        final playback = FakePlayback(
+          trackDuration: const Duration(seconds: 154),
+        );
+        final controller = MusicPlayerController(playback: playback);
+        addTearDown(controller.dispose);
+        await controller.setQueue(_sample);
+
+        await _atSize(tester, size, scale, () async {
+          await tester.pumpWidget(
+            _wrap(
+              _scaled(
+                scale,
+                CueScreen(
+                  controller: controller,
+                  track: _sample.first,
+                  initialFade: true,
+                ),
+              ),
+            ),
           );
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);

@@ -99,16 +99,15 @@ class MusicControls extends StatelessWidget {
 
 /// Bela zaobljena kartica sa blagom senkom.
 class _Tile extends StatelessWidget {
-  const _Tile({required this.child, this.color = AppColors.surface});
+  const _Tile({required this.child});
 
   final Widget child;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: color,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: kSoftShadow,
       ),

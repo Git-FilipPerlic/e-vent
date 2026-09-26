@@ -55,8 +55,9 @@ class EventApp extends StatelessWidget {
         Locale('sr'),
         Locale('en'),
       ],
-      // Aplikacija je samo tamna, bez obzira na podešavanje telefona.
-      theme: AppTheme.dark,
+      // Aplikacija je svetla, bez obzira na podešavanje telefona
+      // (odluka od 25. septembra 2026 — ranije je bila samo tamna).
+      theme: AppTheme.light,
       home: RootNavigation(
         audioHandler: audioHandler,
         hasFirebase: hasFirebase,

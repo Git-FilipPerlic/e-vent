@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/track.dart';
 import '../services/audio_playback.dart';
@@ -11,20 +12,26 @@ import '../services/track_library_service.dart';
 import '../services/track_metadata_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
-import '../widgets/music/edge_progress_ring.dart';
-import '../widgets/music/playback_bar.dart';
+import '../widgets/music/music_controls.dart';
+import '../widgets/music/music_row.dart';
+import '../widgets/music/now_playing_card.dart';
 import '../widgets/music/track_tile.dart';
+import 'cue_screen.dart';
 import 'file_browser_screen.dart';
-import 'player_screen.dart';
+import 'wave_screen.dart';
 
-/// Muzika tab — spisak numera za nastup.
+/// Muzika tab — plejlista za nastup, u svetlom, oblom izgledu
+/// (redizajn od 25. septembra 2026, iTunes jednostavnost).
 ///
-/// Plejer ima **dva nivoa**: kontrole stoje uz sam spisak, pa se ne mora
-/// izlaziti iz njega, a ogromno dugme i prsten su na nastupnom ekranu.
-/// Kontroler živi ovde, pa muzika ide dalje i kad se izađe sa nastupnog ekrana.
+/// Odozgo nadole: kartica „Sada svira", red od četiri niske kartice
+/// (Fade, God mode, jačina L/E/F, Ekran 2), plejlista i traka sa folderom
+/// i „Uredi".
 ///
-/// Dodir na numeru **ne pokreće zvuk**: numera se ubacuje u red čekanja, a
-/// zvuk kreće tek dugmetom.
+/// - dodir na numeru je pušta, osim u God mode-u, gde je samo bira za
+///   Ekran 2
+/// - zadržavanje prsta na numeri otvara talasni oblik preko celog ekrana
+/// - kontroler živi ovde, pa muzika ide dalje i kad se izađe sa Ekrana 2 ili
+///   talasnog oblika
 ///
 /// Numere se dodaju kroz **sopstveni pregled fajlova** (`FileBrowserScreen`),
 /// koji radi kao Moji fajlovi: ulazak u foldere, pa "ceo folder" ili označene
@@ -75,6 +82,16 @@ class _MusicScreenState extends State<MusicScreen> {
 
   bool _isLoading = true;
   String? _errorMessage;
+
+  /// Isključen: dodir na numeru je odmah pušta. Uključen: dodir samo bira,
+  /// a pušta se sa Ekrana 2.
+  bool _godMode = false;
+
+  /// Numera izabrana u God mode-u — nju pušta Ekran 2.
+  Track? _cueTrack;
+
+  /// Režim „Uredi": uz numere stoji minus za skidanje sa spiska.
+  bool _editing = false;
 
   @override
   void initState() {
@@ -231,12 +248,62 @@ class _MusicScreenState extends State<MusicScreen> {
     _player.refreshQueue(byId);
   }
 
-  void _openPlayer() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PlayerScreen(controller: _player),
+  /// Dodir na numeru u spisku.
+  ///
+  /// - **God mode isključen:** numera se odmah pušta (uz pretapanje ako je
+  ///   Fade uključen). Pravilo je promenjeno 25. septembra 2026 — korisnici
+  ///   su se žalili da im nije intuitivno da u plejeru ima toliko koraka.
+  /// - **God mode uključen:** dodir samo bira numeru i sprema je u pozadini;
+  ///   pušta se sa Ekrana 2.
+  Future<void> _onRowTap(Track track) async {
+    if (_godMode) {
+      setState(() => _cueTrack = track);
+      await _player.onTrackTapped(track);
+      return;
+    }
+    await _player.playNow(track);
+  }
+
+  void _setGodMode(bool value) {
+    setState(() {
+      _godMode = value;
+      _cueTrack = null;
+    });
+  }
+
+  Future<void> _openCue() async {
+    final cue = _cueTrack;
+    if (!_godMode) {
+      _hint('Ekran 2 radi uz God mode');
+      return;
+    }
+    if (cue == null) {
+      _hint('Prvo izaberi numeru u listi');
+      return;
+    }
+    final played = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => CueScreen(
+          controller: _player,
+          track: cue,
+          initialFade: _player.fade,
+        ),
       ),
     );
+    if (played == true && mounted) setState(() => _cueTrack = null);
+  }
+
+  Future<void> _openWave(Track track) async {
+    HapticFeedback.mediumImpact();
+    await Navigator.of(context).push<bool>(
+      WaveScreen.route(controller: _player, track: track, fade: _player.fade),
+    );
+  }
+
+  void _hint(String text) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
   }
 
   @override
@@ -254,84 +321,147 @@ class _MusicScreenState extends State<MusicScreen> {
       return ErrorRetry(message: errorMessage, onRetry: _loadTracks);
     }
 
-    return Column(
-      children: [
-        // Dugme za fajlove više ne stoji iznad spiska: preselilo se u traku,
-        // kao **sama ikonica foldera**. Spisak time dobija ceo prostor, a
-        // ikonica je jasna i bez natpisa.
-        Expanded(
-          // Prsten obilazi **spisak**, ne ceo ekran: dokle je pesma stigla
-          // vidi se i ovde, a prevlačenjem uz ivicu se premota dok svira.
-          // Dugmad iznad i traka ispod ostaju van prstena, da ih linija ne seče.
-          //
-          // **Praznog spiska se prsten ne tiče.** Dok nijedna numera nije
-          // dodata nema šta da pokazuje, a linija oko praznog ekrana izgleda
-          // kao greška — korisnik ju je i prijavio kao „neka zelena linija".
-          child: _tracks.isEmpty
-              ? _emptyList(context)
-              : ValueListenableBuilder<List<double>?>(
-                  valueListenable: _player.waveform,
-                  builder: (context, amplitudes, child) => EdgeProgressRing(
-                    progress: _player.progress,
-                    amplitudes: amplitudes,
-                    topInset: EdgeProgressRing.inset,
-                    onSeekStart: _player.beginScrub,
-                    onSeekUpdate: _player.updateScrub,
-                    onSeekEnd: _player.endScrub,
-                    child: child,
-                  ),
-                  child: RefreshIndicator(
-                    onRefresh: _loadTracks,
-                    color: AppColors.accent,
-                    backgroundColor: AppColors.surface,
-                    child: ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      // Spisak stoji unutar prstena, da ga ni linija ni talas
-                      // ne preseca.
-                      padding: const EdgeInsets.symmetric(
-                        horizontal:
-                            EdgeProgressRing.inset +
-                            EdgeProgressRing.waveHeight +
-                            AppSpacing.xs,
-                        vertical:
-                            EdgeProgressRing.inset +
-                            EdgeProgressRing.waveHeight,
-                      ),
-                      itemExtent: TrackTile.height,
-                      itemCount: _tracks.length,
-                      itemBuilder: (context, index) {
-                        final track = _tracks[index];
-                        return TrackTile(
-                          track: track,
-                          isSelected: track.id == _player.selected?.id,
-                          onTap: () => _player.onTrackTapped(track),
-                          // Dug pritisak skida numeru sa spiska. Nije
-                          // prevlačenje: usred nastupa se prst lako okrzne o
-                          // ekran, pa bi prevlačenje brisalo numere samo od
-                          // sebe.
-                          onLongPress: () => _confirmRemove(track),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-        ),
-        // Prvi nivo: kontrole uz sam spisak, bez izlaska iz njega.
-        // Trake nema dok se numera ne izabere — prazna traka samo zauzima red.
-        if (_player.selected != null)
-          PlaybackBar(
-            controller: _player,
-            onOpenPlayer: _openPlayer,
-            onBrowse: _browse,
-            onClearList: _tracks.isEmpty ? null : _confirmRemoveAll,
+    final sounding = _player.sounding;
+    final total = _player.duration;
+    final position = _player.position;
+    final left = total == null ? null : total - position;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        0,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          NowPlayingCard(
+            title: sounding?.displayTitle,
+            isPlaying: _player.isPlaying,
+            progress: _player.progress,
+            elapsed: sounding == null
+                ? '0:00'
+                : TrackTile.formatDuration(position),
+            remaining: sounding == null || left == null || left.isNegative
+                ? '-0:00'
+                : '-${TrackTile.formatDuration(left)}',
+            onTogglePause: sounding == null ? null : _player.togglePauseSounding,
+            cueTitle: _godMode ? _cueTrack?.displayTitle : null,
           ),
-      ],
+          const SizedBox(height: 10),
+          MusicControls(
+            fade: _player.fade,
+            onFadeChanged: _player.setFade,
+            godMode: _godMode,
+            onGodModeChanged: _setGodMode,
+            volume: _player.volume,
+            onCycleVolume: _player.cycleVolume,
+            cueEnabled: _godMode && _cueTrack != null,
+            onOpenCue: _openCue,
+            onTapWithoutSlide: () =>
+                _hint('Prevuci prekidač — dodir ga ne menja'),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(kLargeRadius),
+                boxShadow: kSoftShadow,
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: _tracks.isEmpty ? _emptyList(context) : _list(),
+            ),
+          ),
+          if (_tracks.isNotEmpty) _footer(context),
+          if (_tracks.isEmpty) const SizedBox(height: AppSpacing.md),
+        ],
+      ),
+    );
+  }
+
+  Widget _list() {
+    final sounding = _player.sounding;
+    return RefreshIndicator(
+      onRefresh: _loadTracks,
+      color: AppColors.accent,
+      backgroundColor: AppColors.surface,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemExtent: MusicRow.height,
+        itemCount: _tracks.length,
+        itemBuilder: (context, index) {
+          final track = _tracks[index];
+          final isSounding = sounding?.id == track.id;
+          return MusicRow(
+            key: ValueKey(track.id),
+            track: track,
+            number: index + 1,
+            isSounding: isSounding,
+            isPlaying: isSounding && _player.isPlaying,
+            isCued: _godMode && _cueTrack?.id == track.id && !isSounding,
+            editing: _editing,
+            onTap: () => _onRowTap(track),
+            // Zadržavanje otvara talasni oblik. Skidanje sa spiska se
+            // preselilo u „Uredi", da se ne otimaju oko istog pokreta.
+            onLongPress: () => _openWave(track),
+            onRemove: () => _confirmRemove(track),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Traka ispod spiska: folder za dodavanje numera, kratko uputstvo i
+  /// „Uredi" za skidanje numera sa spiska.
+  Widget _footer(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      height: 52,
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: 'Dodaj numere',
+            onPressed: _editing ? null : _browse,
+            icon: const Icon(Icons.create_new_folder_rounded),
+          ),
+          Expanded(
+            child: Text(
+              _editing
+                  ? 'Minus skida numeru sa spiska'
+                  : (_godMode
+                        ? 'Dodir bira · zadrži za talas'
+                        : 'Dodir pušta · zadrži za talas'),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          if (_editing)
+            IconButton(
+              tooltip: 'Skloni sve',
+              onPressed: _confirmRemoveAll,
+              icon: const Icon(
+                Icons.delete_sweep_rounded,
+                color: AppColors.danger,
+              ),
+            ),
+          TextButton(
+            onPressed: () => setState(() => _editing = !_editing),
+            child: Text(_editing ? 'Gotovo' : 'Uredi'),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _emptyList(BuildContext context) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -345,7 +475,7 @@ class _MusicScreenState extends State<MusicScreen> {
             const SizedBox(height: AppSpacing.md),
             // Dok spiska nema, nema ni trake — pa folder mora da stoji ovde,
             // inače se numere ne bi imale odakle dodati.
-            OutlinedButton.icon(
+            FilledButton.icon(
               onPressed: _browse,
               icon: const Icon(Icons.folder_open_rounded, size: 20),
               label: const Text('Pregledaj fajlove'),

@@ -1640,6 +1640,37 @@ i pripada.
 
 `flutter analyze` čist, `flutter test` 341/341.
 
+## 25. septembar 2026 — svetla tema i novi Muzika tab
+
+- Urađeno:
+  - cela aplikacija prešla na **svetlu, nežnu temu** (topla bela, safir,
+    breskva, cimet; veće obline). Sve boje su i dalje samo u `app_theme.dart`,
+    pa su se svi ekrani prebacili bez diranja. `AppTheme.dark` je ostao kao
+    drugo ime za `AppTheme.light`, da testovi rade bez izmena
+  - Muzika tab iz početka: kartica „Sada svira" (breskva), red od četiri
+    niske kartice **bez natpisa** — Fade, God mode, jačina L/E/F, Ekran 2 —
+    pa plejlista u beloj zaobljenoj kartici i traka sa folderom i „Uredi"
+  - `SlideSwitch`: prekidač koji se menja samo prevlačenjem
+  - God mode: isključen = dodir pušta odmah; uključen = dodir bira, pušta
+    se sa **Ekrana 2** (`cue_screen.dart`: ogromno okruglo dugme + veliki
+    Fade in samo za to puštanje)
+  - **Talasni oblik** (`wave_screen.dart`): zadržavanje prsta na numeri
+    otvara ceo ekran sa talasom odozgo nadole; skrol, dva dodira za zum,
+    zadržavanje pušta numeru od tog mesta
+  - kontroler: `playNow` (pusti odmah, opciono od zadatog mesta i sa svojim
+    fade-om), `togglePauseSounding` (pauza numere koja svira, ne izabrane),
+    `amplitudesFor` (talas bilo koje numere, kroz isti keš)
+  - skidanje numera se preselilo sa dugog pritiska u „Uredi"
+  - stari nastupni ekran (`player_screen.dart`) i prsten više se ne otvaraju
+    iz Muzika taba; fajlovi su ostali dok se ne odluči da li nešto od njih
+    treba vratiti
+- Provereno: **`flutter analyze` i testovi nisu pokrenuti** — urađeno u
+  okruženju bez Flutter SDK-a. Prvo pokretanje u Android Studiju je ujedno
+  i prva provera; testovi Muzika taba su prepisani za novo ponašanje.
+- Otvoreni problemi: na mraku je svetao ekran jak — tamna varijanta iste
+  teme kad dođe na red
+- Sledeće: provera na telefonu, pa vođenje zaposlenih (skillovi, EXP bar)
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`

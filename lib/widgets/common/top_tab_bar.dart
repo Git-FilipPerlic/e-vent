@@ -79,7 +79,7 @@ class _TabButton extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  static const double _radius = 12;
+  static const double _radius = 20;
   static const double _bevel = 2;
 
   @override

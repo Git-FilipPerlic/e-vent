@@ -144,6 +144,33 @@ class MusicPlayerController extends ChangeNotifier {
     notifyListeners();
     await playback.setMasterVolume(_volume.value);
   }
+
+  /// Talasni oblik bilo koje numere sa spiska — za ekran talasnog oblika.
+  ///
+  /// Ide kroz isti keš kao talas izabrane numere, pa se ista pesma ne
+  /// obrađuje dvaput. `null` kad fajl ne može da se pročita.
+  Future<List<double>?> amplitudesFor(Track track) async {
+    final path = track.path;
+    if (path == null) return null;
+    return _waveforms.amplitudes(path);
+  }
+
+  /// Pauza i nastavak **numere koja svira** — dugme u kartici „Sada svira".
+  ///
+  /// Za razliku od [toggle], ne gleda koja je numera izabrana: u God mode-u
+  /// izabrana je obično sledeća, a dugme za pauzu ne sme da pređe na nju.
+  Future<void> togglePauseSounding() async {
+    if (sounding == null) return;
+    if (_isPlaying) {
+      await playback.pause(fadeOut: _fade);
+    } else {
+      await playback.play(
+        fadeIn: _fade,
+        over: JustAudioPlayback.quickFadeDuration,
+      );
+    }
+    notifyListeners();
+  }
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -447,20 +474,79 @@ class MusicPlayerController extends ChangeNotifier {
   /// traci. Veliko dugme na nastupnom ekranu i dalje ide punih 10 sekundi,
   /// jer ono uvodi numeru pred publiku; traka je za usputno paljenje i pauzu,
   /// gde je deset sekundi predugo čekanje.
-  Future<void> play({bool quick = false}) async {
+  ///
+  /// [fade] zamenjuje opšti prekidač samo za ovo jedno puštanje — Ekran 2
+  /// ima svoj „Fade in", koji ne sme da prepiše onaj gore na spisku.
+  Future<void> play({bool quick = false, bool? fade}) async {
     if (!isReady) return;
+    final useFade = fade ?? _fade;
 
     if (isAnotherSounding) {
-      await _switchTo(_selectedIndex, crossfade: _fade);
+      await _switchTo(_selectedIndex, crossfade: useFade);
       return;
     }
 
     _isFadingOut = false;
     _soundingIndex = _selectedIndex;
     await playback.play(
-      fadeIn: _fade,
+      fadeIn: useFade,
       over: quick ? JustAudioPlayback.quickFadeDuration : null,
     );
+    notifyListeners();
+  }
+
+  /// Pušta numeru **odmah** — dodir na spisak kad God mode nije uključen,
+  /// i zadržavanje prsta na talasnom obliku.
+  ///
+  /// - ako nešto već svira, prelazi se na novu numeru; uz [fade] preklapanjem
+  /// - [from] pušta numeru od zadatog mesta umesto od početka (talasni oblik)
+  /// - dodir na numeru koja **već svira** ne radi ništa: usred programa
+  ///   okrznut prst ne sme da vrati pesmu na početak. Sa [from] se ta ista
+  ///   numera samo premota na izabrano mesto.
+  Future<void> playNow(Track track, {bool? fade, Duration? from}) async {
+    final useFade = fade ?? _fade;
+
+    if (sounding?.id == track.id) {
+      if (from != null) {
+        await playback.seek(from);
+        _position = from;
+        _isFadingOut = false;
+        _updateProgress();
+      }
+      // Pauzirana numera na dodir samo nastavlja, ne kreće iz početka.
+      if (!_isPlaying) {
+        await playback.play(
+          fadeIn: useFade,
+          over: JustAudioPlayback.quickFadeDuration,
+        );
+      }
+      notifyListeners();
+      return;
+    }
+
+    // Numera koja je već u redu pušta se **sa svog mesta**, bez premeštanja:
+    // posle nje ide ono što stoji ispod nje u spisku, kao na svakom plejeru.
+    final existing = _queue.indexWhere((t) => t.id == track.id);
+    if (existing >= 0) {
+      await _select(existing);
+    } else {
+      await onTrackTapped(track);
+    }
+    if (!isReady) return;
+
+    if (isAnotherSounding) {
+      await _switchTo(_selectedIndex, crossfade: useFade, from: from);
+      return;
+    }
+
+    _isFadingOut = false;
+    _soundingIndex = _selectedIndex;
+    if (from != null) {
+      await playback.seek(from);
+      _position = from;
+      _updateProgress();
+    }
+    await playback.play(fadeIn: useFade);
     notifyListeners();
   }
 
@@ -475,15 +561,24 @@ class MusicPlayerController extends ChangeNotifier {
   }
 
   /// Prebacuje zvuk na numeru pod datim rednim brojem.
-  Future<void> _switchTo(int index, {required bool crossfade}) async {
+  ///
+  /// [from] je mesto u novoj numeri odakle se kreće; bez njega od početka.
+  Future<void> _switchTo(
+    int index, {
+    required bool crossfade,
+    Duration? from,
+  }) async {
     if (index < 0 || index >= _queue.length) return;
 
     if (crossfade && playback.hasPreloaded) {
       await playback.crossfadeToPreloaded(JustAudioPlayback.crossfadeDuration);
+      // Nova numera je sada aktivni plejer, pa premotavanje ide na nju. U tom
+      // trenutku je jedva čujna, pa se skok ne primeti.
+      if (from != null) await playback.seek(from);
       _selectedIndex = index;
       _soundingIndex = index;
       _isFadingOut = false;
-      _position = Duration.zero;
+      _position = from ?? Duration.zero;
       _duration = _queue[index].duration;
       _updateProgress();
       notifyListeners();
@@ -496,6 +591,11 @@ class MusicPlayerController extends ChangeNotifier {
     await _select(index);
     if (_errorMessage != null) return;
 
+    if (from != null) {
+      await playback.seek(from);
+      _position = from;
+      _updateProgress();
+    }
     _soundingIndex = index;
     await playback.play(fadeIn: crossfade);
     notifyListeners();

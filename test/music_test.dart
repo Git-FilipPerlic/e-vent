@@ -1,10 +1,10 @@
 import 'package:event_app/models/track.dart';
 import 'package:event_app/screens/music_screen.dart';
+import 'package:event_app/screens/wave_screen.dart';
 import 'package:event_app/services/music_player_controller.dart';
 import 'package:event_app/services/music_service.dart';
 import 'package:event_app/theme/app_theme.dart';
-import 'package:event_app/widgets/music/edge_progress_ring.dart';
-import 'package:event_app/widgets/music/playback_bar.dart';
+import 'package:event_app/widgets/common/slide_switch.dart';
 import 'package:event_app/widgets/music/track_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -156,11 +156,10 @@ void main() {
       expect(find.textContaining('bez-naziva-04'), findsOneWidget);
     });
 
-    testWidgets('dodir bira numeru, ali ne pokreće reprodukciju',
+    testWidgets('bez God mode-a dodir odmah pušta numeru',
         (WidgetTester tester) async {
-      final controller = MusicPlayerController(
-        playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
-      );
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = MusicPlayerController(playback: playback);
       addTearDown(controller.dispose);
       await tester.pumpWidget(
         _wrap(
@@ -172,20 +171,70 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Dok ništa nije izabrano, nema ni kontrola.
-      expect(find.byType(PlaybackBar), findsNothing);
+      await tester.tap(find.text('Igre za decu'));
+      // Ne `pumpAndSettle`: stubići uz numeru koja svira se stalno pomeraju.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
-      await tester.tap(find.textContaining('Igre za decu'));
-      await tester.pumpAndSettle();
-
-      // Numera je postala trenutna i pojavile su se kontrole,
-      // ali zvuk nije krenuo.
-      expect(find.byType(PlaybackBar), findsOneWidget);
-      expect(find.byIcon(Icons.play_circle_filled_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.pause_circle_filled_rounded), findsNothing);
+      expect(playback.playCalls, 1);
+      expect(controller.sounding?.title, 'Igre za decu');
     });
 
-    testWidgets('dok ništa ne svira, dodir menja izabranu numeru',
+    testWidgets('u God mode-u dodir samo bira numeru za Ekran 2',
+        (WidgetTester tester) async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = MusicPlayerController(playback: playback);
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          MusicScreen(
+            service: FakeMusicService(_sample),
+            controller: controller,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // God mode se uključuje prevlačenjem prekidača.
+      await tester.drag(_switch('God mode'), const Offset(80, 0));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Igre za decu'));
+      await tester.pumpAndSettle();
+
+      expect(playback.playCalls, 0);
+      expect(find.text('SLEDEĆA: IGRE ZA DECU'), findsOneWidget);
+    });
+
+    testWidgets('dodir na prekidač ga ne menja, nego kaže da se prevlači',
+        (WidgetTester tester) async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = MusicPlayerController(playback: playback);
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          MusicScreen(
+            service: FakeMusicService(_sample),
+            controller: controller,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(_switch('God mode'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Prevuci prekidač — dodir ga ne menja'),
+        findsOneWidget,
+      );
+      expect(
+        tester.widget<SlideSwitch>(_switch('God mode')).value,
+        isFalse,
+      );
+    });
+
+    testWidgets('Ekran 2 bez God mode-a objasni zašto se ne otvara',
         (WidgetTester tester) async {
       final controller = MusicPlayerController(
         playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
@@ -201,19 +250,32 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.textContaining('Igre za decu'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.textContaining('Vatreni show'));
+      await tester.tap(find.byIcon(Icons.play_circle_rounded));
       await tester.pumpAndSettle();
 
-      // U traci stoji poslednja dodirnuta numera — ona koja će se pustiti.
-      expect(
-        find.descendant(
-          of: find.byType(PlaybackBar),
-          matching: find.textContaining('Vatreni show'),
-        ),
-        findsOneWidget,
+      expect(find.text('Ekran 2 radi uz God mode'), findsOneWidget);
+    });
+
+    testWidgets('jačina se vrti L → E → F', (WidgetTester tester) async {
+      final controller = MusicPlayerController(
+        playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
       );
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          MusicScreen(
+            service: FakeMusicService(_sample),
+            controller: controller,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('L'), findsOneWidget);
+      await tester.tap(find.text('L'));
+      await tester.pumpAndSettle();
+      expect(find.text('E'), findsOneWidget);
+      expect(controller.volume, VolumeStep.e);
     });
   });
 
@@ -234,8 +296,8 @@ void main() {
     });
   });
 
-  group('prsten na spisku', () {
-    testWidgets('praznog spiska se prsten ne tiče', (
+  group('prazan spisak', () {
+    testWidgets('bez numera nema ni trake sa „Uredi"', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -244,30 +306,56 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nijedna numera nije dodata.'), findsOneWidget);
-      // Linija oko praznog ekrana izgleda kao greška, a nema šta da pokaže.
-      expect(find.byType(EdgeProgressRing), findsNothing);
-    });
-
-    testWidgets('kad ima numera, prsten je tu', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        _wrap(MusicScreen(service: _SampleMusicService())),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(EdgeProgressRing), findsOneWidget);
+      // Nema šta da se uređuje; do numera se stiže dugmetom u sredini.
+      expect(find.text('Uredi'), findsNothing);
     });
   });
-  group('skidanje numera sa spiska', () {
-    testWidgets('dug pritisak nudi skidanje, uz jasno „fajl ostaje"', (
+
+  group('talasni oblik', () {
+    testWidgets('zadržavanje prsta na numeri otvara talasni oblik', (
       WidgetTester tester,
     ) async {
+      final controller = MusicPlayerController(
+        playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
+      );
+      addTearDown(controller.dispose);
       await tester.pumpWidget(
-        _wrap(MusicScreen(service: _SampleMusicService())),
+        _wrap(
+          MusicScreen(service: _SampleMusicService(), controller: controller),
+        ),
       );
       await tester.pumpAndSettle();
 
       await tester.longPress(find.text('Druga'));
       await tester.pumpAndSettle();
+
+      expect(find.byType(WaveScreen), findsOneWidget);
+    });
+  });
+
+  group('skidanje numera sa spiska', () {
+    Future<void> openEditing(WidgetTester tester) async {
+      final controller = MusicPlayerController(
+        playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
+      );
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          MusicScreen(service: _SampleMusicService(), controller: controller),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Uredi'));
+      await tester.pumpAndSettle();
+      // Druga numera u spisku.
+      await tester.tap(find.byIcon(Icons.remove_circle_rounded).at(1));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('„Uredi" nudi skidanje, uz jasno „fajl ostaje"', (
+      WidgetTester tester,
+    ) async {
+      await openEditing(tester);
 
       expect(find.text('Skloni'), findsOneWidget);
       // Bez ovoga bi „skloni" zvučalo kao brisanje muzike sa telefona.
@@ -277,13 +365,7 @@ void main() {
     testWidgets('odustajanje ostavlja spisak kakav jeste', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        _wrap(MusicScreen(service: _SampleMusicService())),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.longPress(find.text('Druga'));
-      await tester.pumpAndSettle();
+      await openEditing(tester);
       await tester.tap(find.text('Odustani'));
       await tester.pumpAndSettle();
 
@@ -291,13 +373,7 @@ void main() {
     });
 
     testWidgets('potvrda skida numeru sa spiska', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        _wrap(MusicScreen(service: _SampleMusicService())),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.longPress(find.text('Druga'));
-      await tester.pumpAndSettle();
+      await openEditing(tester);
       await tester.tap(find.text('Skloni'));
       await tester.pumpAndSettle();
 
@@ -323,6 +399,11 @@ void main() {
     });
   });
 }
+
+/// Prekidač po nazivu za čitač ekrana (na samom prekidaču nema teksta).
+Finder _switch(String label) => find.byWidgetPredicate(
+  (widget) => widget is SlideSwitch && widget.label == label,
+);
 
 /// Prazan spisak — kao na tek instaliranoj aplikaciji.
 class _EmptyMusicService implements MusicService {

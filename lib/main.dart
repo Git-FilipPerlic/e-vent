@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app.dart';
 import 'firebase_options.dart';
@@ -12,6 +13,12 @@ Future<void> main() async {
   // inače ispis datuma pukne.
   WidgetsFlutterBinding.ensureInitialized();
   await AppDate.init();
+
+  // Svetla tema: ikonice u statusnoj traci moraju da budu tamne, inače se
+  // bele ikonice na beloj podlozi ne vide.
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.transparent),
+  );
 
   // Servis koji drži reprodukciju u pozadini i crta notifikaciju sa
   // kontrolama. Podiže se pre `runApp` jer ga sistem može pokrenuti i pre
