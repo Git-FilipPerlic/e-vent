@@ -18,6 +18,10 @@ class _FailingService implements EventService {
   }
 
   @override
+  Stream<List<Event>> watchEvents({String? assignedTo, String? createdBy}) =>
+      Stream<List<Event>>.error(Exception('nema mreže'));
+
+  @override
   Future<Event> loadEvent(String eventId) => throw UnimplementedError();
   @override
   Future<Event> createEvent({
@@ -95,6 +99,37 @@ void main() {
       await tester.pump();
 
       expect(opened, 'evt-001');
+    });
+
+    // Spisak stoji u stablu dok se gleda pojedinačan događaj, pa se sam od
+    // sebe ne bi osvežio. Otkad se prati uživo, događaj koji ti je neko
+    // upravo dodelio stiže bez povlačenja nadole.
+    testWidgets('nov događaj se pojavi sam, bez povlačenja nadole', (
+      WidgetTester tester,
+    ) async {
+      final service = MockEventService();
+
+      await tester.pumpWidget(_wrap(EventsScreen(onOpen: (_) {}, service: service)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Proba uživo'), findsNothing);
+
+      // Neko drugi je u međuvremenu napravio događaj i dodelio ga.
+      // Mock servis „čeka" na podatke, a u testu sat stoji dok se ne pumpa —
+      // zato se posao pokrene, pa se vreme pomeri, pa se sačeka ishod.
+      final creating = service.createEvent(
+        createdBy: 'Ana',
+        title: 'Proba uživo',
+        eventDate: DateTime.now().add(const Duration(hours: 3)),
+        assignedTo: const ['Filip'],
+      );
+      await tester.pump(const Duration(seconds: 1));
+      await creating;
+      // Spisak se posle toga čita iznova, pa i to kašnjenje mora da prođe.
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump();
+
+      expect(find.text('Proba uživo'), findsOneWidget);
     });
 
     testWidgets('greška nudi pokušaj ponovo', (WidgetTester tester) async {

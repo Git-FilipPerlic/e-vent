@@ -702,6 +702,19 @@ Odluka je korisnikova, uz dva razloga:
 - **prekidač „Moji / Delegirani"** vidi samo onaj ko ima dozvolu za
   delegiranje; ostalima stoji samo njihov spisak, bez prekidača
 
+**Spisak se prati uživo** (od 26. septembra 2026). Servis uz `loadEvents()`
+ima i `watchEvents()`, koji vraća tok: nova vrednost stiže sama čim se u bazi
+nešto promeni. Razlog je konkretan — spisak stoji u stablu i dok se gleda
+pojedinačan događaj (da muzika ne stane), pa bi inače pokazivao ono što je
+zatekao pri otvaranju. Izvođač tako događaj koji mu je upravo dodeljen vidi
+bez povlačenja nadole i bez ponovnog pokretanja aplikacije.
+
+Povlačenje nadole ostaje, ali sada služi samo za **pokušaj ponovo posle
+greške** — kad nema mreže, ruka ionako traži taj pokret.
+
+**Obaveštenje (push) kad ti neko dodeli događaj ne postoji** i nije isto što i
+ovo: traži Firebase Cloud Messaging i deo koji radi na serveru. Zasebna odluka.
+
 **Šta iz toga sledi za podatke:**
 
 - `Event` nosi **ko ga je napravio** (`createdBy`) i **kome je dodeljen**
@@ -725,6 +738,7 @@ Radi se pre ADMIN-007: dodela događaja timu nema smisla dok ne postoji spisak.
 | EVENTS-004 | Prekidač „Moji / Delegirani" za onoga ko delegira | gotovo |
 | EVENTS-005 | Prazna stanja i greška pri učitavanju spiska | gotovo |
 | EVENTS-006 | Vrsta događaja (rođendan, krštenje, svadba, nastup, festival) | gotovo |
+| EVENTS-007 | Spisak se prati uživo (`watchEvents`) | gotovo |
 
 ### Admin konzola i login (dogovoreno 8. septembra 2026)
 

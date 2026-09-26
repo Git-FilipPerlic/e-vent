@@ -1757,6 +1757,29 @@ i pripada.
 - Sledeće: provera na telefonu (prevlačenje preko klizača na LED stranici i
   preko prekidača na Muzici — oba su horizontalni pokreti)
 
+## 26. septembar 2026 — spisak događaja se prati uživo
+
+- Urađeno:
+  - `EventService` je dobio `watchEvents()` uz postojeći `loadEvents()`
+  - `FirestoreEventService` ga radi preko `snapshots()`. Kad su u igri dva
+    upita („moji" i „delegirani"), pamti se poslednje stanje svakog i spaja
+    se po `id`-ju — isti događaj ume da stigne kroz oba
+  - `MockEventService` javlja izmene kroz svoj `StreamController`, pa se i u
+    razvoju vidi isto ponašanje
+  - `EventsScreen` se sada pretplaćuje umesto da čita jednom; povlačenje
+    nadole je ostalo kao „pokušaj ponovo" posle greške
+- Provereno: `flutter analyze` bez primedbi, **356 testova prolazi**. Nov test
+  pravi događaj dok spisak stoji na ekranu i traži da se pojavi sam.
+  Pri pisanju tog testa: u `testWidgets` sat stoji dok se ne pumpa, pa
+  `await service.createEvent(...)` visi zauvek — posao se pokrene, pa se
+  vreme pomeri `tester.pump`-om, pa se tek onda čeka ishod.
+- Otvoreni problemi: **obaveštenje (push) kad ti neko dodeli događaj i dalje
+  ne postoji.** Ovo je živo osvežavanje spiska dok je aplikacija otvorena, ne
+  notifikacija — za nju treba Firebase Cloud Messaging i deo koji radi na
+  serveru
+- Sledeće: po korisnikovom spisku ostaju registracija u aplikaciji,
+  prebacivanje uloge iz konzole i dodela po nalogu (uid) umesto po imenu
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

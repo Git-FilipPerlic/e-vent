@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/checklist.dart';
@@ -42,12 +44,7 @@ class FirestoreEventService implements EventService {
   }) async {
     // Filtrira **baza**, ne ekran. Da ekran prosejava, tuđi događaji bi mu
     // ionako već stigli — a to je upravo ono što pravila pristupa brane.
-    final queries = <Query<Map<String, dynamic>>>[
-      if (assignedTo != null)
-        _events.where('assignedTo', arrayContains: assignedTo),
-      if (createdBy != null) _events.where('createdBy', isEqualTo: createdBy),
-      if (assignedTo == null && createdBy == null) _events,
-    ];
+    final queries = _queriesFor(assignedTo: assignedTo, createdBy: createdBy);
 
     final byId = <String, Event>{};
     for (final query in queries) {
@@ -57,9 +54,13 @@ class FirestoreEventService implements EventService {
       }
     }
 
-    final events = byId.values.toList();
-    // Najbliži prvi; događaj bez datuma ide na kraj — ne zna se kada je, pa
-    // ne sme da zauzme vrh spiska.
+    return _sorted(byId.values);
+  }
+
+  /// Najbliži prvi; događaj bez datuma ide na kraj — ne zna se kada je, pa
+  /// ne sme da zauzme vrh spiska.
+  static List<Event> _sorted(Iterable<Event> source) {
+    final events = source.toList();
     events.sort((a, b) {
       final left = a.eventDate;
       final right = b.eventDate;
@@ -70,6 +71,71 @@ class FirestoreEventService implements EventService {
     });
     return events;
   }
+
+  @override
+  Stream<List<Event>> watchEvents({String? assignedTo, String? createdBy}) {
+    final queries = _queriesFor(assignedTo: assignedTo, createdBy: createdBy);
+
+    // Jedan upit je i jedan tok — nema šta da se spaja.
+    if (queries.length == 1) {
+      return queries.first.snapshots().map(
+        (snapshot) => _sorted(snapshot.docs.map(_toEvent)),
+      );
+    }
+
+    // Dva upita („moji" i „delegirani") stižu svaki svojim tempom, pa se
+    // pamti poslednje stanje svakog i spaja pri svakoj promeni. Isti događaj
+    // ume da dođe kroz oba — zato mapa po `id`-ju, ne lista.
+    final latest = List<List<Event>>.filled(queries.length, const []);
+    late final StreamController<List<Event>> controller;
+    final subscriptions = <StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>[];
+
+    void emit() {
+      final byId = <String, Event>{};
+      for (final events in latest) {
+        for (final event in events) {
+          byId[event.id] = event;
+        }
+      }
+      controller.add(_sorted(byId.values));
+    }
+
+    controller = StreamController<List<Event>>(
+      onListen: () {
+        for (var i = 0; i < queries.length; i++) {
+          final index = i;
+          subscriptions.add(
+            queries[index].snapshots().listen(
+              (snapshot) {
+                latest[index] = snapshot.docs.map(_toEvent).toList();
+                emit();
+              },
+              onError: controller.addError,
+            ),
+          );
+        }
+      },
+      onCancel: () async {
+        for (final subscription in subscriptions) {
+          await subscription.cancel();
+        }
+      },
+    );
+    return controller.stream;
+  }
+
+  Event _toEvent(QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+      Event.fromMap({...doc.data(), 'id': doc.id});
+
+  /// Isti izbor upita koriste i jednokratno čitanje i praćenje uživo.
+  List<Query<Map<String, dynamic>>> _queriesFor({
+    String? assignedTo,
+    String? createdBy,
+  }) => [
+    if (assignedTo != null) _events.where('assignedTo', arrayContains: assignedTo),
+    if (createdBy != null) _events.where('createdBy', isEqualTo: createdBy),
+    if (assignedTo == null && createdBy == null) _events,
+  ];
 
   @override
   Future<Event> createEvent({

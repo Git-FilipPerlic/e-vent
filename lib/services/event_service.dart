@@ -24,6 +24,17 @@ abstract interface class EventService {
   /// gleda; sa pravim backendom spisak i tada ograničava baza.
   Future<List<Event>> loadEvents({String? assignedTo, String? createdBy});
 
+  /// Isti spisak, ali **uživo**: nova vrednost stiže sama čim se u bazi
+  /// nešto promeni.
+  ///
+  /// Postoji zato što spisak stoji u stablu dok se gleda pojedinačan događaj
+  /// (da muzika ne stane), pa bi bez ovoga pokazivao ono što je zatekao pri
+  /// otvaranju. Izvođač tako događaj koji mu je upravo dodeljen vidi bez
+  /// povlačenja nadole i bez ponovnog pokretanja aplikacije.
+  ///
+  /// Parametri znače isto što i kod [loadEvents].
+  Stream<List<Event>> watchEvents({String? assignedTo, String? createdBy});
+
   /// Pravi nov događaj i vraća ga sa dodeljenim `id`-jem.
   ///
   /// Sve sem [createdBy] može da nedostaje — događaj se često otvori sa

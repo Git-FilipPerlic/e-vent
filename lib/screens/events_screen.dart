@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/event.dart';
@@ -69,6 +71,12 @@ class _EventsScreenState extends State<EventsScreen> {
 
   EventScope _scope = EventScope.moji;
 
+  /// Praćenje spiska uživo. Spisak stoji u stablu i dok se gleda
+  /// pojedinačan događaj, pa bi bez ovoga pokazivao ono što je zatekao
+  /// pri otvaranju — a događaj koji ti je neko upravo dodelio ne bi
+  /// stigao dok ne povučeš nadole.
+  StreamSubscription<List<Event>>? _eventsSub;
+
   /// Da li korisnik uopšte delegira događaje — samo njemu treba prekidač.
   bool get _canDelegate => widget.auth?.can(AppPermission.editEvent) ?? false;
 
@@ -78,14 +86,15 @@ class _EventsScreenState extends State<EventsScreen> {
   void initState() {
     super.initState();
     widget.auth?.addListener(_onAuthChanged);
-    widget.reloadSignal?.addListener(_load);
-    _load();
+    widget.reloadSignal?.addListener(_listen);
+    _listen();
   }
 
   @override
   void dispose() {
     widget.auth?.removeListener(_onAuthChanged);
-    widget.reloadSignal?.removeListener(_load);
+    widget.reloadSignal?.removeListener(_listen);
+    _eventsSub?.cancel();
     super.dispose();
   }
 
@@ -95,38 +104,50 @@ class _EventsScreenState extends State<EventsScreen> {
     setState(() {
       if (!_canDelegate) _scope = EventScope.moji;
     });
-    _load();
+    _listen();
   }
 
-  Future<void> _load() async {
+  /// Pretplaćuje se na spisak. Zove se i kad se promeni ko je prijavljen
+  /// ili koji se spisak gleda — tada se stara pretplata gasi.
+  void _listen() {
+    _eventsSub?.cancel();
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
-    try {
-      final name = _userName;
-      // Bez prijave se ne zna ko gleda, pa se vidi ceo spisak. Sa pravim
-      // backendom to ograničava baza, ne ekran.
-      final events = await _service.loadEvents(
-        assignedTo: name != null && _scope == EventScope.moji ? name : null,
-        createdBy: name != null && _scope == EventScope.delegirani
-            ? name
-            : null,
-      );
-      if (!mounted) return;
-      setState(() {
-        _events = events;
-        _isLoading = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = 'Spisak događaja nije učitan.';
-        _isLoading = false;
-      });
-    }
+    final name = _userName;
+    // Bez prijave se ne zna ko gleda, pa se vidi ceo spisak. Sa pravim
+    // backendom to ograničava baza, ne ekran.
+    _eventsSub = _service
+        .watchEvents(
+          assignedTo: name != null && _scope == EventScope.moji ? name : null,
+          createdBy: name != null && _scope == EventScope.delegirani
+              ? name
+              : null,
+        )
+        .listen(
+          (events) {
+            if (!mounted) return;
+            setState(() {
+              _events = events;
+              _isLoading = false;
+              _errorMessage = null;
+            });
+          },
+          onError: (_) {
+            if (!mounted) return;
+            setState(() {
+              _errorMessage = 'Spisak događaja nije učitan.';
+              _isLoading = false;
+            });
+          },
+        );
   }
+
+  /// Povlačenje nadole. Spisak i sam stiže uživo, ali posle greške (nema
+  /// mreže) treba način da se pokuša ponovo — i ruka traži taj pokret.
+  Future<void> _refresh() async => _listen();
 
   /// Pravi nov događaj i odmah ga otvara — posao se nastavlja u njemu.
   Future<void> _newEvent() async {
@@ -142,8 +163,7 @@ class _EventsScreenState extends State<EventsScreen> {
     if (created == null) return;
     if (!mounted) return;
 
-    // Spisak se osvežava jer je nov događaj možda dodeljen i meni.
-    await _load();
+    // Spisak stiže uživo, pa nema šta da se učitava ponovo.
     if (!mounted) return;
     widget.onOpen(created.id);
   }
@@ -151,7 +171,7 @@ class _EventsScreenState extends State<EventsScreen> {
   void _setScope(EventScope scope) {
     if (_scope == scope) return;
     setState(() => _scope = scope);
-    _load();
+    _listen();
   }
 
   @override
@@ -177,13 +197,13 @@ class _EventsScreenState extends State<EventsScreen> {
 
     final errorMessage = _errorMessage;
     if (errorMessage != null) {
-      return ErrorRetry(message: errorMessage, onRetry: _load);
+      return ErrorRetry(message: errorMessage, onRetry: _listen);
     }
 
     final sections = groupEvents(_events, now: DateTime.now());
 
     return RefreshIndicator(
-      onRefresh: _load,
+      onRefresh: _refresh,
       color: AppColors.accent,
       backgroundColor: AppColors.surface,
       child: ListView(

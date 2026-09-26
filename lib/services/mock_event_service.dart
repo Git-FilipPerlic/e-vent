@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../models/checklist.dart';
 import '../models/event.dart';
 import '../models/vehicle.dart';
@@ -44,6 +46,18 @@ class MockEventService implements EventService {
 
   int _nextEventNumber = 5;
 
+  /// Kucne kad se nešto promeni, da praćenje uživo dobije nov spisak.
+  /// Firestore ovo radi sam; mock podaci žive u memoriji, pa se javljaju.
+  final StreamController<void> _changes = StreamController<void>.broadcast();
+
+  @override
+  Stream<List<Event>> watchEvents({String? assignedTo, String? createdBy}) async* {
+    yield await loadEvents(assignedTo: assignedTo, createdBy: createdBy);
+    await for (final _ in _changes.stream) {
+      yield await loadEvents(assignedTo: assignedTo, createdBy: createdBy);
+    }
+  }
+
   /// Ekipa iz koje se bira kome se događaj dodeljuje.
   static const List<String> _team = ['Filip', 'Ana', 'Marko'];
 
@@ -76,6 +90,7 @@ class MockEventService implements EventService {
     );
 
     _created[id] = event;
+    _changes.add(null);
     return event;
   }
 
@@ -174,6 +189,7 @@ class MockEventService implements EventService {
 
     if (!_exists(eventId)) throw EventNotFoundException(eventId);
     _selectedVehicles[eventId] = vehicleId;
+    _changes.add(null);
   }
 
   @override
@@ -182,6 +198,7 @@ class MockEventService implements EventService {
 
     if (!_exists(event.id)) throw EventNotFoundException(event.id);
     _edited[event.id] = event;
+    _changes.add(null);
   }
 
   @override
