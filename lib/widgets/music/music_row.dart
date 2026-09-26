@@ -46,8 +46,10 @@ class MusicRow extends StatefulWidget {
   final VoidCallback onLongPress;
   final VoidCallback onRemove;
 
-  /// Visina reda — udobna za prst, a i dalje staje dosta numera.
-  static const double height = 60;
+  /// Visina reda. Svesno ispod dodirne mete od 48 dp, kao i u ranijem
+  /// zbijenom spisku: na nastupu je bitnije koliko numera staje na ekran
+  /// nego širina mete, a red ide preko cele širine pa se ne promašuje.
+  static const double height = 44;
 
   @override
   State<MusicRow> createState() => _MusicRowState();
@@ -76,7 +78,12 @@ class _MusicRowState extends State<MusicRow> {
       background = AppColors.surface;
     }
 
-    return AnimatedScale(
+    // Uvećanje sistemskog fonta je ograničeno, kao kod sistemskih birača
+    // datuma i sata: na krupnom fontu bi dva reda teksta prerasla visinu
+    // reda, a zbijen spisak je ovde ceo smisao.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.1,
+      child: AnimatedScale(
       scale: _pressing && !reduceMotion ? 0.97 : 1,
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeOut,
@@ -88,9 +95,12 @@ class _MusicRowState extends State<MusicRow> {
           borderRadius: BorderRadius.circular(_pressing ? 18 : 0),
         ),
         // Razdelnik je uvučen kao na iPhone-u: počinje tek ispod naziva.
-        foregroundDecoration: _pressing
-            ? null
-            : const _InsetDivider(),
+        // Dekoracija se ne sme ugasiti na `null` dok se red drži prstom:
+        // `Container` tada izbaci ceo sloj iz stabla, a sa njim i widget
+        // koji hvata dodir — pa se zadržavanje prsta prekidalo pre nego
+        // što postane dug pritisak. Zato razdelnik uvek stoji, samo se
+        // ne crta.
+        foregroundDecoration: _InsetDivider(show: !_pressing),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -102,11 +112,11 @@ class _MusicRowState extends State<MusicRow> {
             splashColor: AppColors.accentDeep,
             highlightColor: Colors.transparent,
             child: Padding(
-              padding: const EdgeInsets.only(left: 12, right: 18),
+              padding: const EdgeInsets.only(left: 10, right: 16),
               child: Row(
                 children: [
                   SizedBox(
-                    width: 44,
+                    width: 36,
                     height: MusicRow.height,
                     child: Center(child: _leading(theme)),
                   ),
@@ -120,7 +130,7 @@ class _MusicRowState extends State<MusicRow> {
                           track.displayTitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyLarge?.copyWith(
+                          style: theme.textTheme.bodyMedium?.copyWith(
                             color: widget.isSounding
                                 ? AppColors.accent
                                 : AppColors.textPrimary,
@@ -135,7 +145,7 @@ class _MusicRowState extends State<MusicRow> {
                               : track.source.label,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
+                          style: theme.textTheme.labelSmall?.copyWith(
                             color: AppColors.textSecondary,
                           ),
                         ),
@@ -155,6 +165,7 @@ class _MusicRowState extends State<MusicRow> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -275,19 +286,27 @@ class _EqualizerBarsState extends State<_EqualizerBars>
 /// Ide kao zaseban ukras jer Flutter ne dozvoljava okvir samo na jednoj
 /// strani zajedno sa zaobljenim uglovima.
 class _InsetDivider extends Decoration {
-  const _InsetDivider();
+  const _InsetDivider({required this.show});
+
+  /// Dok se red drži prstom razdelnika nema, ali sloj ostaje.
+  final bool show;
 
   @override
-  BoxPainter createBoxPainter([VoidCallback? onChanged]) => _InsetDividerPainter();
+  BoxPainter createBoxPainter([VoidCallback? onChanged]) =>
+      _InsetDividerPainter(show);
 }
 
 class _InsetDividerPainter extends BoxPainter {
+  _InsetDividerPainter(this.show);
+
+  final bool show;
+
   static const double _inset = 64;
 
   @override
   void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
     final size = configuration.size;
-    if (size == null) return;
+    if (!show || size == null) return;
     final paint = Paint()
       ..color = AppColors.surfaceAlt
       ..strokeWidth = 1;

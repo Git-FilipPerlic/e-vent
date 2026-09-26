@@ -1702,6 +1702,36 @@ i pripada.
 - Sledeće: provera novog Muzika taba na telefonu (God mode, Ekran 2, talas),
   pa dve opcije koje korisnik treba da imenuje uz komandu „e-vent whats up"
 
+## 26. septembar 2026 — zadržavanje prsta nije radilo na telefonu
+
+- Urađeno:
+  - **Nađen uzrok zašto dug pritisak na numeru ne otvara talas.** Red se pod
+    prstom skupljao i gubio razdelnik tako što je `foregroundDecoration`
+    odlazila na `null`. `Container` tada **izbaci ceo sloj iz stabla**, a sa
+    njim i widget koji hvata dodir: gest se prekine ~11 ms posle pritiska,
+    pre nego što uopšte postane dug pritisak. Zato je brz dodir radio (stigne
+    da se okine pre prerisavanja), a zadržavanje nije.
+    Popravka: razdelnik uvek stoji kao sloj, samo se ne crta
+    (`_InsetDivider(show: !_pressing)`).
+  - **Kartica „Sada svira" ima istu visinu u svakom stanju** i zbijenija je
+    (manje ivice, manji krug za pauzu, „PAUZA" kao reč umesto pilule koja
+    se pojavljuje). Spisak numera time više ne poskakuje.
+  - **Red u spisku je 44 dp** umesto 60, a uvećanje sistemskog fonta je u
+    redu i u kartici ograničeno (1,1 odnosno 1,15) — na korisnikovom telefonu
+    su se zbog krupnog fonta videle tri numere.
+  - **Talas ima svoj prekidač Fade**, gore desno: izvođač na talasu bira deo
+    pesme koji ulazi, pa tu i odlučuje da li prethodna izlazi pretapanjem.
+- Provereno: `flutter analyze` bez primedbi, **354 testa prolaze**. Dodat je
+  test koji pada na staroj verziji: pritisne red, sačeka 150 ms da se red
+  prerisa skupljen, pa tek onda drži — tako reprodukuje ono što `longPress`
+  u testu nije hvatao. Nađeno je na uređaju, `adb`-om: u `Listener`-u su se
+  videli `down` i `up` bez ijednog `move`, uz `tapCancel` 11 ms posle
+  `tapDown`.
+- Otvoreni problemi: nije provereno na telefonu jer je korisnik u tom
+  trenutku koristio uređaj — proveru radi on sam.
+- Sledeće: navigacija bez headera i trake sa tabovima, uz prevlačenje između
+  prozora (upisano u `CLAUDE.md`)
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

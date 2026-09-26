@@ -45,100 +45,98 @@ class NowPlayingCard extends StatelessWidget {
     final hasTrack = title != null;
     final paused = hasTrack && !isPlaying;
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
-      decoration: BoxDecoration(
-        color: AppColors.peach,
-        borderRadius: BorderRadius.circular(kLargeRadius),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  cueTitle != null
-                      ? 'SLEDEĆA: ${cueTitle!.toUpperCase()}'
-                      : (hasTrack ? 'SADA SVIRA' : 'PLEJLISTA'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: AppColors.cinnamon,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.6,
+    // Kartica ima **istu visinu u svakom stanju**. Ranije je „Pauza" bila
+    // pilula koja se pojavljuje i nestaje, pa je kartica rasla i skupljala
+    // se, a spisak numera ispod nje poskakivao — na nastupu se tako gubi red
+    // koji se gledao. Sada je to obična reč u redu koji uvek stoji.
+    //
+    // Uvećanje sistemskog fonta je ograničeno kao kod sistemskih birača
+    // datuma: bez toga kartica na krupnom fontu pojede četvrtinu ekrana,
+    // a plejlista je ono zbog čega se ekran otvara.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.15,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+        decoration: BoxDecoration(
+          color: AppColors.peach,
+          borderRadius: BorderRadius.circular(kLargeRadius),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    cueTitle != null
+                        ? 'SLEDEĆA: ${cueTitle!.toUpperCase()}'
+                        : (hasTrack ? 'SADA SVIRA' : 'PLEJLISTA'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _labelStyle(theme),
                   ),
                 ),
-              ),
-              if (paused)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.peachStrong,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(paused ? 'PAUZA' : '', style: _labelStyle(theme)),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Expanded(
                   child: Text(
-                    'Pauza',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: AppColors.cinnamon,
+                    title ?? 'Ništa ne svira',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: hasTrack
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title ?? 'Ništa ne svira',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: hasTrack
-                        ? AppColors.textPrimary
-                        : AppColors.textSecondary,
-                  ),
+                const SizedBox(width: AppSpacing.sm),
+                _PauseButton(
+                  showPause: hasTrack && isPlaying,
+                  onPressed: onTogglePause,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: ValueListenableBuilder<double>(
+                valueListenable: progress,
+                builder: (context, value, _) => LinearProgressIndicator(
+                  value: hasTrack ? value : 0,
+                  minHeight: 5,
+                  color: AppColors.accent,
+                  backgroundColor: AppColors.peachStrong,
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              _PauseButton(
-                showPause: hasTrack && isPlaying,
-                onPressed: onTogglePause,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: ValueListenableBuilder<double>(
-              valueListenable: progress,
-              builder: (context, value, _) => LinearProgressIndicator(
-                value: hasTrack ? value : 0,
-                minHeight: 6,
-                color: AppColors.accent,
-                backgroundColor: AppColors.peachStrong,
-              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Text(elapsed, style: _timeStyle(theme)),
-              const Spacer(),
-              Text(remaining, style: _timeStyle(theme)),
-            ],
-          ),
-        ],
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Text(elapsed, style: _timeStyle(theme)),
+                const Spacer(),
+                Text(remaining, style: _timeStyle(theme)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  TextStyle? _labelStyle(ThemeData theme) =>
+      theme.textTheme.labelMedium?.copyWith(
+        color: AppColors.cinnamon,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.6,
+      );
 
   TextStyle? _timeStyle(ThemeData theme) => theme.textTheme.bodySmall?.copyWith(
     color: AppColors.cinnamon,
@@ -167,11 +165,11 @@ class _PauseButton extends StatelessWidget {
           customBorder: const CircleBorder(),
           onTap: onPressed,
           child: SizedBox(
-            width: 52,
-            height: 52,
+            width: 44,
+            height: 44,
             child: Icon(
               showPause ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              size: 30,
+              size: 26,
               color: enabled ? AppColors.onAccent : AppColors.textSecondary,
             ),
           ),

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../models/track.dart';
 import '../services/music_player_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/common/slide_switch.dart';
 import '../widgets/music/track_tile.dart';
 
 /// Talasni oblik numere preko **celog ekrana, odozgo nadole**.
@@ -80,6 +81,11 @@ class _WaveScreenState extends State<WaveScreen>
     vsync: this,
     duration: const Duration(milliseconds: 650),
   )..addStatusListener(_onHoldStatus);
+
+  /// Pretapanje za **ovo** puštanje. Kreće od onoga što stoji na Muzika
+  /// tabu, ali se ovde menja: na talasu se bira deo pesme koji ulazi, pa
+  /// se tu i odlučuje da li prethodna numera izlazi pretapanjem.
+  late bool _fade = widget.fade;
 
   List<double>? _amplitudes;
   bool _loaded = false;
@@ -173,7 +179,7 @@ class _WaveScreenState extends State<WaveScreen>
     await widget.controller.playNow(
       widget.track,
       // Ista numera se samo premota — pretapanje sa samom sobom nema smisla.
-      fade: _isSounding ? false : widget.fade,
+      fade: _isSounding ? false : _fade,
       from: from,
     );
     if (!mounted) return;
@@ -316,6 +322,37 @@ class _WaveScreenState extends State<WaveScreen>
                       ),
                     ),
                   ),
+                ),
+              ),
+              // Pretapanje se bira ovde, a ne samo na spisku: dok jedna
+              // numera izlazi, sa talasa se ubacuje tačan deo druge.
+              Positioned(
+                right: AppSpacing.md,
+                top: MediaQuery.of(context).padding.top + AppSpacing.sm,
+                child: Row(
+                  children: [
+                    Text(
+                      'Fade',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: _fade ? AppColors.accent : AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    SlideSwitch(
+                      value: _fade,
+                      onChanged: (value) => setState(() => _fade = value),
+                      label: 'Pretapanje',
+                      icon: Icons.waves_rounded,
+                      onTapWithoutSlide: () => ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content: Text('Prevuci prekidač — dodir ga ne menja'),
+                          ),
+                        ),
+                    ),
+                  ],
                 ),
               ),
               // Jedino dugme: nazad na spisak.

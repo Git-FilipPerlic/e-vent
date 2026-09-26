@@ -331,6 +331,62 @@ void main() {
 
       expect(find.byType(WaveScreen), findsOneWidget);
     });
+
+    // Red se pod prstom skupi i izgubi razdelnik. Dok se to radilo tako što
+    // dekoracija ode na `null`, `Container` bi izbacio ceo sloj iz stabla, a
+    // sa njim i widget koji hvata dodir — pa se zadržavanje prekidalo čim
+    // počne. Zato se ovde okvir crta između pritiska i puštanja.
+    testWidgets('zadržavanje prsta radi i kad se red skupi pod prstom', (
+      WidgetTester tester,
+    ) async {
+      final controller = MusicPlayerController(
+        playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
+      );
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          MusicScreen(service: _SampleMusicService(), controller: controller),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final press = await tester.startGesture(tester.getCenter(find.text('Druga')));
+      // Dovoljno da se okine pritisak i da se red prerisa skupljen.
+      await tester.pump(const Duration(milliseconds: 150));
+      await tester.pump(const Duration(milliseconds: 500));
+      await press.up();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(WaveScreen), findsOneWidget);
+    });
+
+    // Pretapanje se bira i na talasu: izvođač tu bira deo pesme koji ulazi
+    // dok prethodna izlazi, pa mora da može da uključi Fade bez izlaska.
+    testWidgets('talas ima svoj prekidač za pretapanje', (
+      WidgetTester tester,
+    ) async {
+      final controller = MusicPlayerController(
+        playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
+      );
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          MusicScreen(service: _SampleMusicService(), controller: controller),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Druga'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(WaveScreen),
+          matching: find.byType(SlideSwitch),
+        ),
+        findsOneWidget,
+      );
+    });
   });
 
   group('skidanje numera sa spiska', () {

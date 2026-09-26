@@ -223,6 +223,12 @@ dugmetom.
 2. **Izvor numere se uvek vidi** (folder ili plejlista). U žurbi se lako pomeša
    pesma iz telefona sa pesmom pripremljenom za nastup. U zbijenom spisku izvor
    se prikazuje ikonicom, jer za tekst nema mesta.
+   Na tom ekranu stoji i **sopstveni prekidač Fade**, gore desno (dodato
+   26. septembra 2026). Talas je mesto gde se bira **koji deo** druge
+   numere ulazi, pa se tu i odlučuje da li prethodna izlazi pretapanjem —
+   tako se delovi pesama mešaju uživo, bez izlaska na spisak. Prekidač
+   važi samo za to puštanje i kreće od onoga što stoji na Muzika tabu.
+
 3. **Numera se skida sa spiska kroz „Uredi"** (MUSIC-027; do 25. septembra
    2026 dugim pritiskom). Dug pritisak sada otvara **talasni oblik**: ceo
    ekran, talas odozgo nadole, skrol kroz pesmu, dva dodira za zum,
@@ -278,9 +284,19 @@ dugmetom.
    pažnju. Zadata jačina važi i za sva pretapanja: preklapanje ide do nje, ne
    do pune jačine, inače bi stišana muzika skakala nazad na 100%.
 
-8. **Red u spisku je 36 dp** — svesno ispod minimalne dodirne mete od 48 dp,
-   zbog gustine spiska na nastupu. Red je preko cele širine ekrana, pa je meta
-   i dalje široka.
+8. **Red u spisku je 44 dp** (od 26. septembra 2026; ranije 60) — svesno
+   ispod minimalne dodirne mete od 48 dp, zbog gustine spiska na nastupu.
+   Red je preko cele širine ekrana, pa je meta i dalje široka.
+
+   Uz to je **uvećanje sistemskog fonta u redu ograničeno** (do 1,1), isto
+   kao kod sistemskih birača datuma i sata: na krupnom sistemskom fontu bi
+   dva reda teksta prerasla visinu reda i na ekran bi stale tri numere.
+   Ista granica (1,15) važi i za karticu „Sada svira".
+
+   **Kartica plejera ima istu visinu u svakom stanju.** Reč „Pauza" je
+   obična reč u redu koji uvek stoji, a ne pilula koja se pojavljuje i
+   nestaje — inače kartica raste i skuplja se, a spisak ispod nje
+   poskakuje i izvođač izgubi red koji je gledao.
 
 9. **Traka uz spisak ima dva reda.** Gore je premotavanje i pauza — ono što
    se dira u hodu. Dole su tri odluke druge vrste: **folder**, ulaz u
@@ -879,6 +895,31 @@ uglovi idu zajedno.
 
 Prevlačenje između tabova se **ne koristi** — sadržaj stoji u `IndexedStack`,
 da bi prevlačenje ostalo slobodno za prsten na Muzici.
+
+#### Sledeća izmena navigacije (dogovoreno 26. septembra 2026)
+
+Ovo je **sledeći feature**, još nije urađeno. Menja dve odluke iznad, pa stoji
+uz njih, a ne u zasebnom spisku:
+
+1. **Između prozora se prevlači.** Prevlačenje prestaje da bude zabranjeno —
+   prsten po ivici ekrana se više ne otvara sa Muzika taba, pa pokret koji je
+   za njega bio rezervisan postaje slobodan.
+2. **Home taba više nema.** Ostaje da se dogovori gde odlaze podaci o događaju
+   koje je nosio (organizator, adresa, učesnici, scenario, oprema).
+3. **Gore nema ni headera ni trake sa tabovima.** Traka Home / Muzika / LED /
+   Lager odlazi zajedno sa prelaskom na prevlačenje — kad se između tabova
+   prevlači, dugmad za njih su suvišna i samo jedu visinu. I sam header sa
+   natpisom „e-vent" se smanjuje. Cilj je da ekran dobije nazad onih
+   ~250 dp koje ta dva pojasa danas zauzimaju.
+4. **Plejlista ne sme da menja veličinu.** To je pravilo, ne želja: kad se
+   kartica plejera raširi ili skupi, spisak numera poskoči i izvođač izgubi
+   red koji je gledao. Na nastupu je to zbunjujuće, pa **spisak ima istu visinu
+   u svakom stanju** — bez numere koja svira, sa njom, i sa izabranom numerom
+   u God mode-u.
+5. **U preview režimu plejera se vidi više numera.** Visina koju treba dobiti
+   dolazi od nižeg headera i zbijenije kartice plejera, ne od skraćivanja
+   spiska.
+
 
 **Header i tabovi se sklanjaju pri skrolovanju nadole** i vraćaju čim se krene
 nagore. Time spisak dobija oko 150 dp, a tabovi su na dohvat jednim pokretom.
