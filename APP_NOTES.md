@@ -1671,8 +1671,43 @@ i pripada.
   teme kad dođe na red
 - Sledeće: provera na telefonu, pa vođenje zaposlenih (skillovi, EXP bar)
 
+## 26. septembar 2026 — verzija od 25. septembra ugrađena, release APK na telefonu
+
+- Urađeno:
+  - fajlovi koji su došli iz druge sesije preimenovani na prava imena
+    (`CLAUDEx.md`, `maixn.dart`, `music_screen(1).dart`…). Pre preimenovanja su
+    upisani u git **onako kako su došli**, da oba stanja ostanu povratna
+  - jedina ručna popravka: privatni `_Tile` u `music_controls.dart` imao je
+    parametar `color` koji se nigde ne prosleđuje, pa ga je analizator
+    prijavio kao mrtav; kartica sada uzima `AppColors.surface` direktno
+  - napravljen debug (203 MB) i **release APK (60 MB)**; release je potpisan
+    pravim ključem — `CN=e-vent, OU=Dvonoge Stonoge, Novi Sad, RS`
+- Provereno: `flutter analyze` bez ijedne primedbe, **352 testa prolaze**
+  (verzija je pisana u okruženju bez SDK-a, pa je ovo bila prva provera);
+  release APK instaliran na telefon i pokrenut, bez greške u `logcat`-u
+- Otvoreni problemi:
+  - **Nadogradnja preko stare aplikacije nije bila moguća.** Ono što je
+    stajalo na telefonu bilo je debug izdanje potpisano **drugim debug
+    ključem** (`4799c30f…`), ne onim sa ovog računara (`fde1d64b…`) — dakle
+    građeno u drugom okruženju. Android ne pušta nadogradnju između različitih
+    potpisa, pa je i release i debug instalacija padala sa
+    `INSTALL_FAILED_UPDATE_INCOMPATIBLE`. Rešeno deinstalacijom pa čistom
+    instalacijom release izdanja. Time je izgubljeno ono što se čuva lokalno:
+    logotip tima, spisak numera (putanje) i zapamćeni LED kontroler.
+    **Nauk:** od sada na telefon ide release APK, potpisan uvek istim ključem,
+    pa se ovo ne ponavlja — i isti fajl se deli ekipi.
+  - Gradle prijavljuje da `firebase_auth` i `firebase_core` još primenjuju
+    stari Kotlin Gradle Plugin; radi, ali buduće verzije Flutter-a će na tome
+    pucati (upisano u TODO)
+- Sledeće: provera novog Muzika taba na telefonu (God mode, Ekran 2, talas),
+  pa dve opcije koje korisnik treba da imenuje uz komandu „e-vent whats up"
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
+- **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`
+  primenjuju stari KGP, na šta Gradle prijavljuje upozorenje pri svakom
+  build-u. Buduće verzije Flutter-a će odbiti da grade takav projekat, pa te
+  pakete treba nadograditi na izdanje sa „Built-in Kotlin" kad izađe.
 - **Sačuvati ključ za potpisivanje na sigurno mesto.** `android/app/e-vent-release.jks`
   i `android/key.properties` nisu u gitu. Ako se izgube, **nova verzija
   aplikacije ne može da se objavi pod istim potpisom** — korisnici bi morali
