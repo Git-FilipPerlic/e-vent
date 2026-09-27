@@ -50,9 +50,15 @@ service cloud.firestore {
       // Svako sme da popravi **svoje ime** — ljudi se pamte po imenu, a ne
       // po mejlu. Ulogu pritom ne sme da dira: kad bi svako mogao da se
       // proglasi vođom, prijava ne bi značila ništa.
+      // Veštine i bodove upisuje **samo onaj ko vodi ekipu**: spisak koji
+      // svako sebi popunjava ne znači ništa, a bodovi bi bili šala.
       allow update: if isGlavni()
                     || (request.auth.uid == userId
-                        && request.resource.data.role == resource.data.role);
+                        && request.resource.data.role == resource.data.role
+                        && request.resource.data.get('skills', [])
+                           == resource.data.get('skills', [])
+                        && request.resource.data.get('exp', 0)
+                           == resource.data.get('exp', 0));
       allow delete: if isGlavni();
     }
 
@@ -67,6 +73,16 @@ service cloud.firestore {
                       || resource.data.createdBy == myName()
                       || myName() in resource.data.get('assignedTo', []));
       allow create, update, delete: if isGlavni();
+    }
+
+    // --- Veštine ----------------------------------------------------------
+    //
+    // Katalog veština firme (Vatra, Svila, Voditelj, Vozač…). Čita ga cela
+    // ekipa, jer se po veštini filtrira ko radi; menja ga samo onaj ko vodi
+    // ekipu, kao i katalog opreme.
+    match /skills/{skillId} {
+      allow read: if signedIn();
+      allow write: if isGlavni();
     }
 
     // --- Vozila i katalog opreme -------------------------------------------

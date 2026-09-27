@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../models/checklist.dart';
 import '../models/event.dart';
+import '../models/team.dart';
 import '../models/vehicle.dart';
 import 'event_service.dart';
 
@@ -55,6 +56,95 @@ class MockEventService implements EventService {
     yield await loadEvents(assignedTo: assignedTo, createdBy: createdBy);
     await for (final _ in _changes.stream) {
       yield await loadEvents(assignedTo: assignedTo, createdBy: createdBy);
+    }
+  }
+
+  /// Katalog veština firme. U pravoj bazi ga pravi manager u konzoli.
+  final List<Skill> _skills = [
+    const Skill(id: 'skill-001', name: 'Vatra'),
+    const Skill(id: 'skill-002', name: 'Svila'),
+    const Skill(id: 'skill-003', name: 'Voditelj'),
+    const Skill(id: 'skill-004', name: 'Vozač'),
+  ];
+
+  int _nextSkillNumber = 5;
+
+  /// Ekipa sa veštinama i bodovima.
+  final List<TeamMember> _members = [
+    const TeamMember(
+      id: 'usr-001',
+      name: 'Filip',
+      role: 'glavni',
+      skillIds: ['skill-001', 'skill-003'],
+      exp: 240,
+    ),
+    const TeamMember(
+      id: 'usr-002',
+      name: 'Ana',
+      skillIds: ['skill-002'],
+      exp: 80,
+    ),
+    const TeamMember(id: 'usr-003', name: 'Marko', skillIds: ['skill-004']),
+  ];
+
+  @override
+  Future<List<TeamMember>> loadTeam() async {
+    await Future<void>.delayed(_delay);
+    return [..._members];
+  }
+
+  @override
+  Future<void> saveMemberSkills(TeamMember member) async {
+    await Future<void>.delayed(_delay);
+    final index = _members.indexWhere((m) => m.id == member.id);
+    if (index < 0) return;
+    _members[index] = _members[index].copyWith(
+      skillIds: member.skillIds,
+      exp: member.exp,
+    );
+    _changes.add(null);
+  }
+
+  @override
+  Future<List<Skill>> loadSkills() async {
+    await Future<void>.delayed(_delay);
+    return [..._skills];
+  }
+
+  @override
+  Future<Skill> createSkill(String name) async {
+    await Future<void>.delayed(_delay);
+    final skill = Skill(
+      id: 'skill-${_nextSkillNumber.toString().padLeft(3, '0')}',
+      name: name.trim(),
+    );
+    _nextSkillNumber++;
+    _skills.add(skill);
+    return skill;
+  }
+
+  @override
+  Future<void> saveSkill(Skill skill) async {
+    await Future<void>.delayed(_delay);
+    final index = _skills.indexWhere((s) => s.id == skill.id);
+    if (index >= 0) _skills[index] = skill;
+  }
+
+  @override
+  Future<void> deleteSkill(String skillId) async {
+    await Future<void>.delayed(_delay);
+    _skills.removeWhere((s) => s.id == skillId);
+    // Obrisana veština se skida i sa ljudi — inače bi ostala zalepljena za
+    // njih kao id koji više ništa ne znači.
+    for (var i = 0; i < _members.length; i++) {
+      final member = _members[i];
+      if (!member.knows(skillId)) continue;
+      _members[i] = member.copyWith(
+        skillIds: [
+          for (final id in member.skillIds)
+            if (id != skillId) id,
+        ],
+      );
     }
   }
 

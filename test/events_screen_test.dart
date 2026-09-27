@@ -1,5 +1,6 @@
 import 'package:event_app/models/checklist.dart';
 import 'package:event_app/models/event.dart';
+import 'package:event_app/models/team.dart';
 import 'package:event_app/models/vehicle.dart';
 import 'package:event_app/screens/events_screen.dart';
 import 'package:event_app/services/auth_service.dart';
@@ -34,6 +35,19 @@ class _FailingService implements EventService {
   }) => throw UnimplementedError();
   @override
   Future<List<String>> loadTeamMembers() => throw UnimplementedError();
+  @override
+  Future<List<TeamMember>> loadTeam() => throw UnimplementedError();
+  @override
+  Future<void> saveMemberSkills(TeamMember member) =>
+      throw UnimplementedError();
+  @override
+  Future<List<Skill>> loadSkills() => throw UnimplementedError();
+  @override
+  Future<Skill> createSkill(String name) => throw UnimplementedError();
+  @override
+  Future<void> saveSkill(Skill skill) => throw UnimplementedError();
+  @override
+  Future<void> deleteSkill(String skillId) => throw UnimplementedError();
   @override
   Future<ChecklistSection> createCategory(String name) =>
       throw UnimplementedError();

@@ -1,5 +1,6 @@
 import '../models/checklist.dart';
 import '../models/event.dart';
+import '../models/team.dart';
 import '../models/vehicle.dart';
 
 /// Ugovor između ekrana i izvora podataka.
@@ -52,6 +53,29 @@ abstract interface class EventService {
   ///
   /// Za sada su to imena; sa Firebase Auth-om ovde stižu nalozi tima.
   Future<List<String>> loadTeamMembers();
+
+  /// Ekipa sa veštinama i bodovima — za ekran „Ekipa" u konzoli.
+  ///
+  /// Razlikuje se od [loadTeamMembers], koji vraća samo imena: tamo se bira
+  /// kome se događaj dodeljuje, a ovde se vidi ko šta ume.
+  Future<List<TeamMember>> loadTeam();
+
+  /// Pamti veštine i bodove jednog člana. **Ime i ulogu ne dira** — njih
+  /// menja sam korisnik, odnosno pravila baze.
+  Future<void> saveMemberSkills(TeamMember member);
+
+  /// Katalog veština koje firma poznaje.
+  Future<List<Skill>> loadSkills();
+
+  /// Dodaje veštinu u katalog i vraća je sa dodeljenim `id`-jem.
+  Future<Skill> createSkill(String name);
+
+  /// Preimenuje veštinu.
+  Future<void> saveSkill(Skill skill);
+
+  /// Briše veštinu iz kataloga **i sa svih članova ekipe** — obrisana
+  /// veština ne sme da ostane zalepljena za ljude.
+  Future<void> deleteSkill(String skillId);
 
   /// Spisak vozila koja ekipa može da izabere.
   Future<List<Vehicle>> loadVehicles();

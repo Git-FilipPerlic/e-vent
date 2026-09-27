@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/checklist.dart';
 import '../models/event.dart';
+import '../models/team.dart';
 import '../models/vehicle.dart';
 import 'event_service.dart';
 
@@ -229,9 +230,71 @@ class FirestoreEventService implements EventService {
         .set(category.toMap());
   }
 
+  CollectionReference<Map<String, dynamic>> get _users => _db.collection('users');
+
+  CollectionReference<Map<String, dynamic>> get _skills =>
+      _db.collection('skills');
+
+  @override
+  Future<List<TeamMember>> loadTeam() async {
+    final snapshot = await _users.get();
+    final team = [
+      for (final doc in snapshot.docs)
+        TeamMember.fromMap({...doc.data(), 'id': doc.id}),
+    ]..removeWhere((member) => member.name.isEmpty);
+
+    team.sort((a, b) => a.name.compareTo(b.name));
+    return team;
+  }
+
+  @override
+  Future<void> saveMemberSkills(TeamMember member) async {
+    // `merge` namerno: ime i uloga stoje u istom dokumentu, a njih ovaj
+    // ekran ne dira.
+    await _users.doc(member.id).set(member.toSkillsMap(), SetOptions(merge: true));
+  }
+
+  @override
+  Future<List<Skill>> loadSkills() async {
+    final snapshot = await _skills.get();
+    final skills = [
+      for (final doc in snapshot.docs)
+        Skill.fromMap({...doc.data(), 'id': doc.id}),
+    ]..removeWhere((skill) => skill.name.isEmpty);
+
+    skills.sort((a, b) => a.name.compareTo(b.name));
+    return skills;
+  }
+
+  @override
+  Future<Skill> createSkill(String name) async {
+    final doc = _skills.doc();
+    final skill = Skill(id: doc.id, name: name.trim());
+    await doc.set(skill.toMap());
+    return skill;
+  }
+
+  @override
+  Future<void> saveSkill(Skill skill) => _skills.doc(skill.id).set(skill.toMap());
+
+  @override
+  Future<void> deleteSkill(String skillId) async {
+    await _skills.doc(skillId).delete();
+    // Obrisana veština se skida i sa ljudi — inače bi ostala zalepljena za
+    // njih kao id koji više ništa ne znači.
+    final holders = await _users
+        .where('skills', arrayContains: skillId)
+        .get();
+    for (final doc in holders.docs) {
+      await doc.reference.update({
+        'skills': FieldValue.arrayRemove([skillId]),
+      });
+    }
+  }
+
   @override
   Future<List<String>> loadTeamMembers() async {
-    final snapshot = await _db.collection('users').get();
+    final snapshot = await _users.get();
     final names = [
       for (final doc in snapshot.docs)
         ((doc.data()['name'] as String?) ?? '').trim(),
