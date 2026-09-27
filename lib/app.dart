@@ -276,13 +276,11 @@ class _RootNavigationState extends State<RootNavigation> {
     final eventId = _eventId;
     final user = _auth.currentUser;
 
-    // Header stoji samo tamo gde nečemu služi: na spisku događaja i na prvoj
-    // stranici jednog događaja, odakle se strelicom izlazi nazad na spisak
-    // (odluka od 27. septembra 2026). Muzika, LED i Lager ga nemaju — tamo je
-    // samo trošio visinu, a pri skrolovanju je nestajao i vraćao se, pa se
-    // spisak numera pod prstom preraspodeljivao. Izvođači su se žalili da ih
-    // to dezorijentiše.
-    final showHeader = !_inEvent || _currentIndex == 0;
+    // Unutar događaja headera nema nigde (odluka od 27. septembra 2026):
+    // na prvoj stranici ga je zamenilo jedno dugme za izlazak, a ostale ga
+    // nisu ni imale. Ostaje samo na spisku događaja, gde nosi logotip tima
+    // i ulaz u konzolu.
+    final showHeader = !_inEvent;
 
     return Scaffold(
       body: Column(
@@ -348,6 +346,7 @@ class _RootNavigationState extends State<RootNavigation> {
                                   eventId: eventId,
                                   auth: _auth,
                                   service: _events,
+                                  onExit: _backToList,
                                 ),
                         ),
                         _KeepAlivePage(

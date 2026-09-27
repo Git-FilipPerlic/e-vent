@@ -157,6 +157,23 @@ class JustAudioPlayback implements AudioPlayback {
   /// kao usporavanje ploče, a ne kao kvar u zvuku.
   static const Duration recordGlide = Duration(milliseconds: 600);
 
+  /// Dokle se spusti numera **koja izlazi** u preklopu: do 20%, ne do
+  /// tišine (odluka od 27. septembra 2026).
+  ///
+  /// Kad obe strane idu do kraja, u sredini preklopa obe budu jedva čujne i
+  /// nastane rupa — zvuči kao da je muzika stala. Ovako se dve numere zaista
+  /// **preklope**: stara se povuče u pozadinu, ali se čuje sve do kraja
+  /// prelaza, a onda utihne za tren.
+  static const double crossfadeOutFloor = 0.2;
+
+  /// Odakle kreće numera **koja ulazi** u preklopu: od 10%, ne iz tišine.
+  /// Tako se odmah čuje da dolazi, umesto da se pojavi tek na pola puta.
+  static const double crossfadeInFloor = 0.1;
+
+  /// Koliko traje kratko gašenje one koja je izašla, pošto se preklop
+  /// završi. Sa 20% na nulu odjednom bi se čuo „klik".
+  static const Duration crossfadeTail = Duration(milliseconds: 250);
+
   /// Koliko traje zaustavljanje ploče na pauzi.
   static const Duration recordStopGlide = Duration(milliseconds: 900);
 
@@ -168,6 +185,21 @@ class JustAudioPlayback implements AudioPlayback {
   Future<void> setRecordSpeed(double value) async {
     _recordSpeed = value.clamp(0.25, 2.0);
     await _glideSpeed(_recordSpeed, recordGlide);
+  }
+
+  /// Gasi numeru koja je izašla iz preklopa — sa poda na tišinu, pa stop.
+  Future<void> _tailOut(AudioPlayer player) async {
+    final steps =
+        (crossfadeTail.inMilliseconds / _fadeStep.inMilliseconds).round().clamp(
+          1,
+          100,
+        );
+    final start = crossfadeOutFloor * _masterVolume;
+    for (var step = 1; step <= steps; step++) {
+      await Future<void>.delayed(_fadeStep);
+      await player.setVolume(start * (1 - step / steps));
+    }
+    await player.stop();
   }
 
   /// Vodi brzinu (i visinu tona sa njom) od trenutne do zadate.
@@ -354,15 +386,23 @@ class JustAudioPlayback implements AudioPlayback {
     _crossfadeTimer = Timer.periodic(_fadeStep, (timer) {
       step++;
       final t = (step / steps).clamp(0.0, 1.0);
-      // Obe strane idu po istoj rampi: ona koja ulazi napred, ona koja
-      // izlazi unazad. Tako se u sredini preklopa obe čuju tiše, što je
-      // i smisao — jedna se povlači, druga dolazi.
-      incoming.setVolume(fadeCurve(t) * _masterVolume);
-      outgoing.setVolume(fadeCurve(1 - t) * _masterVolume);
+      // Obe strane idu po istoj rampi, ali **nijedna do kraja**: ona koja
+      // izlazi staje na 20%, a ona koja ulazi kreće od 10%. Bez toga se
+      // u sredini preklopa obe jedva čuju i nastane rupa.
+      incoming.setVolume(
+        (crossfadeInFloor + (1 - crossfadeInFloor) * fadeCurve(t)) *
+            _masterVolume,
+      );
+      outgoing.setVolume(
+        (crossfadeOutFloor + (1 - crossfadeOutFloor) * fadeCurve(1 - t)) *
+            _masterVolume,
+      );
       if (t >= 1) {
         timer.cancel();
         _crossfadeTimer = null;
-        outgoing.stop();
+        // Sa 20% na nulu odjednom bi se čuo prekid, pa stara numera još
+        // četvrt sekunde utihne pre nego što stane.
+        unawaited(_tailOut(outgoing));
       }
     });
   }

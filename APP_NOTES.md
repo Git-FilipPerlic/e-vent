@@ -1940,6 +1940,26 @@ i pripada.
   trenutku provere
 - Sledeće: čeka se korisnikova reč
 
+## 27. septembar 2026 — preklop bez rupe, header zamenjen izlazom
+
+- Urađeno:
+  - **U preklopu nijedna numera ne ode do tišine.** Ona koja izlazi se spušta
+    do 20%, ona koja ulazi kreće od 10%, pa se kroz ceo prelaz čuju obe.
+    Ranije su obe išle do kraja i u sredini je nastajala rupa. Po završetku
+    preklopa stara numera još 250 ms utihne sa 20% na nulu, da se ne čuje
+    prekid
+  - **Header je sklonjen i sa prve stranice događaja.** Zamenilo ga je jedno
+    dugme gore levo — izlazak nazad na spisak. Ostaje samo na spisku
+    događaja, gde nosi logotip i ulaz u konzolu
+  - **Tačkice stoje na svim stranicama**, i tamo gde headera nema
+- Provereno: `flutter analyze` bez primedbi, **339 testova prolazi**; testovi
+  navigacije prepisani (nema headera unutar događaja, izlaz je samo na prvoj
+  stranici, tačkice svuda). Instalirano na telefon
+- Otvoreni problemi: **konzola se sada otvara samo sa spiska događaja** — iz
+  otvorenog događaja se do nje stiže izlaskom. Ako to bude smetalo, dugme za
+  konzolu može uz izlaz na prvoj stranici
+- Sledeće: korisnik sluša kako sada zvuči preklop
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

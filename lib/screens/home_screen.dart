@@ -42,6 +42,7 @@ class HomeScreen extends StatefulWidget {
     this.eventId = 'evt-001',
     this.auth,
     this.service,
+    this.onExit,
   });
 
   /// Izvor podataka. `null` znači sopstveni mock — tako testovi mogu da
@@ -54,6 +55,10 @@ class HomeScreen extends StatefulWidget {
 
   /// Ko je prijavljen. Bez prijave su kartice samo za čitanje.
   final AuthService? auth;
+
+  /// Izlazak nazad na spisak događaja. `null` kad ekran stoji sam
+  /// (u testu), pa se dugme ne crta.
+  final VoidCallback? onExit;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -376,8 +381,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final onExit = widget.onExit;
     return Scaffold(
-      body: _buildBody(),
+      body: Column(
+        children: [
+          // Umesto headera stoji jedno jedino dugme — izlazak nazad na spisak
+          // događaja (odluka od 27. septembra 2026). Header je nosio logotip i
+          // ulaz u konzolu, ali ih je nosio na svim stranicama i trošio visinu;
+          // ostale stranice ga više nemaju, pa ga nema ni ova.
+          if (onExit != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: IconButton(
+                onPressed: onExit,
+                icon: const Icon(Icons.arrow_back_rounded),
+                color: AppColors.accent,
+                tooltip: 'Nazad na spisak događaja',
+              ),
+            ),
+          Expanded(child: _buildBody()),
+        ],
+      ),
     );
   }
 

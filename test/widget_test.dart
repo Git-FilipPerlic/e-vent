@@ -46,6 +46,8 @@ void main() {
 
     // Stranice pripadaju jednom događaju, a nijedan još nije otvoren.
     expect(find.byType(PageDots), findsNothing);
+    // Na spisku događaja header ostaje: nosi logotip i ulaz u konzolu.
+    expect(find.byType(AppHeader), findsOneWidget);
     expect(find.text('7 Mia'), findsOneWidget);
   });
 
@@ -96,38 +98,34 @@ void main() {
     expect(find.byType(MusicScreen, skipOffstage: false), findsOneWidget);
   });
 
-  // Header stoji samo tamo gde nečemu služi: na spisku događaja i na prvoj
-  // stranici događaja, odakle se izlazi nazad. Na Muzici, LED-u i Lageru ga
-  // nema — ranije je nestajao pri skrolovanju, pa se spisak numera pod
-  // prstom preraspodeljivao.
-  testWidgets('Muzika, LED i Lager nemaju header', (WidgetTester tester) async {
+  // Unutar događaja headera nema nigde: na prvoj stranici ga je zamenilo
+  // dugme za izlazak, a ostale ga nisu ni imale. Ranije je nestajao pri
+  // skrolovanju, pa se spisak numera pod prstom preraspodeljivao.
+  testWidgets('unutar događaja nema headera, ima izlaz i tačkice', (
+    WidgetTester tester,
+  ) async {
     await _openFirstEvent(tester);
 
-    expect(find.byType(AppHeader), findsOneWidget);
+    expect(find.byType(AppHeader), findsNothing);
     expect(find.byType(PageDots), findsOneWidget);
+    expect(find.byTooltip('Nazad na spisak događaja'), findsOneWidget);
 
     await _swipePages(tester, 1);
 
-    expect(find.byType(AppHeader), findsNothing);
     // Tačkice ostaju: one su jedina oznaka gde si u nizu stranica.
     expect(find.byType(PageDots), findsOneWidget);
-
-    // Povratak na prvu stranicu ga vraća.
-    await tester.drag(find.byType(PageView), const Offset(500, 0));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(AppHeader), findsOneWidget);
+    // Izlaz pripada prvoj stranici, gde su podaci o događaju.
+    expect(find.byTooltip('Nazad na spisak događaja'), findsNothing);
   });
 
   // Skrolovanje više ništa ne sklanja: kad se raspored menja pod prstom,
   // izvođač izgubi red koji je gledao.
-  testWidgets('skrolovanje ne dira header', (WidgetTester tester) async {
+  testWidgets('skrolovanje ne dira tačkice', (WidgetTester tester) async {
     await _openFirstEvent(tester);
 
     await tester.drag(find.byType(ListView).first, const Offset(0, -300));
     await tester.pumpAndSettle();
 
-    expect(find.byType(AppHeader), findsOneWidget);
     expect(find.byType(PageDots), findsOneWidget);
   });
 

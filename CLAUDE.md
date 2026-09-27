@@ -548,6 +548,13 @@ oduzme isto toliko glasnoće. U sredini preklopa se obe numere čuju tiše, i to
 je namerno — jedna se povlači, druga dolazi. Isto važi i za ulazak iz tišine i
 za izlazak na pauzu.
 
+**U preklopu nijedna numera ne ode do tišine** (odluka od 27. septembra
+2026). Ona koja izlazi se spušta samo do **20%**, a ona koja ulazi kreće od
+**10%** — pa se kroz ceo prelaz čuju obe. Kad su obe strane išle do kraja, u
+sredini preklopa je nastajala rupa i zvučalo je kao da je muzika stala.
+Pošto se preklop završi, stara numera još četvrt sekunde utihne sa 20% na
+nulu, da se prekid ne čuje kao „klik".
+
 **Premotavanje ne prekida pretapanje** (odluka od 9. septembra 2026). Dok
 preklapanje traje, izvođač sme da prevlači po prstenu ili da preskače, i da
 tako dovede novu numeru na pravo mesto — a pretapanje i dalje ide. To je i
@@ -1004,16 +1011,16 @@ svira i dok se bira drugi događaj.
 skupi, spisak numera poskoči i izvođač izgubi red koji je gledao. Zato kartica
 ima **istu visinu u svakom stanju**.
 
-**Headera nema na Muzici, LED-u ni Lageru** (odluka od 27. septembra 2026).
-Stoji samo na **spisku događaja** i na **prvoj stranici jednog događaja** —
-tamo nečemu služi: nosi logotip tima, ulaz u konzolu i strelicu kojom se izlazi
-nazad na spisak. Na ostale tri stranice se ne izlazi nazad, pa je tamo samo
-trošio visinu.
+**Unutar događaja headera nema nigde** (odluka od 27. septembra 2026). Ostaje
+samo na **spisku događaja**, gde nosi logotip tima i ulaz u konzolu.
 
-**Tačkice stoje na svim stranicama jednog događaja**, i tamo gde headera nema.
-Bez njih na Muzici, LED-u i Lageru ne bi postojala nikakva oznaka gde si u
-nizu. Traka je visoka 18 dp i uvek ista — ništa se ne preraspodeljuje. Na
-spisku događaja ih nema, jer tada nijedan događaj nije otvoren.
+Na prvoj stranici događaja ga je zamenilo **jedno dugme — izlazak nazad na
+spisak**, gore levo. Muzika, LED i Lager ga nisu ni imale. Razlog je
+doslednost: ili se gornji pojas koristi na svim stranicama, ili ni na jednoj,
+a koristan je bio samo na jednoj.
+
+Posledica koju treba znati: **konzola (prijava) se otvara sa spiska
+događaja**, ne iz otvorenog događaja.
 
 **Ništa se više ne sklanja pri skrolovanju.** Ranije su header i tačkice
 nestajali kad se krene nadole i vraćali se nagore; spisak numera je time menjao
