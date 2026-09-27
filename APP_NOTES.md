@@ -1857,6 +1857,29 @@ i pripada.
 - Sledeće: potvrditi USB debugging na telefonu, instalirati i poslušati kako
   zvuči usporavanje; pa scratch kao zaseban zadatak
 
+## 27. septembar 2026 — trajanje je nestajalo sa spiska
+
+- Urađeno:
+  - **Nađen uzrok zašto numere pokazuju `--:--` i nemaju izvođača.** Fajlovi su
+    ispravni: `audio_metadata_reader` iz njih uredno čita naslov, izvođača i
+    trajanje (provereno na izvučenom fajlu sa telefona). Greška je bila u
+    ekranu: pročitani podaci su ulazili u `_tracks` i u red čekanja, ali ne i
+    u `_pickedTracks`. Kako se spisak pri **povlačenju nadole** gradi iznova
+    od `_pickedTracks`, a te numere se pamte samo kao putanje, jedno
+    povlačenje je obrisalo izvođača i trajanje sa celog spiska — i vraćalo ih
+    tek ponovno pokretanje aplikacije
+  - Popravka: pročitani podaci ulaze i u `_pickedTracks`, a osvežavanje
+    spiska ih pročita ponovo (iz keša je to trenutno, fajl je već pročitan)
+  - `MusicScreen` sada prima i čitač podataka iz fajla, da bi se ovo moglo
+    proveriti testom
+- Provereno: `flutter analyze` bez primedbi, **335 testova prolazi**. Nov test
+  napravi pravi fajl u privremenom folderu, zapamti ga kao spisak, pa povuče
+  nadole i traži da trajanje ostane. Bez popravke taj test pada
+- Otvoreni problemi: na velikom spisku se podaci čitaju **redom i na glavnoj
+  niti**, pa prvo čitanje traje — spisak dotle stoji sa `--:--`. Ako se to
+  pokaže kao smetnja, čitanje ide u zasebnu nit i u grupama
+- Sledeće: korisnik proverava na telefonu
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

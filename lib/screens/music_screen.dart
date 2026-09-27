@@ -43,6 +43,7 @@ class MusicScreen extends StatefulWidget {
     this.service,
     this.controller,
     this.audioHandler,
+    this.metadata,
   });
 
   /// Veza sa notifikacijom i kontrolama van aplikacije.
@@ -51,6 +52,10 @@ class MusicScreen extends StatefulWidget {
   /// Ubacuje se u testu; u aplikaciji se pravi sam.
   final MusicService? service;
   final MusicPlayerController? controller;
+
+  /// Čitač podataka iz fajla; u testu se podmeće lažni, jer se pravi
+  /// audio fajlovi u testu ne čitaju.
+  final TrackMetadataService? metadata;
 
   @override
   State<MusicScreen> createState() => _MusicScreenState();
@@ -64,7 +69,8 @@ class _MusicScreenState extends State<MusicScreen> {
   final TrackLibraryService _library = const TrackLibraryService();
 
   /// Čita izvođača i trajanje iz samih fajlova.
-  final TrackMetadataService _metadata = TrackMetadataService();
+  late final TrackMetadataService _metadata =
+      widget.metadata ?? TrackMetadataService();
 
   /// Reprodukcija i red čekanja. Nastupni ekran ga samo pozajmljuje.
   late final MusicPlayerController _player =
@@ -130,6 +136,10 @@ class _MusicScreenState extends State<MusicScreen> {
       // Zapamćene numere se dodaju **posle** toga i ne drže ekran: spisak se
       // vidi odmah, a ono što je zapamćeno ulazi čim se pročita.
       unawaited(_restoreRemembered());
+      // Osvežavanje spiska vraća numere onakve kakve su dodate, bez
+      // izvođača i trajanja. Zato se podaci čitaju ponovo — iz keša je to
+      // trenutno, jer je fajl već jednom pročitan.
+      if (_pickedTracks.isNotEmpty) unawaited(_fillMetadata(_pickedTracks));
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -242,6 +252,13 @@ class _MusicScreenState extends State<MusicScreen> {
     final byId = {for (final track in enriched) track.id: track};
     setState(() {
       _tracks = [for (final track in _tracks) byId[track.id] ?? track];
+      // I dodate numere dobijaju iste podatke: spisak se gradi od njih
+      // pri svakom osvežavanju, pa bi inače trajanje nestalo čim se
+      // povuče nadole.
+      for (var i = 0; i < _pickedTracks.length; i++) {
+        final enrichedTrack = byId[_pickedTracks[i].id];
+        if (enrichedTrack != null) _pickedTracks[i] = enrichedTrack;
+      }
     });
     // Red čekanja mora da dobije iste podatke, inače bi plejer pokazivao
     // naziv fajla dok spisak već pokazuje pravi naziv.

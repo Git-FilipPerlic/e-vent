@@ -1,12 +1,16 @@
+import 'dart:io';
+
 import 'package:event_app/models/track.dart';
 import 'package:event_app/screens/music_screen.dart';
 import 'package:event_app/screens/wave_screen.dart';
 import 'package:event_app/services/music_player_controller.dart';
 import 'package:event_app/services/music_service.dart';
+import 'package:event_app/services/track_metadata_service.dart';
 import 'package:event_app/theme/app_theme.dart';
 import 'package:event_app/widgets/common/slide_switch.dart';
 import 'package:event_app/widgets/music/track_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fakes.dart';
@@ -16,6 +20,25 @@ Widget _wrap(Widget child) {
     theme: AppTheme.dark,
     home: Scaffold(body: child),
   );
+}
+
+/// Lažni čitač podataka iz fajla: pravi audio fajlovi se u testu ne čitaju,
+/// a treba proveriti šta ekran radi sa pročitanim trajanjem.
+class FakeMetadata extends TrackMetadataService {
+  int calls = 0;
+
+  @override
+  Future<Track> enrich(Track track) async {
+    calls++;
+    return Track(
+      id: track.id,
+      title: track.title,
+      artist: 'Pročitani izvođač',
+      source: track.source,
+      duration: const Duration(minutes: 3, seconds: 20),
+      path: track.path,
+    );
+  }
 }
 
 /// Lažni izvor numera — spisak u aplikaciji je prazan dok korisnik ne doda
@@ -56,6 +79,48 @@ final List<Track> _sample = [
 ];
 
 void main() {
+  group('trajanje iz fajla', () {
+    // Spisak se pri povlačenju nadole gradi iznova od dodatih numera, a one
+    // se pamte **samo kao putanje**. Dok se pročitani podaci nisu vraćali i
+    // u njih, jedno povlačenje je obrisalo izvođača i trajanje sa celog
+    // spiska — i vraćalo ih tek ponovno pokretanje aplikacije.
+    testWidgets('povlačenje nadole ne briše izvođača i trajanje', (
+      WidgetTester tester,
+    ) async {
+      final folder = Directory.systemTemp.createTempSync('evt-muzika');
+      addTearDown(() => folder.deleteSync(recursive: true));
+      final file = File('${folder.path}/numera.mp3')..writeAsBytesSync([0, 1]);
+      SharedPreferences.setMockInitialValues({
+        'music_track_paths': [file.path],
+      });
+
+      final controller = MusicPlayerController(
+        playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
+      );
+      addTearDown(controller.dispose);
+      final metadata = FakeMetadata();
+
+      await tester.pumpWidget(
+        _wrap(
+          MusicScreen(
+            service: FakeMusicService(const []),
+            controller: controller,
+            metadata: metadata,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('3:20'), findsOneWidget);
+
+      // Povlačenje nadole kroz spisak.
+      await tester.drag(find.byType(ListView).first, const Offset(0, 300));
+      await tester.pumpAndSettle();
+
+      expect(find.text('3:20'), findsOneWidget);
+    });
+  });
+
   group('numera', () {
     test('naziv pada na naziv fajla, pa na objašnjenje', () {
       expect(

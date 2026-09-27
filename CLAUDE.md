@@ -256,6 +256,13 @@ dugmetom.
    čim se pročitaju. Ako pamćenje pukne, Muzika tab se otvara prazan umesto
    da javi grešku — to je udobnost, ne uslov za rad.
 
+   **Izvođač i trajanje se čitaju iz fajla jednom i pamte se u keširanom
+   spisku, ali i u samim dodatim numerama** (ispravka od 27. septembra 2026).
+   Spisak se pri povlačenju nadole gradi iznova od dodatih numera, a one se
+   pamte samo kao putanje — dok se pročitani podaci nisu vraćali i u njih,
+   jedno povlačenje je obrisalo izvođača i trajanje sa celog spiska, i vraćalo
+   ih tek ponovno pokretanje aplikacije.
+
 5. **Naziv numere se prikazuje bez nastavka fajla.** „.mp3" na kraju svakog
    reda ne kaže ništa, a jede širinu na uskom ekranu. Ime koje počinje tačkom
    je skriven fajl, ne nastavak, pa se ne dira.
