@@ -1299,6 +1299,19 @@ Koraci:
    Ovo je jedina prava zaštita podataka — `firebase_options.dart` sadrži javne
    identifikatore projekta i sam po sebi ne štiti bazu.
 
+**Pravila u `firestore.rules` ne važe dok se ne objave.** Fajl u projektu je
+samo nacrt; baza radi po onome što je poslednji put poslato. Kad se doda nova
+kolekcija, sve dok se pravila ne objave ona pada na završno „sve ostalo je
+zatvoreno", pa upis puca bez očiglednog razloga — ekran samo kaže da nije
+sačuvano. To se desilo 27. septembra 2026. sa kolekcijom `skills`.
+
+```powershell
+firebase deploy --only firestore:rules --project eventapp-4682e
+```
+
+**Posle svake izmene `firestore.rules` — objaviti odmah**, u istom koraku u
+kom je pisana nova kolekcija.
+
 ---
 
 ## Kako pokrenuti

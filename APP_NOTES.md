@@ -1995,6 +1995,26 @@ i pripada.
 - Otvoreni problemi: nema. Time je ceo TEAM spisak (001–004) gotov
 - Sledeće: čeka se korisnikova reč — ostaju scratch, saobraćaj na ruti i push
 
+## 27. septembar 2026 — nova veština nije mogla da se sačuva
+
+- Urađeno:
+  - **Uzrok:** pravila za novu kolekciju `skills` stajala su samo u
+    `firestore.rules`, a na Firebase nisu bila objavljena. Baza je radila po
+    starim pravilima, gde ta kolekcija pada na završno „sve ostalo je
+    zatvoreno", pa je upis odbijen. Aplikacija je to uhvatila i javila
+    „Veština nije napravljena", ali se ta poruka gubi dok se list zatvara i
+    tastatura sklanja — korisniku je izgledalo kao da ga je samo vratilo nazad
+  - **Objavljena pravila** (`firebase deploy --only firestore:rules`), čime su
+    stigla i pooštrenja: veštine i bodove sada menja samo `glavni`
+  - u `CLAUDE.md` upisano pravilo: posle svake izmene `firestore.rules`
+    objaviti odmah, u istom koraku
+- Provereno: `firebase deploy` prošao („rules file compiled successfully",
+  „released rules to cloud.firestore"). Proveru u aplikaciji radi korisnik
+- Otvoreni problemi: poruka o grešci se lako previdi. Ako se pokaže kao
+  smetnja, greška pri upisu može da ostane na ekranu dok se ne potvrdi,
+  umesto da nestane sama
+- Sledeće: potvrda korisnika da se veština sada upisuje
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`
