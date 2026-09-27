@@ -1918,6 +1918,26 @@ i pripada.
 - Sledeće: sve ostalo čeka — header preko spiska čeka Stefana, a scratch,
   vođenje zaposlenih, saobraćaj i push čekaju korisnikovu reč
 
+## 27. septembar 2026 — headera nema na tri stranice
+
+- Urađeno:
+  - **Header stoji samo na spisku događaja i na prvoj stranici događaja.**
+    Muzika, LED i Lager ga nemaju: tamo se ne izlazi nazad, pa je samo trošio
+    visinu. Odluka korisnika, pošto su se izvođači žalili da ih pomeranje
+    dezorijentiše
+  - **Izbačeno sklanjanje pri skrolovanju** (`_onScroll`, `_chromeVisible`,
+    `AnimatedSize`). To je i bio uzrok: spisak numera je menjao visinu pod
+    prstom kad header nestane i vrati se
+  - sadržaj sada sam pazi na statusnu traku tamo gde headera nema
+- Provereno: `flutter analyze` bez primedbi, **339 testova prolazi**. Testovi
+  navigacije prepisani: jedan drži da headera nema na Muzici, LED-u i Lageru
+  i da se vraća na prvoj stranici, drugi da skrolovanje ne dira header.
+  Instalirano na telefon
+- Otvoreni problemi: nije viđeno na ekranu — telefon je bio zaključan u
+  trenutku provere. Ostaje pitanje da li tačkice treba da stoje i na ostalim
+  stranicama, pošto sada na njima nema nikakve oznake gde si
+- Sledeće: čeka se korisnikova reč
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

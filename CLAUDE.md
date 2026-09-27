@@ -981,7 +981,8 @@ sastanku, gde se prilazi kažiprstom odozgo, a ne palcem odozdo.
 **Trake sa dugmadima Home / Muzika / LED / Lager više nema.** Otkad se
 prevlači, ta dugmad su bila samo ponavljanje pokreta, a trošila su 82 dp —
 na Muzika stranici je to razlika između tri i sedam numera na ekranu. Umesto
-njih u headeru stoje **tačkice**: kažu na kojoj si stranici i koliko ih ima.
+njih u headeru stoje **tačkice**: kažu na kojoj si stranici i koliko ih ima
+— ali samo dok je header tu, dakle na prvoj stranici.
 Tačkice se **ne dodiruju** — one su oznaka, ne dugme; meta od 6 dp bi ionako
 bila premala za prst usred programa. Čitač ekrana uz njih izgovara naziv
 stranice, jer bez trake nema odakle drugačije da ga sazna.
@@ -1004,8 +1005,16 @@ svira i dok se bira drugi događaj.
 skupi, spisak numera poskoči i izvođač izgubi red koji je gledao. Zato kartica
 ima **istu visinu u svakom stanju**.
 
-**Header i tačkice se sklanjaju pri skrolovanju nadole** i vraćaju čim se krene
-nagore.
+**Headera nema na Muzici, LED-u ni Lageru** (odluka od 27. septembra 2026).
+Stoji samo na **spisku događaja** i na **prvoj stranici jednog događaja** —
+tamo nečemu služi: nosi logotip tima, ulaz u konzolu i strelicu kojom se izlazi
+nazad na spisak. Na ostale tri stranice se ne izlazi nazad, pa je tamo samo
+trošio visinu.
+
+**Ništa se više ne sklanja pri skrolovanju.** Ranije su header i tačkice
+nestajali kad se krene nadole i vraćali se nagore; spisak numera je time menjao
+visinu pod prstom, a izvođači su se žalili da ih to dezorijentiše. To je isto
+pravilo koje već važi za karticu plejera: **raspored se ne menja dok se radi.**
 
 **Izuzetak od pravila o dodirnoj meti** postoji samo na spisku numera
 (36 dp umesto 48) — objašnjen je u odeljku „Muzika tab". Svuda drugde

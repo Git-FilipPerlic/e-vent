@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:event_app/app.dart';
 import 'package:event_app/widgets/common/edit_text_sheet.dart';
 import 'package:event_app/screens/music_screen.dart';
+import 'package:event_app/widgets/common/app_header.dart';
 import 'package:event_app/widgets/common/page_dots.dart';
 import 'package:event_app/utils/date_format.dart';
 
@@ -95,22 +96,37 @@ void main() {
     expect(find.byType(MusicScreen, skipOffstage: false), findsOneWidget);
   });
 
-  testWidgets('skrolovanje nadole sklanja header i tačkice, nagore ih vraća', (
-    WidgetTester tester,
-  ) async {
+  // Header stoji samo tamo gde nečemu služi: na spisku događaja i na prvoj
+  // stranici događaja, odakle se izlazi nazad. Na Muzici, LED-u i Lageru ga
+  // nema — ranije je nestajao pri skrolovanju, pa se spisak numera pod
+  // prstom preraspodeljivao.
+  testWidgets('Muzika, LED i Lager nemaju header', (WidgetTester tester) async {
     await _openFirstEvent(tester);
 
+    expect(find.byType(AppHeader), findsOneWidget);
     expect(find.byType(PageDots), findsOneWidget);
 
-    // Povlačenje nagore = skrolovanje nadole kroz spisak.
+    await _swipePages(tester, 1);
+
+    expect(find.byType(AppHeader), findsNothing);
+    expect(find.byType(PageDots), findsNothing);
+
+    // Povratak na prvu stranicu ga vraća.
+    await tester.drag(find.byType(PageView), const Offset(500, 0));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AppHeader), findsOneWidget);
+  });
+
+  // Skrolovanje više ništa ne sklanja: kad se raspored menja pod prstom,
+  // izvođač izgubi red koji je gledao.
+  testWidgets('skrolovanje ne dira header', (WidgetTester tester) async {
+    await _openFirstEvent(tester);
+
     await tester.drag(find.byType(ListView).first, const Offset(0, -300));
     await tester.pumpAndSettle();
 
-    expect(find.byType(PageDots), findsNothing);
-
-    await tester.drag(find.byType(ListView).first, const Offset(0, 300));
-    await tester.pumpAndSettle();
-
+    expect(find.byType(AppHeader), findsOneWidget);
     expect(find.byType(PageDots), findsOneWidget);
   });
 

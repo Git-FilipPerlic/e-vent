@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -132,9 +131,6 @@ class _RootNavigationState extends State<RootNavigation> {
   /// One se biraju na Home tabu, a Lager sve vreme stoji u stablu.
   final ValueNotifier<int> _lagerRevision = ValueNotifier<int>(0);
 
-  /// Da li se header i tabovi trenutno vide.
-  bool _chromeVisible = true;
-
   /// Nazivi stranica, redom. Ne ispisuju se nigde — traka sa dugmadima
   /// je otpala kad se prešlo na prevlačenje — ali ih čitač ekrana
   /// izgovara uz tačkice.
@@ -258,7 +254,6 @@ class _RootNavigationState extends State<RootNavigation> {
       _eventId = eventId;
       _inEvent = true;
       _currentIndex = 0;
-      _chromeVisible = true;
     });
     // Svaki događaj se otvara na prvoj stranici, ma gde stao prethodni.
     if (_pages.hasClients) _pages.jumpToPage(0);
@@ -269,26 +264,11 @@ class _RootNavigationState extends State<RootNavigation> {
   void _backToList() {
     setState(() {
       _inEvent = false;
-      _chromeVisible = true;
     });
     // Spisak je sve vreme stajao u stablu sa starim podacima.
     _eventsRevision.value++;
   }
 
-  /// Skrolovanje nadole sklanja header i tabove, nagore ih vraća.
-  bool _onScroll(UserScrollNotification notification) {
-    if (notification.metrics.axis != Axis.vertical) return false;
-
-    switch (notification.direction) {
-      case ScrollDirection.reverse:
-        if (_chromeVisible) setState(() => _chromeVisible = false);
-      case ScrollDirection.forward:
-        if (!_chromeVisible) setState(() => _chromeVisible = true);
-      case ScrollDirection.idle:
-        break;
-    }
-    return false;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -296,50 +276,44 @@ class _RootNavigationState extends State<RootNavigation> {
     final eventId = _eventId;
     final user = _auth.currentUser;
 
-    // Poštuje se sistemsko podešavanje za smanjen pokret.
-    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    // Header stoji samo tamo gde nečemu služi: na spisku događaja i na prvoj
+    // stranici jednog događaja, odakle se strelicom izlazi nazad na spisak
+    // (odluka od 27. septembra 2026). Muzika, LED i Lager ga nemaju — tamo je
+    // samo trošio visinu, a pri skrolovanju je nestajao i vraćao se, pa se
+    // spisak numera pod prstom preraspodeljivao. Izvođači su se žalili da ih
+    // to dezorijentiše.
+    final showHeader = !_inEvent || _currentIndex == 0;
 
     return Scaffold(
-      body: NotificationListener<UserScrollNotification>(
-        onNotification: _onScroll,
-        child: Column(
-          children: [
-            // Statusna traka ostaje zaklonjena i kad se header skloni.
+      body: Column(
+        children: [
+          if (showHeader)
             SafeArea(
               bottom: false,
-              child: AnimatedSize(
-                duration: reduceMotion
-                    ? Duration.zero
-                    : const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
-                alignment: Alignment.topCenter,
-                child: _chromeVisible
-                    ? Column(
-                        children: [
-                          AppHeader(
-                            logo: path != null ? FileImage(File(path)) : null,
-                            signedInAs: user?.name,
-                            onOpenConsole: _openConsole,
-                            onBack: _inEvent ? _backToList : null,
-                          ),
-                          // Na spisku događaja tačkica nema — stranice
-                          // pripadaju jednom događaju, a tada nijedan
-                          // nije otvoren.
-                          if (_inEvent)
-                            PageDots(
-                              count: _pageLabels.length,
-                              currentIndex: _currentIndex,
-                              labels: _pageLabels,
-                            ),
-                        ],
-                      )
-                    : const SizedBox(width: double.infinity),
+              child: Column(
+                children: [
+                  AppHeader(
+                    logo: path != null ? FileImage(File(path)) : null,
+                    signedInAs: user?.name,
+                    onOpenConsole: _openConsole,
+                    onBack: _inEvent ? _backToList : null,
+                  ),
+                  // Na spisku događaja tačkica nema — stranice pripadaju
+                  // jednom događaju, a tada nijedan nije otvoren.
+                  if (_inEvent)
+                    PageDots(
+                      count: _pageLabels.length,
+                      currentIndex: _currentIndex,
+                      labels: _pageLabels,
+                    ),
+                ],
               ),
             ),
             Expanded(
-              // Sadržaj ne sme da upadne pod sistemsku traku sa gestovima.
+              // Sadržaj ne sme da upadne pod sistemsku traku sa gestovima,
+              // a gore mora da ga zakloni statusna traka kad headera nema.
               child: SafeArea(
-                top: false,
+                top: !showHeader,
                 child: IndexedStack(
                   // Spisak događaja i stranice jednog događaja stoje jedno
                   // pored drugog. Oboje ostaje u stablu: muzika ne prestaje
@@ -394,8 +368,7 @@ class _RootNavigationState extends State<RootNavigation> {
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
