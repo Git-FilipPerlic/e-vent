@@ -1,4 +1,5 @@
 import '../models/checklist.dart';
+import '../models/company_settings.dart';
 import '../models/event.dart';
 import '../models/team.dart';
 import '../models/vehicle.dart';
@@ -53,6 +54,12 @@ abstract interface class EventService {
   ///
   /// Za sada su to imena; sa Firebase Auth-om ovde stižu nalozi tima.
   Future<List<String>> loadTeamMembers();
+
+  /// Podešavanja firme — za sada adresa magacina, odakle ekipa kreće.
+  Future<CompanySettings> loadSettings();
+
+  /// Pamti podešavanja firme. Menja ih samo onaj ko vodi ekipu.
+  Future<void> saveSettings(CompanySettings settings);
 
   /// Ekipa sa veštinama i bodovima — za ekran „Ekipa" u konzoli.
   ///

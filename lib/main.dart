@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'app.dart';
 import 'firebase_options.dart';
 import 'services/background_audio.dart';
+import 'services/route_service.dart';
 import 'utils/date_format.dart';
 
 Future<void> main() async {
@@ -47,5 +48,13 @@ Future<void> main() async {
     hasFirebase = false;
   }
 
-  runApp(EventApp(audioHandler: audioHandler, hasFirebase: hasFirebase));
+  runApp(
+    EventApp(
+      audioHandler: audioHandler,
+      hasFirebase: hasFirebase,
+      // Put do događaja računa samo prava aplikacija — u testu se ekran
+      // podiže bez njega, da ne ide na mrežu.
+      routeService: OsmRouteService(),
+    ),
+  );
 }

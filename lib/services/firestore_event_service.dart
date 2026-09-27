@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/checklist.dart';
+import '../models/company_settings.dart';
 import '../models/event.dart';
 import '../models/team.dart';
 import '../models/vehicle.dart';
@@ -229,6 +230,23 @@ class FirestoreEventService implements EventService {
         .doc(category.id)
         .set(category.toMap());
   }
+
+  /// Podešavanja firme stoje u jednom dokumentu — nema ih dovoljno za
+  /// svoju kolekciju, a i važe za celu firmu.
+  DocumentReference<Map<String, dynamic>> get _settings =>
+      _db.collection('settings').doc('company');
+
+  @override
+  Future<CompanySettings> loadSettings() async {
+    final doc = await _settings.get();
+    final data = doc.data();
+    if (!doc.exists || data == null) return const CompanySettings();
+    return CompanySettings.fromMap(data);
+  }
+
+  @override
+  Future<void> saveSettings(CompanySettings settings) =>
+      _settings.set(settings.toMap());
 
   CollectionReference<Map<String, dynamic>> get _users => _db.collection('users');
 

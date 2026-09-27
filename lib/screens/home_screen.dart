@@ -6,6 +6,7 @@ import '../models/team.dart';
 import '../models/vehicle.dart';
 import '../models/weather.dart';
 import '../services/event_service.dart';
+import '../services/route_service.dart';
 import '../services/auth_service.dart';
 import '../services/mock_event_service.dart';
 import '../services/weather_service.dart';
@@ -43,6 +44,7 @@ class HomeScreen extends StatefulWidget {
     this.eventId = 'evt-001',
     this.auth,
     this.service,
+    this.route,
     this.onExit,
   });
 
@@ -50,6 +52,13 @@ class HomeScreen extends StatefulWidget {
   /// podignu ekran sam, ali u aplikaciji ga **deli sa spiskom događaja**,
   /// inače spisak ne vidi izmene napravljene ovde.
   final EventService? service;
+
+  /// Računa put od magacina do događaja.
+  ///
+  /// `null` znači **bez računanja puta** — tako ekran u testu ne ide na
+  /// mrežu. Aplikacija ga uvek prosleđuje; podrazumevano se ne pravi sam,
+  /// jer mrežni poziv ne sme da se desi slučajno.
+  final RouteService? route;
 
   /// Koji se događaj prikazuje. Bira se na spisku događaja.
   final String eventId;
@@ -67,6 +76,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late final EventService _service = widget.service ?? MockEventService();
+
+  /// Put do događaja ide preko OpenStreetMap-a — bez naloga i ključa.
+  RouteService? get _route => widget.route;
+
+  /// Koliko se vozi od magacina. `null` dok se ne izračuna ili kad
+  /// adresa magacina nije uneta.
+  RouteEstimate? _drive;
 
   /// Prognoza dolazi sa Open-Meteo servisa — besplatan, bez API ključa.
   final WeatherService _weather = OpenMeteoWeatherService();
@@ -264,12 +280,68 @@ class _HomeScreenState extends State<HomeScreen> {
       // Prognoza se učitava odvojeno: ekran se ne čeka zbog mreže, a ako
       // prognoza pukne, ostatak podataka i dalje stoji.
       _loadForecast(event);
+      _loadDrive(event);
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _errorMessage = 'Podaci o događaju nisu učitani.';
         _isLoading = false;
       });
+    }
+  }
+
+  /// Koliko se vozi od magacina do adrese događaja.
+  ///
+  /// Računa se **od magacina**, ne od trenutne lokacije telefona (odluka od
+  /// 27. septembra 2026): ekipa kreće po opremu, pa je taj broj tačniji, a
+  /// aplikaciji ne treba dozvola za lokaciju.
+  ///
+  /// Kad bilo šta zafali — adresa magacina, adresa događaja, mreža — kartica
+  /// ostaje kakva jeste. Vreme vožnje je dopuna, ne uslov za rad.
+  Future<void> _loadDrive(Event event) async {
+    final route = _route;
+    if (route == null) return;
+
+    try {
+      final settings = await _service.loadSettings();
+      if (!settings.hasAddress) return;
+
+      final GeoPoint from;
+      if (settings.hasCoordinates) {
+        from = GeoPoint(settings.baseLatitude!, settings.baseLongitude!);
+      } else {
+        from = await route.locate(settings.baseAddress!);
+        // Pronađena tačka se pamti, da se adresa ne traži pri svakom
+        // otvaranju događaja.
+        if (_canEdit) {
+          await _service.saveSettings(
+            settings.copyWith(
+              baseLatitude: from.latitude,
+              baseLongitude: from.longitude,
+            ),
+          );
+        }
+      }
+
+      final GeoPoint to;
+      if (event.hasCoordinates) {
+        to = GeoPoint(event.latitude!, event.longitude!);
+      } else {
+        final address = event.address?.trim() ?? '';
+        if (address.isEmpty) return;
+        to = await route.locate(address);
+        if (_canEdit) {
+          await _service.saveEvent(
+            event.copyWith(latitude: to.latitude, longitude: to.longitude),
+          );
+        }
+      }
+
+      final estimate = await route.drive(from: from, to: to);
+      if (!mounted) return;
+      setState(() => _drive = estimate);
+    } catch (_) {
+      // Bez puta kartica prikazuje samo vreme polaska.
     }
   }
 
@@ -500,6 +572,8 @@ class _HomeScreenState extends State<HomeScreen> {
           DepartureTime(
             departure: _event?.departureTime,
             travelMinutes: _event?.travelDurationMinutes,
+            drive: _drive,
+            eventStart: _event?.eventDate,
             onEdit: !_canEdit ? null : _editDeparture,
           ),
           VehiclePicker(

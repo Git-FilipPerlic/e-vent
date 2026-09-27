@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'models/company_settings.dart';
 import 'screens/equipment_screen.dart';
 import 'screens/events_screen.dart';
 import 'screens/home_screen.dart';
@@ -18,15 +19,22 @@ import 'services/firebase_auth_service.dart';
 import 'services/firestore_event_service.dart';
 import 'services/mock_event_service.dart';
 import 'services/background_audio.dart';
+import 'services/route_service.dart';
 import 'services/team_logo_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/date_format.dart';
 import 'widgets/common/app_header.dart';
+import 'widgets/common/edit_text_sheet.dart';
 import 'widgets/common/page_dots.dart';
 
 /// Koren aplikacije: tema i navigacija sa 4 taba.
 class EventApp extends StatelessWidget {
-  const EventApp({super.key, this.audioHandler, this.hasFirebase = false});
+  const EventApp({
+    super.key,
+    this.audioHandler,
+    this.hasFirebase = false,
+    this.routeService,
+  });
 
   /// Veza sa notifikacijom i kontrolama van aplikacije.
   /// `null` u testovima, gde servis ne postoji.
@@ -35,6 +43,10 @@ class EventApp extends StatelessWidget {
   /// Da li se Firebase podigao. Kad nije, aplikacija radi sa lokalnim
   /// podacima — bolje nego da uopšte ne krene.
   final bool hasFirebase;
+
+  /// Računa put od magacina do događaja. `null` u testovima, da ekran
+  /// ne ide na mrežu.
+  final RouteService? routeService;
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +73,7 @@ class EventApp extends StatelessWidget {
       home: RootNavigation(
         audioHandler: audioHandler,
         hasFirebase: hasFirebase,
+        routeService: routeService,
       ),
     );
   }
@@ -78,12 +91,16 @@ class RootNavigation extends StatefulWidget {
     super.key,
     this.audioHandler,
     this.hasFirebase = false,
+    this.routeService,
   });
 
   final BackgroundAudioHandler? audioHandler;
 
   /// Da li je Firebase dostupan.
   final bool hasFirebase;
+
+  /// Računanje puta do događaja; `null` znači da se put ne računa.
+  final RouteService? routeService;
 
   @override
   State<RootNavigation> createState() => _RootNavigationState();
@@ -109,6 +126,8 @@ class _RootNavigationState extends State<RootNavigation> {
       ? FirestoreEventService()
       : MockEventService();
   final TeamLogoService _logoService = const TeamLogoService();
+
+
 
   final ImagePicker _picker = ImagePicker();
 
@@ -163,6 +182,41 @@ class _RootNavigationState extends State<RootNavigation> {
 
   /// Spisak opreme cele firme — odatle se prave kategorije koje se posle
   /// biraju po događaju.
+  /// Adresa magacina — odatle se računa put do događaja.
+  ///
+  /// Čita se svaki put kad se konzola otvara: menja se retko, pa nema
+  /// razloga da stoji u memoriji i zastareva.
+  CompanySettings _settings = const CompanySettings();
+
+  Future<void> _editBase() async {
+    final address = await showEditTextSheet(
+      context,
+      label: 'Adresa magacina',
+      value: _settings.baseAddress,
+      hint: 'ulica i broj, pa grad',
+    );
+    if (address == null || !mounted) return;
+
+    final trimmed = address.trim();
+    // Promena adrese poništava zapamćene koordinate — inače bi se put
+    // računao do stare tačke.
+    final updated = CompanySettings(
+      baseAddress: trimmed.isEmpty ? null : trimmed,
+    );
+    setState(() => _settings = updated);
+
+    try {
+      await _events.saveSettings(updated);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Adresa magacina nije sačuvana.')),
+        );
+    }
+  }
+
   /// Ekipa — ko šta ume i koliko je odradio. Stoji pored opreme firme, jer
   /// se i jedno i drugo dira retko i samo uz prijavu.
   Future<void> _openTeam() async {
@@ -182,6 +236,16 @@ class _RootNavigationState extends State<RootNavigation> {
   /// Tu su i logotip i odjava — na glavnoj strani su tri ikonice prekrivale
   /// baner, a te se stvari diraju retko.
   Future<void> _openConsole() async {
+    // Podešavanja se čitaju pred otvaranje, da konzola pokaže ono što je
+    // u bazi, a ne ono što je zateklo pri pokretanju.
+    try {
+      final settings = await _events.loadSettings();
+      if (mounted) setState(() => _settings = settings);
+    } catch (_) {
+      // Bez podešavanja konzola i dalje radi — samo nema upisane adrese.
+    }
+    if (!mounted) return;
+
     final canEditLogo = _auth.can(AppPermission.editTeamLogo);
 
     await Navigator.of(context).push<bool>(
@@ -195,6 +259,8 @@ class _RootNavigationState extends State<RootNavigation> {
               ? _openEquipment
               : null,
           onOpenTeam: _auth.can(AppPermission.editEvent) ? _openTeam : null,
+          onEditBase: _auth.can(AppPermission.editEvent) ? _editBase : null,
+          baseAddress: _settings.baseAddress,
         ),
       ),
     );
@@ -356,6 +422,7 @@ class _RootNavigationState extends State<RootNavigation> {
                                   eventId: eventId,
                                   auth: _auth,
                                   service: _events,
+                                  route: widget.routeService,
                                   onExit: _backToList,
                                 ),
                         ),

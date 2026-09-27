@@ -2015,6 +2015,30 @@ i pripada.
   umesto da nestane sama
 - Sledeće: potvrda korisnika da se veština sada upisuje
 
+## 27. septembar 2026 — put od magacina do događaja
+
+- Urađeno:
+  - **Adresa magacina** u konzoli (`settings/company` u bazi, pravila
+    objavljena) — odatle se računa put
+  - **`RouteService`**: adresa u koordinate preko Nominatima, vreme vožnje
+    preko OSRM-a. Bez naloga, ključa i kartice; bez saobraćaja u realnom
+    vremenu, kako je korisnik izabrao
+  - **Kartica „Vreme polaska"** pokazuje „Vožnja od magacina: 42 min · 31 km"
+    i **najkasniji polazak**; kad je upisano vreme kasnije od toga, piše
+    „Kasniš" u boji upozorenja
+  - pronađene koordinate se pamte (magacin i događaj), pa se adresa ne traži
+    iznova pri svakom otvaranju
+  - `RouteService` se **ubacuje iz `main.dart`**, a ne pravi u ekranu: tako
+    Home ekran u testu ne ide na mrežu. To je i otkrio test — pao je na
+    „Timer is still pending" čim je ekran počeo da računa put
+- Provereno: `flutter analyze` bez primedbi, **362 testa prolaze** (10 novih:
+  geokodiranje, ruta, redosled koordinata i sama kartica). Pravila objavljena
+  na Firebase
+- Otvoreni problemi: nije instalirano — telefon je bio otkačen. Vožnja se ne
+  vidi dok se u konzoli ne upiše adresa magacina
+- Sledeće: upisati adresu magacina na telefonu pa proveriti brojku na pravom
+  događaju
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

@@ -1021,6 +1021,43 @@ spremiti se za dečji rođendan i za svadbu. Zato je vrsta **zaseban podatak**
 - Ugovoreno trajanje ujedno određuje i kada je status događaja "završeno" —
   ranija pretpostavka od 4 sata koristi se samo ako trajanje nije uneto.
 
+### Put do događaja (dogovoreno 27. septembra 2026)
+
+Na kartici **Vreme polaska** stoji i koliko se vozi do adrese događaja, i kad
+se najkasnije kreće.
+
+**Meri se uvek od magacina**, ne od trenutne lokacije telefona. Ekipa kreće po
+opremu, pa je taj broj tačniji — a aplikaciji time ne treba ni dozvola za
+lokaciju ni nov paket. Adresa magacina se upisuje **u konzoli**, jednom.
+
+**Bez saobraćaja u realnom vremenu** (izbor korisnika). Vreme je „koliko se
+vozi kad je normalno". Izvori koji znaju gužvu, zatvorene ulice i udese traže
+nalog, ključ i (kod Google-a) karticu; za prvu verziju je dogovoreno da se ide
+sa besplatnim podacima. Kad to zatreba, menja se samo `RouteService` — ekrani
+ga ne poznaju.
+
+Izvedba, u istom duhu kao prognoza i mape:
+
+| Šta | Čime | Zašto |
+|---|---|---|
+| Adresa u koordinate | **Nominatim** (OpenStreetMap) | bez naloga i ključa |
+| Vreme vožnje | **OSRM** (`router.project-osrm.org`) | bez naloga i ključa |
+
+Oba imaju pravila korišćenja za javne servere (Nominatim traži da se
+aplikacija predstavi i najviše jedan zahtev u sekundi; OSRM-ov demo server je
+za lagan saobraćaj). Za jednu ekipu je to u redu; ako aplikacija izađe šire,
+prelazi se na svoj ili plaćen server.
+
+**Pronađene koordinate se pamte** — i za magacin i za događaj — pa se adresa
+ne traži pri svakom otvaranju. Pamti ih samo onaj ko ima dozvolu za izmenu.
+
+**Vožnja je dopuna, ne uslov.** Kad nema adrese magacina, adrese događaja ili
+mreže, kartica izgleda kao i ranije. Ništa se ne nagađa.
+
+Kad se zna i početak događaja, kartica računa i **najkasniji polazak**
+(početak minus vožnja). Ako je upisano vreme polaska kasnije od toga, piše
+„Kasniš" u boji upozorenja — broj koji se ionako računa u glavi.
+
 ### Navigacija (odluka od 26. septembra 2026)
 
 Ranije su tabovi stajali **gore, odmah ispod headera**, kao dugmad sa

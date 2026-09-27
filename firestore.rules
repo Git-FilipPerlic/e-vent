@@ -75,6 +75,16 @@ service cloud.firestore {
       allow create, update, delete: if isGlavni();
     }
 
+    // --- Podešavanja firme -------------------------------------------------
+    //
+    // Jedan dokument sa onim što važi za celu firmu — za sada adresa
+    // magacina, odakle se računa put do događaja. Čita ga cela ekipa, menja
+    // ga onaj ko je vodi.
+    match /settings/{document} {
+      allow read: if signedIn();
+      allow write: if isGlavni();
+    }
+
     // --- Veštine ----------------------------------------------------------
     //
     // Katalog veština firme (Vatra, Svila, Voditelj, Vozač…). Čita ga cela

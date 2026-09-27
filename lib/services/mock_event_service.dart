@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../models/checklist.dart';
+import '../models/company_settings.dart';
 import '../models/event.dart';
 import '../models/team.dart';
 import '../models/vehicle.dart';
@@ -57,6 +58,23 @@ class MockEventService implements EventService {
     await for (final _ in _changes.stream) {
       yield await loadEvents(assignedTo: assignedTo, createdBy: createdBy);
     }
+  }
+
+  /// Podešavanja firme. U pravoj bazi stoje u `settings/company`.
+  CompanySettings _settings = const CompanySettings(
+    baseAddress: 'Bulevar Oslobođenja 1, Novi Sad',
+  );
+
+  @override
+  Future<CompanySettings> loadSettings() async {
+    await Future<void>.delayed(_delay);
+    return _settings;
+  }
+
+  @override
+  Future<void> saveSettings(CompanySettings settings) async {
+    await Future<void>.delayed(_delay);
+    _settings = settings;
   }
 
   /// Katalog veština firme. U pravoj bazi ga pravi manager u konzoli.

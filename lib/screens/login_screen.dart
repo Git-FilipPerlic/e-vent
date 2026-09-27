@@ -24,6 +24,8 @@ class LoginScreen extends StatefulWidget {
     this.hasLogo = false,
     this.onOpenEquipment,
     this.onOpenTeam,
+    this.onEditBase,
+    this.baseAddress,
   });
 
   /// Otvara spisak opreme firme. `null` kad korisnik nema dozvolu.
@@ -31,6 +33,13 @@ class LoginScreen extends StatefulWidget {
 
   /// Otvara ekipu — ko šta ume i koliko je odradio. `null` bez dozvole.
   final VoidCallback? onOpenTeam;
+
+  /// Menja adresu magacina — odatle se računa put do događaja.
+  /// `null` bez dozvole.
+  final VoidCallback? onEditBase;
+
+  /// Adresa magacina, da se vidi šta je upisano. `null` dok nije uneta.
+  final String? baseAddress;
 
   final AuthService auth;
 
@@ -222,6 +231,44 @@ class _LoginScreenState extends State<LoginScreen> {
             onPressed: widget.onOpenTeam,
             icon: const Icon(Icons.groups_rounded, size: 20),
             label: const Text('Uredi ekipu'),
+          ),
+        ],
+
+        if (widget.onEditBase != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Magacin',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textSecondary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Odakle ekipa kreće. Iz te adrese se računa koliko traje put do '
+            'događaja — zato se meri od magacina, a ne od tvoje trenutne '
+            'lokacije.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            widget.baseAddress ?? 'Adresa magacina nije uneta',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: widget.baseAddress == null
+                  ? AppColors.textSecondary
+                  : AppColors.textPrimary,
+              fontWeight: widget.baseAddress == null
+                  ? FontWeight.w400
+                  : FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            onPressed: widget.onEditBase,
+            icon: const Icon(Icons.warehouse_rounded, size: 20),
+            label: const Text('Adresa magacina'),
           ),
         ],
 
