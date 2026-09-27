@@ -288,6 +288,19 @@ dugmetom.
    pažnju. Zadata jačina važi i za sva pretapanja: preklapanje ide do nje, ne
    do pune jačine, inače bi stišana muzika skakala nazad na 100%.
 
+   **Brzina ploče** stoji u istom redu, kao ikonica ploče sa brojem ispod:
+   **1.0 / 0.9 / 0.8 / 0.7**, dodir je vrti u krug (odluka od 27. septembra
+   2026). Zvuk se usporava **zajedno sa visinom tona**, kao kad se uspori
+   gramofonska ploča — zato se i zove ploča, a ne „brzina reprodukcije".
+   Do nove brzine se **klizi** pola sekunde, da se čuje kao pokret, a ne kao
+   kvar. Ikonica je u boji `warning` dok zvuk nije na normalnoj brzini, jer
+   je to stanje koje se lako zaboravi.
+
+   Brzina se **pamti preko numera**: sledeća pesma kreće istom brzinom, kao
+   što se ni platter na gramofonu ne ubrza sam kad se promeni ploča.
+   Scratch (vučenje zvuka prstom napred-nazad) **još nije urađen** — to nije
+   podešavanje nego nov sloj obrade zvuka, pa ide zasebno.
+
 8. **Red u spisku je 44 dp** (od 26. septembra 2026; ranije 60) — svesno
    ispod minimalne dodirne mete od 48 dp, zbog gustine spiska na nastupu.
    Red je preko cele širine ekrana, pa je meta i dalje široka.
@@ -488,9 +501,18 @@ u tom vremenu stigne da uzme mikrofon i progovori preko nje. Kad je `Fade`
 isključen, pauza i dalje ima kratkih pola sekunde, samo da nestane „klik" na
 prekidu; naglo sečenje ne postoji ni u jednom slučaju.
 
-Ostalo traje **10 sekundi** — osim ulaska iz tišine kad ga pokrene **obično plej dugme u
-traci**, koji traje **5 sekundi**: traka služi za usputno paljenje i pauzu, a
-ne za uvod pred publiku, pa je deset sekundi tamo predugo čekanje.
+**Dužina ulaska iz tišine se bira** (odluka od 27. septembra 2026):
+**1, 4 ili 8 sekundi**, dodirom na broj koji stoji uz prekidač `Fade` —
+isto kao slovo L / E / F za jačinu. Podrazumevane su 4 sekunde: 1 s je gotovo
+rez, 8 s je uvod pred publiku, a 4 s je ono što najčešće treba.
+
+Ista dužina važi i za **preklapanje** dve numere, kako je i do sada bilo
+vezano: preklapanje traje koliko i ulazak iz tišine. **Izlazak na pauzu je
+druga stvar** i ostaje 6 sekundi.
+
+Time je otpala ranija razlika između velikog dugmeta (10 s) i plej dugmeta u
+traci (5 s): otkad se broj bira jednim dodirom, dva različita ulaska samo
+zbunjuju — važi ono što piše na dugmetu.
 
 **Pretapanje ide po glasnoći koja se čuje, ne po amplitudi** (ispravka od
 26. septembra 2026). Pola amplitude nije pola glasnoće nego oko −6 dB, što se

@@ -31,6 +31,61 @@ enum VolumeStep {
   VolumeStep get next => VolumeStep.values[(index + 1) % VolumeStep.values.length];
 }
 
+/// Koliko traje **ulazak iz tišine**, kad je `Fade` uključen.
+///
+/// Bira se dodirom na broj, isto kao L / E / F za jačinu (odluka od
+/// 27. septembra 2026). Ranije je bio fiksan: 10 sekundi sa velikog dugmeta,
+/// 5 iz trake uz spisak. Otkad se broj bira jednim dodirom, ta dva različita
+/// ulaska nemaju smisla — važi ono što piše na dugmetu.
+///
+/// Ista dužina važi i za **preklapanje** dve numere, kako je i do sada bilo
+/// vezano: preklapanje traje koliko i ulazak iz tišine. Izlazak na pauzu je
+/// druga stvar i ostaje 6 sekundi.
+enum FadeLength {
+  s1('1', Duration(seconds: 1)),
+  s4('4', Duration(seconds: 4)),
+  s8('8', Duration(seconds: 8));
+
+  const FadeLength(this.label, this.duration);
+
+  /// Broj koji stoji na dugmetu.
+  final String label;
+
+  final Duration duration;
+
+  /// Sledeći stepenik u krug: 1 → 4 → 8 → 1.
+  FadeLength get next =>
+      FadeLength.values[(index + 1) % FadeLength.values.length];
+}
+
+/// Brzina ploče — usporavanje zvuka kao na gramofonu.
+///
+/// Brzina i visina tona idu zajedno, pa numera zvuči kao ploča kojoj je
+/// usporen platter, a ne kao snimak pušten sporije. Do nove brzine se klizi
+/// za pola sekunde, da se čuje kao pokret, a ne kao prekid.
+///
+/// Bira se dodirom, u krug, kao jačina i dužina ulaska iz tišine.
+enum RecordSpeed {
+  normal('1.0', 1.0),
+  slow('0.9', 0.9),
+  slower('0.8', 0.8),
+  slowest('0.7', 0.7);
+
+  const RecordSpeed(this.label, this.value);
+
+  /// Broj koji stoji na dugmetu.
+  final String label;
+
+  final double value;
+
+  /// Da li je zvuk usporen — dugme je tada u boji.
+  bool get isSlowed => this != RecordSpeed.normal;
+
+  /// Sledeći stepenik u krug: 1.0 → 0.9 → 0.8 → 0.7 → 1.0.
+  RecordSpeed get next =>
+      RecordSpeed.values[(index + 1) % RecordSpeed.values.length];
+}
+
 /// Vodi reprodukciju i red čekanja.
 ///
 /// Živi u Muzika tabu, a nastupni ekran ga samo pozajmljuje — zato zvuk ne
@@ -102,6 +157,12 @@ class MusicPlayerController extends ChangeNotifier {
   /// između tri prekidača.
   bool _fade = false;
 
+  /// Srednji stepenik je podrazumevan: 1 s je gotovo rez, 8 s je uvod
+  /// pred publiku, a 4 s je ono što najčešće treba.
+  FadeLength _fadeLength = FadeLength.s4;
+
+  RecordSpeed _recordSpeed = RecordSpeed.normal;
+
   /// Da stišavanje pred kraj numere ne krene dvaput za istu numeru.
   bool _isFadingOut = false;
 
@@ -135,10 +196,27 @@ class MusicPlayerController extends ChangeNotifier {
   bool get isPlaying => _isPlaying;
   bool get fade => _fade;
 
+  FadeLength get fadeLength => _fadeLength;
+
+  RecordSpeed get recordSpeed => _recordSpeed;
+
   /// Trenutna jačina zvuka.
   VolumeStep get volume => _volume;
 
   /// Prebacuje na sledeći stepenik jačine: L → E → F → L.
+  /// Sledeća brzina ploče, u krug. Zvuk do nje klizi, ne skače.
+  Future<void> cycleRecordSpeed() async {
+    _recordSpeed = _recordSpeed.next;
+    notifyListeners();
+    await playback.setRecordSpeed(_recordSpeed.value);
+  }
+
+  /// Sledeća dužina ulaska iz tišine, u krug.
+  void cycleFadeLength() {
+    _fadeLength = _fadeLength.next;
+    notifyListeners();
+  }
+
   Future<void> cycleVolume() async {
     _volume = _volume.next;
     notifyListeners();
@@ -167,10 +245,7 @@ class MusicPlayerController extends ChangeNotifier {
     if (_isPlaying) {
       await playback.pause(fadeOut: _fade);
     } else {
-      await playback.play(
-        fadeIn: _fade,
-        over: JustAudioPlayback.quickFadeDuration,
-      );
+      await playback.play(fadeIn: _fade, over: _fadeLength.duration);
     }
     notifyListeners();
   }
@@ -473,14 +548,10 @@ class MusicPlayerController extends ChangeNotifier {
   /// - izabrana je druga, a nešto svira → **prelazi se na izabranu**;
   ///   uz `fade` obe numere sviraju u preklopu, bez njega prelaz je odmah
   /// - ništa ne svira → pušta se izabrana
-  /// [quick] skraćuje ulazak iz tišine — koristi ga obično plej dugme u
-  /// traci. Veliko dugme na nastupnom ekranu i dalje ide punih 10 sekundi,
-  /// jer ono uvodi numeru pred publiku; traka je za usputno paljenje i pauzu,
-  /// gde je deset sekundi predugo čekanje.
   ///
   /// [fade] zamenjuje opšti prekidač samo za ovo jedno puštanje — Ekran 2
   /// ima svoj „Fade in", koji ne sme da prepiše onaj gore na spisku.
-  Future<void> play({bool quick = false, bool? fade}) async {
+  Future<void> play({bool? fade}) async {
     if (!isReady) return;
     final useFade = fade ?? _fade;
 
@@ -491,10 +562,7 @@ class MusicPlayerController extends ChangeNotifier {
 
     _isFadingOut = false;
     _soundingIndex = _selectedIndex;
-    await playback.play(
-      fadeIn: useFade,
-      over: quick ? JustAudioPlayback.quickFadeDuration : null,
-    );
+    await playback.play(fadeIn: useFade, over: _fadeLength.duration);
     notifyListeners();
   }
 
@@ -518,10 +586,7 @@ class MusicPlayerController extends ChangeNotifier {
       }
       // Pauzirana numera na dodir samo nastavlja, ne kreće iz početka.
       if (!_isPlaying) {
-        await playback.play(
-          fadeIn: useFade,
-          over: JustAudioPlayback.quickFadeDuration,
-        );
+        await playback.play(fadeIn: useFade, over: _fadeLength.duration);
       }
       notifyListeners();
       return;
@@ -549,7 +614,7 @@ class MusicPlayerController extends ChangeNotifier {
       _position = from;
       _updateProgress();
     }
-    await playback.play(fadeIn: useFade);
+    await playback.play(fadeIn: useFade, over: _fadeLength.duration);
     notifyListeners();
   }
 
@@ -560,7 +625,7 @@ class MusicPlayerController extends ChangeNotifier {
       await playback.pause(fadeOut: _fade);
       return;
     }
-    await play(quick: true);
+    await play();
   }
 
   /// Prebacuje zvuk na numeru pod datim rednim brojem.
@@ -574,7 +639,7 @@ class MusicPlayerController extends ChangeNotifier {
     if (index < 0 || index >= _queue.length) return;
 
     if (crossfade && playback.hasPreloaded) {
-      await playback.crossfadeToPreloaded(JustAudioPlayback.crossfadeDuration);
+      await playback.crossfadeToPreloaded(_fadeLength.duration);
       // Nova numera je sada aktivni plejer, pa premotavanje ide na nju. U tom
       // trenutku je jedva čujna, pa se skok ne primeti.
       if (from != null) await playback.seek(from);
@@ -600,14 +665,14 @@ class MusicPlayerController extends ChangeNotifier {
       _updateProgress();
     }
     _soundingIndex = index;
-    await playback.play(fadeIn: crossfade);
+    await playback.play(fadeIn: crossfade, over: _fadeLength.duration);
     notifyListeners();
   }
 
   Future<void> _onCompleted() async {
     if (hasNext) {
       await _switchTo(_selectedIndex + 1, crossfade: false);
-      await playback.play(fadeIn: _fade);
+      await playback.play(fadeIn: _fade, over: _fadeLength.duration);
       return;
     }
     // Kraj reda: numera ostaje, ali se vraća na početak i staje.

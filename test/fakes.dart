@@ -40,6 +40,17 @@ class FakePlayback implements AudioPlayback {
   Future<void> setMasterVolume(double value) async {
     _masterVolume = value;
   }
+
+  /// Brzina ploče koju je kontroler tražio.
+  double _recordSpeed = 1;
+
+  @override
+  double get recordSpeed => _recordSpeed;
+
+  @override
+  Future<void> setRecordSpeed(double value) async {
+    _recordSpeed = value;
+  }
   int pauseCalls = 0;
   Duration? lastSeek;
   bool? lastFadeIn;

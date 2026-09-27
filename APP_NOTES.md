@@ -1833,6 +1833,30 @@ i pripada.
 - Sledeće: korisnik sluša pretapanje i javlja da li sada izlazi i ulazi kako
   treba
 
+## 27. septembar 2026 — dužina fade-ina se bira, ploča usporava zvuk
+
+- Urađeno:
+  - **Dužina ulaska iz tišine se bira**: 1 / 4 / 8 sekundi, dodirom na broj uz
+    prekidač `Fade`, isto kao L / E / F za jačinu (`FadeLength` u kontroleru).
+    Ista dužina važi i za preklapanje; izlazak na pauzu ostaje 6 s
+  - time je otpala razlika 10 s (veliko dugme) naspram 5 s (traka), pa su
+    izbačeni `quickFadeDuration` i `crossfadeDuration` i parametar `quick`
+  - **Brzina ploče** (`RecordSpeed`): 1.0 / 0.9 / 0.8 / 0.7, dodir vrti u krug.
+    Brzina i visina tona se menjaju **zajedno** (`setSpeed` + `setPitch`), pa
+    zvuči kao usporena gramofonska ploča, a ne kao snimak pušten sporije.
+    Do nove brzine se klizi 600 ms; numera koja se posle učita nasleđuje
+    brzinu, kao platter koji se ne ubrza sam
+  - red kontrola ima sada šest stavki, pa se **srazmerno smanji** kad ne staje
+    (`FittedBox`) umesto da se prelije — to je i otkrio test rasporeda
+- Provereno: `flutter analyze` bez primedbi, **334 testa prolaze** (dodati
+  testovi za krug brojeva, za to da izabrani broj zaista ide u plejer i za
+  krug brzine ploče)
+- Otvoreni problemi: **nije provereno na telefonu** — uređaj je u toku rada
+  pao u `unauthorized`, pa instalacija čeka potvrdu na ekranu telefona.
+  Scratch iz „efekta ploče" nije rađen: to je obrada zvuka, ne podešavanje
+- Sledeće: potvrditi USB debugging na telefonu, instalirati i poslušati kako
+  zvuči usporavanje; pa scratch kao zaseban zadatak
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

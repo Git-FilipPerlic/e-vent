@@ -26,6 +26,85 @@ Future<MusicPlayerController> _controllerWith(
 }
 
 void main() {
+  group('brzina ploče', () {
+    test('dodir vrti brzinu u krug i javlja je plejeru', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      expect(controller.recordSpeed, RecordSpeed.normal);
+      expect(playback.recordSpeed, 1.0);
+
+      await controller.cycleRecordSpeed();
+      expect(controller.recordSpeed, RecordSpeed.slow);
+      expect(playback.recordSpeed, 0.9);
+
+      await controller.cycleRecordSpeed();
+      await controller.cycleRecordSpeed();
+      expect(controller.recordSpeed, RecordSpeed.slowest);
+      expect(playback.recordSpeed, 0.7);
+
+      // Krug se zatvara na normalnoj brzini.
+      await controller.cycleRecordSpeed();
+      expect(controller.recordSpeed, RecordSpeed.normal);
+      expect(playback.recordSpeed, 1.0);
+      controller.dispose();
+    });
+
+    test('usporena ploča se prepoznaje po stanju, ne po broju', () {
+      expect(RecordSpeed.normal.isSlowed, isFalse);
+      expect(RecordSpeed.slow.isSlowed, isTrue);
+      expect(RecordSpeed.slowest.isSlowed, isTrue);
+    });
+  });
+
+  group('dužina ulaska iz tišine', () {
+    test('broj se dodirom vrti u krug 1 → 4 → 8 → 1', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      // Srednji stepenik je podrazumevan.
+      expect(controller.fadeLength, FadeLength.s4);
+      controller.cycleFadeLength();
+      expect(controller.fadeLength, FadeLength.s8);
+      controller.cycleFadeLength();
+      expect(controller.fadeLength, FadeLength.s1);
+      controller.cycleFadeLength();
+      expect(controller.fadeLength, FadeLength.s4);
+      controller.dispose();
+    });
+
+    test('izabrani broj je dužina ulaska iz tišine', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      controller.setFade(true);
+      controller.cycleFadeLength(); // 8 s
+
+      await controller.play();
+
+      expect(playback.lastFadeIn, isTrue);
+      expect(playback.lastFadeInOver, const Duration(seconds: 8));
+      controller.dispose();
+    });
+
+    // Preklapanje traje koliko i ulazak iz tišine — to pravilo je od ranije,
+    // samo što se dužina sada bira.
+    test('izabrani broj je i dužina preklapanja', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      controller.setFade(true);
+      controller.cycleFadeLength();
+      controller.cycleFadeLength(); // 1 s
+      await controller.play();
+      await controller.onTrackTapped(_tracks[2]);
+
+      await controller.play();
+
+      expect(playback.crossfadeCalls, 1);
+      expect(playback.lastCrossfade, const Duration(seconds: 1));
+      controller.dispose();
+    });
+  });
+
   group('kriva pretapanja', () {
     // Jačina koja se čuje ne prati amplitudu pravolinijski: pola amplitude
     // je oko −6 dB, što se jedva primeti. Zbog toga je pravolinijsko
@@ -471,14 +550,6 @@ void main() {
       controller.dispose();
     });
 
-    test('preklapanje traje isto koliko i ulazak iz tišine', () {
-      // Specifikacija kaže 10 sekundi; kraće ne ostavlja vremena za
-      // doterivanje numere u toku preklapanja.
-      expect(
-        JustAudioPlayback.crossfadeDuration,
-        JustAudioPlayback.fadeInDuration,
-      );
-    });
   });
 
   group('skidanje iz reda čekanja', () {
@@ -577,29 +648,4 @@ void main() {
     });
   });
 
-  group('dužina ulaska iz tišine', () {
-    test('obično plej dugme ulazi za 5 sekundi', () async {
-      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
-      final controller = await _controllerWith(playback);
-      controller.setFade(true);
-
-      await controller.toggle();
-
-      expect(playback.lastFadeInOver, JustAudioPlayback.quickFadeDuration);
-      expect(JustAudioPlayback.quickFadeDuration, const Duration(seconds: 5));
-      controller.dispose();
-    });
-
-    test('veliko dugme i dalje ulazi punih 10 sekundi', () async {
-      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
-      final controller = await _controllerWith(playback);
-      controller.setFade(true);
-
-      await controller.play();
-
-      // `null` znači podrazumevano trajanje — punih deset sekundi.
-      expect(playback.lastFadeInOver, isNull);
-      controller.dispose();
-    });
-  });
 }

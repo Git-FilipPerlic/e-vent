@@ -59,6 +59,16 @@ abstract interface class AudioPlayback {
 
   Future<void> setMasterVolume(double value);
 
+  /// Brzina ploče: 1.0 je normalna, manje usporava zvuk.
+  ///
+  /// **Menja i visinu tona zajedno sa brzinom**, kao kad se gramofonska
+  /// ploča uspori — zato se ne zove „brzina reprodukcije". Do nove vrednosti
+  /// se **klizi**, ne skače: ploča se ne zaustavlja u jednom kadru.
+  Future<void> setRecordSpeed(double value);
+
+  /// Trenutna brzina ploče.
+  double get recordSpeed;
+
   /// Preklapa zvuk sa numere koja svira na unapred učitanu: prva se spušta,
   /// druga se penje, obe sviraju u isto vreme.
   ///
@@ -124,6 +134,53 @@ class JustAudioPlayback implements AudioPlayback {
     }
   }
 
+  /// Brzina ploče, 1.0 = normalna. Pamti se da bi je i numera koja se
+  /// učita kasnije nasledila — na gramofonu se platter ne ubrza sam kad se
+  /// promeni ploča.
+  double _recordSpeed = 1;
+
+  Timer? _speedTimer;
+
+  @override
+  double get recordSpeed => _recordSpeed;
+
+  /// Koliko traje klizanje do nove brzine. Kratko koliko treba da se čuje
+  /// kao usporavanje ploče, a ne kao kvar u zvuku.
+  static const Duration recordGlide = Duration(milliseconds: 600);
+
+  @override
+  Future<void> setRecordSpeed(double value) async {
+    final target = value.clamp(0.25, 2.0);
+    _speedTimer?.cancel();
+
+    final start = _recordSpeed;
+    _recordSpeed = target;
+    if ((target - start).abs() < 0.001) {
+      await _applySpeed(_active, target);
+      return;
+    }
+
+    final steps = (recordGlide.inMilliseconds / _fadeStep.inMilliseconds)
+        .round()
+        .clamp(1, 1000);
+    var step = 0;
+    _speedTimer = Timer.periodic(_fadeStep, (timer) {
+      step++;
+      final t = (step / steps).clamp(0.0, 1.0);
+      _applySpeed(_active, start + (target - start) * t);
+      if (t >= 1) {
+        timer.cancel();
+        _speedTimer = null;
+      }
+    });
+  }
+
+  /// Brzina i visina tona idu zajedno — to je ono što zvuči kao ploča.
+  Future<void> _applySpeed(AudioPlayer player, double value) async {
+    await player.setSpeed(value);
+    await player.setPitch(value);
+  }
+
   @override
   bool get isFading => _fadeTimer != null || _crossfadeTimer != null;
 
@@ -131,24 +188,12 @@ class JustAudioPlayback implements AudioPlayback {
   Timer? _crossfadeTimer;
   bool _hasPreloaded = false;
 
-  /// Koliko traje fade-in kad je uključen.
+  /// Podrazumevani ulazak iz tišine, kad se dužina ne zada.
+  /// Kontroler je uvek zadaje — broj se bira na Muzika tabu (1 / 4 / 8 s).
   static const Duration fadeInDuration = Duration(seconds: 10);
-
-  /// Kraći ulazak, za obično plej dugme u traci. Deset sekundi je tamo
-  /// predugo: traka služi za usputno paljenje, a ne za uvod pred publiku.
-  static const Duration quickFadeDuration = Duration(seconds: 5);
 
   /// Koliko traje spuštanje zvuka pred kraj numere.
   static const Duration fadeOutDuration = Duration(seconds: 10);
-
-  /// Koliko traje preklapanje dve numere.
-  /// Preklapanje traje **isto koliko i ulazak iz tišine — 10 sekundi**.
-  ///
-  /// Ranije je bilo 6, suprotno specifikaciji. Duže nije samo lepše: dok
-  /// pretapanje traje, izvođač još može da premota novu numeru na pravo
-  /// mesto, a greška se u tom preklopu teže čuje. Kratko pretapanje mu ne
-  /// ostavlja vremena za to.
-  static const Duration crossfadeDuration = Duration(seconds: 10);
 
   /// Pauza se stišava kratko — deset sekundi čekanja da muzika stane bilo bi
   /// besmisleno kad neko hoće tišinu odmah.
@@ -245,7 +290,10 @@ class JustAudioPlayback implements AudioPlayback {
     _hasPreloaded = false;
     await _idle.stop();
     await _active.setVolume(_masterVolume);
-    return _open(_active, path);
+    final loaded = await _open(_active, path);
+    // Nova numera nasleđuje brzinu ploče: platter se ne ubrzava sam.
+    await _applySpeed(_active, _recordSpeed);
+    return loaded;
   }
 
   @override
@@ -264,6 +312,7 @@ class JustAudioPlayback implements AudioPlayback {
     final incoming = _idle;
 
     await incoming.setVolume(0);
+    await _applySpeed(incoming, _recordSpeed);
     unawaited(incoming.play());
 
     // Uloge se menjaju odmah: vreme i prsten od ovog trenutka prate novu
@@ -377,6 +426,7 @@ class JustAudioPlayback implements AudioPlayback {
 
   @override
   Future<void> dispose() async {
+    _speedTimer?.cancel();
     _cancelFades();
     for (final binding in _bindings) {
       await binding.cancel();
