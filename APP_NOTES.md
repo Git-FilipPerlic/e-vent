@@ -1893,13 +1893,13 @@ i pripada.
   dva: da pauza bez pretapanja traži zaustavljanje ploče, i da ga pauza uz
   pretapanje ne traži)
 - Otvoreni problemi:
-  - **Dugme za brzinu ploče (1.0 / 0.9 / 0.8 / 0.7) nije bilo traženo.**
-    Korisnik je tražio efekat pri isključivanju, a dobio je kontrolu za
-    podešavanje. Mehanizam iza njega je iskorišćen za zaustavljanje ploče;
-    čeka se odluka da li dugme ostaje ili se sklanja
+  - **Dugme za brzinu ploče ostaje.** Nije bilo traženo — korisnik je tražio
+    efekat pri isključivanju, a dobio kontrolu za podešavanje — ali mu se
+    dopalo, pa je 27. septembra rečeno da ostane. Mehanizam iza njega ionako
+    vuče zaustavljanje ploče
   - nije instalirano na telefon — uređaj se otkačio pre instalacije
-- Sledeće: odluka o dugmetu za brzinu i o tome da li se header prepakuje u
-  `Stack` (opcija 2 za pomeranje plejliste)
+- Sledeće: sve čeka. Header u `Stack` (opcija 2 za pomeranje plejliste) ide
+  tek posle razgovora sa Stefanom
 
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
