@@ -1901,6 +1901,23 @@ i pripada.
 - Sledeće: sve čeka. Header u `Stack` (opcija 2 za pomeranje plejliste) ide
   tek posle razgovora sa Stefanom
 
+## 27. septembar 2026 — čitanje podataka iz fajlova ne drži više ekran
+
+- Urađeno:
+  - **Pauza uz `Fade` skraćena sa 6 na 3 sekunde**, na korisnikov zahtev —
+    šest je u radu bilo predugo čekanje da zvuk utihne
+  - **Oznake iz fajlova se čitaju u zasebnoj niti** (`Isolate.run`) umesto na
+    glavnoj. Čitanje je sinhrono i za folder od nekoliko stotina numera traje,
+    pa je ekran zastajkivao
+  - **Podaci ulaze u turama od dvadeset**, pa spisak puni izvođača i trajanje
+    u hodu umesto da sve stoji na `--:--` dok se poslednji fajl ne pročita
+- Provereno: `flutter analyze` bez primedbi, **338 testova prolazi** (nov test
+  drži da se posao deli na ture: 45 numera daje ture 20, 20, 5). Instalirano
+  na telefon
+- Otvoreni problemi: nema novih
+- Sledeće: sve ostalo čeka — header preko spiska čeka Stefana, a scratch,
+  vođenje zaposlenih, saobraćaj i push čekaju korisnikovu reč
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

@@ -664,12 +664,12 @@ void main() {
         JustAudioPlayback.shortPauseFade,
         const Duration(milliseconds: 500),
       );
-      // Uz uključen Fade muzika se povlači **šest sekundi** — toliko da
-      // deluje kao namera, a ne kao kvar, i da voditelj stigne da progovori
-      // preko toga.
+      // Uz uključen Fade muzika se povlači **tri sekunde** — toliko da
+      // deluje kao namera, a ne kao kvar. Šest je u radu bilo predugo
+      // čekanje da zvuk utihne (skraćeno 27. septembra 2026).
       expect(
         JustAudioPlayback.pauseFadeDuration,
-        const Duration(seconds: 6),
+        const Duration(seconds: 3),
       );
       expect(
         JustAudioPlayback.pauseFadeDuration.inMilliseconds,

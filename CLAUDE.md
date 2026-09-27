@@ -256,6 +256,13 @@ dugmetom.
    čim se pročitaju. Ako pamćenje pukne, Muzika tab se otvara prazan umesto
    da javi grešku — to je udobnost, ne uslov za rad.
 
+   **Čitanje ide u zasebnoj niti i u turama** (od 27. septembra 2026).
+   Čitanje oznaka je sinhrono i za folder od nekoliko stotina numera traje;
+   dok se radilo na glavnoj niti, ekran je zastajkivao, a ceo spisak je stajao
+   na `--:--` dok poslednji fajl ne bude gotov. Sada se svaka numera čita u
+   `Isolate.run`, a spisak se osvežava **na svakih dvadeset pročitanih**, pa
+   trajanja ulaze u hodu.
+
    **Izvođač i trajanje se čitaju iz fajla jednom i pamte se u keširanom
    spisku, ali i u samim dodatim numerama** (ispravka od 27. septembra 2026).
    Spisak se pri povlačenju nadole gradi iznova od dodatih numera, a one se
@@ -512,7 +519,8 @@ Sa uključenim `Fade` pauza ostaje ono što je bila — mirno povlačenje pred
 publikom, šest sekundi, bez efekta. Tako izvođač bira šta hoće samim
 prekidačem koji već ima.
 
-**Izlazak u tišinu na pauzu traje 6 sekundi** (odluka od 10. septembra 2026).
+**Izlazak u tišinu na pauzu traje 3 sekunde** (skraćeno sa šest 27. septembra
+2026, jer je šest bilo predugo čekanje).
 Toliko da se muzika pred publikom povuče kao namera, a ne kao kvar — voditelj
 u tom vremenu stigne da uzme mikrofon i progovori preko nje. Kad je `Fade`
 isključen, pauza i dalje ima kratkih pola sekunde, samo da nestane „klik" na

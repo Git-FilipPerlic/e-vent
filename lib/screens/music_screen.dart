@@ -245,11 +245,21 @@ class _MusicScreenState extends State<MusicScreen> {
   }
 
   /// Dopunjava spisak podacima iz samih fajlova.
+  /// Dopunjava spisak podacima iz samih fajlova.
+  ///
+  /// Podaci ulaze **u turama**, kako stižu: na folderu od nekoliko stotina
+  /// numera čitanje traje, pa bi inače ceo spisak stajao na `--:--` dok se
+  /// poslednji fajl ne pročita.
   Future<void> _fillMetadata(List<Track> tracks) async {
-    final enriched = await _metadata.enrichAll(tracks);
+    await _metadata.enrichAll(tracks, onBatch: _applyMetadata);
+  }
+
+  /// Ubacuje pročitane numere na svoja mesta — u spisak, u dodate numere i u
+  /// red čekanja.
+  void _applyMetadata(List<Track> done) {
     if (!mounted) return;
 
-    final byId = {for (final track in enriched) track.id: track};
+    final byId = {for (final track in done) track.id: track};
     setState(() {
       _tracks = [for (final track in _tracks) byId[track.id] ?? track];
       // I dodate numere dobijaju iste podatke: spisak se gradi od njih

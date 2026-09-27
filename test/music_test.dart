@@ -80,6 +80,24 @@ final List<Track> _sample = [
 
 void main() {
   group('trajanje iz fajla', () {
+    // Na folderu od nekoliko stotina numera čitanje traje. Podaci zato ulaze
+    // u turama, da spisak puni trajanja u hodu umesto da sve stoji na
+    // `--:--` dok se poslednji fajl ne pročita.
+    test('podaci ulaze u turama, ne odjednom', () async {
+      final service = TrackMetadataService();
+      final tracks = [
+        for (var i = 0; i < 45; i++)
+          Track(id: 'trk-$i', path: '/nema/ovog/fajla-$i.mp3'),
+      ];
+
+      final batches = <int>[];
+      await service.enrichAll(tracks, onBatch: (done) => batches.add(done.length));
+
+      // Dvadeset po turi, pa ostatak.
+      expect(batches, [20, 20, 5]);
+    });
+
+
     // Spisak se pri povlačenju nadole gradi iznova od dodatih numera, a one
     // se pamte **samo kao putanje**. Dok se pročitani podaci nisu vraćali i
     // u njih, jedno povlačenje je obrisalo izvođača i trajanje sa celog
