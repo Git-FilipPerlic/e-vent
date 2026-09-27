@@ -109,7 +109,8 @@ void main() {
     await _swipePages(tester, 1);
 
     expect(find.byType(AppHeader), findsNothing);
-    expect(find.byType(PageDots), findsNothing);
+    // Tačkice ostaju: one su jedina oznaka gde si u nizu stranica.
+    expect(find.byType(PageDots), findsOneWidget);
 
     // Povratak na prvu stranicu ga vraća.
     await tester.drag(find.byType(PageView), const Offset(500, 0));

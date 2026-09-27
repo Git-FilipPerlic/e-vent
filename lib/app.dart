@@ -290,30 +290,33 @@ class _RootNavigationState extends State<RootNavigation> {
           if (showHeader)
             SafeArea(
               bottom: false,
-              child: Column(
-                children: [
-                  AppHeader(
-                    logo: path != null ? FileImage(File(path)) : null,
-                    signedInAs: user?.name,
-                    onOpenConsole: _openConsole,
-                    onBack: _inEvent ? _backToList : null,
-                  ),
-                  // Na spisku događaja tačkica nema — stranice pripadaju
-                  // jednom događaju, a tada nijedan nije otvoren.
-                  if (_inEvent)
-                    PageDots(
-                      count: _pageLabels.length,
-                      currentIndex: _currentIndex,
-                      labels: _pageLabels,
-                    ),
-                ],
+              child: AppHeader(
+                logo: path != null ? FileImage(File(path)) : null,
+                signedInAs: user?.name,
+                onOpenConsole: _openConsole,
+                onBack: _inEvent ? _backToList : null,
+              ),
+            ),
+          // Tačkice stoje na **svim** stranicama jednog događaja: bez njih na
+          // Muzici, LED-u i Lageru ne postoji nikakva oznaka gde si u nizu.
+          // Traka je visoka 18 dp i uvek ista — ništa se ne preraspodeljuje.
+          // Na spisku događaja ih nema: tada nijedan događaj nije otvoren.
+          if (_inEvent)
+            SafeArea(
+              bottom: false,
+              top: !showHeader,
+              child: PageDots(
+                count: _pageLabels.length,
+                currentIndex: _currentIndex,
+                labels: _pageLabels,
               ),
             ),
             Expanded(
               // Sadržaj ne sme da upadne pod sistemsku traku sa gestovima,
-              // a gore mora da ga zakloni statusna traka kad headera nema.
+              // a statusnu traku iznad njega zaklanja ili header ili traka
+              // sa tačkicama — jedno od to dvoje uvek stoji.
               child: SafeArea(
-                top: !showHeader,
+                top: false,
                 child: IndexedStack(
                   // Spisak događaja i stranice jednog događaja stoje jedno
                   // pored drugog. Oboje ostaje u stablu: muzika ne prestaje

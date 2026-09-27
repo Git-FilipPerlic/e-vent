@@ -1933,9 +1933,11 @@ i pripada.
   navigacije prepisani: jedan drži da headera nema na Muzici, LED-u i Lageru
   i da se vraća na prvoj stranici, drugi da skrolovanje ne dira header.
   Instalirano na telefon
+  - **Tačkice ostaju na svim stranicama** (korisnikova odluka, isti dan):
+    bez njih na te tri stranice nema nikakve oznake gde si u nizu. Traka je
+    18 dp i uvek ista, pa se raspored i dalje ne menja
 - Otvoreni problemi: nije viđeno na ekranu — telefon je bio zaključan u
-  trenutku provere. Ostaje pitanje da li tačkice treba da stoje i na ostalim
-  stranicama, pošto sada na njima nema nikakve oznake gde si
+  trenutku provere
 - Sledeće: čeka se korisnikova reč
 
 ## TODO (skupljati ovde, rešavati kad dođe red)
