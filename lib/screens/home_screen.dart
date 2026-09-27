@@ -392,10 +392,19 @@ class _HomeScreenState extends State<HomeScreen> {
           if (onExit != null)
             Align(
               alignment: Alignment.centerLeft,
+              // Strelica dobija tačno onoliko prostora koliko joj treba:
+              // pojas u kom je stajao ceo header je za jedno dugme bio
+              // prazna siva zona.
               child: IconButton(
                 onPressed: onExit,
-                icon: const Icon(Icons.arrow_back_rounded),
+                icon: const Icon(Icons.arrow_back_rounded, size: 22),
                 color: AppColors.accent,
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs,
+                ),
+                constraints: const BoxConstraints.tightFor(height: 32),
                 tooltip: 'Nazad na spisak događaja',
               ),
             ),
