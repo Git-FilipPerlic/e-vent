@@ -243,7 +243,7 @@ class MusicPlayerController extends ChangeNotifier {
   Future<void> togglePauseSounding() async {
     if (sounding == null) return;
     if (_isPlaying) {
-      await playback.pause(fadeOut: _fade);
+      await playback.pause(fadeOut: _fade, windDown: !_fade);
     } else {
       await playback.play(fadeIn: _fade, over: _fadeLength.duration);
     }
@@ -622,7 +622,7 @@ class MusicPlayerController extends ChangeNotifier {
     if (!isReady) return;
 
     if (_isPlaying && !isAnotherSounding) {
-      await playback.pause(fadeOut: _fade);
+      await playback.pause(fadeOut: _fade, windDown: !_fade);
       return;
     }
     await play();

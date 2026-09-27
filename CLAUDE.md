@@ -502,6 +502,16 @@ Ostalo:
 `Fade` znači sve troje odjednom: ulazak iz tišine, izlazak u tišinu i
 **preklapanje** kad se pređe sa numere koja svira na izabranu.
 
+**Bez `Fade` pauza zvuči kao ploča koja staje** (odluka od 27. septembra
+2026). Umesto kratkog spuštanja jačine, zvuk se za oko sekund **uspori i
+spusti u visini tona**, pa utihne — kao gramofon kome je stao platter. To je
+efekat, ne podešavanje: sam se vrati na normalnu brzinu, pa sledeće puštanje
+kreće kako treba.
+
+Sa uključenim `Fade` pauza ostaje ono što je bila — mirno povlačenje pred
+publikom, šest sekundi, bez efekta. Tako izvođač bira šta hoće samim
+prekidačem koji već ima.
+
 **Izlazak u tišinu na pauzu traje 6 sekundi** (odluka od 10. septembra 2026).
 Toliko da se muzika pred publikom povuče kao namera, a ne kao kvar — voditelj
 u tom vremenu stigne da uzme mikrofon i progovori preko nje. Kad je `Fade`

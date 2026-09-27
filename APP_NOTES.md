@@ -1880,6 +1880,27 @@ i pripada.
   pokaže kao smetnja, čitanje ide u zasebnu nit i u grupama
 - Sledeće: korisnik proverava na telefonu
 
+## 27. septembar 2026 — pauza zvuči kao ploča koja staje
+
+- Urađeno:
+  - **Ono što je zapravo bilo traženo:** kad se plejer isključi, zvuk se
+    uspori i spusti u visini tona pa utihne, kao ploča kojoj je stao platter.
+    Traje ~900 ms, brzina i jačina se spuštaju zajedno, a brzina se posle sama
+    vrati na normalu
+  - Važi **kad je `Fade` isključen**; sa uključenim `Fade` pauza ostaje mirno
+    povlačenje od 6 sekundi, kako je dogovoreno 10. septembra
+- Provereno: `flutter analyze` bez primedbi, **337 testova prolazi** (dodata
+  dva: da pauza bez pretapanja traži zaustavljanje ploče, i da ga pauza uz
+  pretapanje ne traži)
+- Otvoreni problemi:
+  - **Dugme za brzinu ploče (1.0 / 0.9 / 0.8 / 0.7) nije bilo traženo.**
+    Korisnik je tražio efekat pri isključivanju, a dobio je kontrolu za
+    podešavanje. Mehanizam iza njega je iskorišćen za zaustavljanje ploče;
+    čeka se odluka da li dugme ostaje ili se sklanja
+  - nije instalirano na telefon — uređaj se otkačio pre instalacije
+- Sledeće: odluka o dugmetu za brzinu i o tome da li se header prepakuje u
+  `Stack` (opcija 2 za pomeranje plejliste)
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

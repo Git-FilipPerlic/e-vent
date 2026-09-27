@@ -26,6 +26,36 @@ Future<MusicPlayerController> _controllerWith(
 }
 
 void main() {
+  group('zaustavljanje ploče', () {
+    // Ono što je traženo: kad se plejer isključi, zvuk se uspori i spusti u
+    // visini tona, kao ploča kojoj je stao platter.
+    test('pauza bez pretapanja zaustavlja ploču', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      await controller.toggle();
+
+      expect(playback.lastWindDown, isTrue);
+      controller.dispose();
+    });
+
+    // Sa uključenim `Fade` pauza je povlačenje pred publikom — šest sekundi
+    // mirnog izlaska, bez efekta.
+    test('uz pretapanje pauza ostaje mirno povlačenje', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      controller.setFade(true);
+      await controller.play();
+
+      await controller.toggle();
+
+      expect(playback.lastFadeOut, isTrue);
+      expect(playback.lastWindDown, isFalse);
+      controller.dispose();
+    });
+  });
+
   group('brzina ploče', () {
     test('dodir vrti brzinu u krug i javlja je plejeru', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
