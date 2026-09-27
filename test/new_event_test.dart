@@ -232,6 +232,41 @@ void main() {
       expect(find.byTooltip('Dodeli događaj'), findsNothing);
     });
 
+    // Dodela po veštini je **filter, ne zahtev**: na događaju se ne čekira
+    // šta treba, nego se spisak ekipe suzi na one koji to umeju.
+    testWidgets('filter po veštini sužava spisak ekipe', (
+      WidgetTester tester,
+    ) async {
+      final auth = await _signedInManager();
+
+      await tester.pumpWidget(_wrap(HomeScreen(auth: auth)));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.byType(TeamAssignment), 300);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Dodeli događaj'));
+      await tester.pump(const Duration(milliseconds: 900));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(CheckboxListTile, 'Filip'), findsOneWidget);
+
+      // Svilu u test podacima zna samo Ana.
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Svila'));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(CheckboxListTile, 'Ana'), findsOneWidget);
+      expect(find.widgetWithText(CheckboxListTile, 'Filip'), findsNothing);
+      // Ko je izabran a filter ga sakrio — to se kaže, da se ne pomisli da
+      // je odčekiran.
+      expect(find.textContaining('van filtera'), findsOneWidget);
+
+      // Ponovni dodir na istu veštinu vraća ceo spisak.
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Svila'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(CheckboxListTile, 'Filip'), findsOneWidget);
+    });
+
     testWidgets('manager menja dodelu i izmena se odmah vidi', (
       WidgetTester tester,
     ) async {

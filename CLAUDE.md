@@ -907,6 +907,14 @@ kao id koji više ništa ne znači.
 **Dodela po veštini je filter, ne zahtev** (izbor korisnika): na događaju se
 ne čekira šta treba, nego se u „Ko radi" bira po veštini ko ulazi u ekipu.
 
+U listu „Ko radi" stoji red dugmića: **Svi** i po jedno za svaku veštinu.
+**Jedna veština u jednom trenutku** — pitanje „ko zna i vatru i vožnju" se
+pred nastup ne postavlja. Ponovni dodir na istu veštinu vraća ceo spisak.
+Uz svako ime stoji i šta ta osoba ume, pa se vidi zašto je u spisku.
+
+**Filter ne odčekirava nikoga.** Ko je već dodeljen a filter ga sakrio,
+ostaje dodeljen — i to piše iznad spiska, da se ne pomisli da je ispao.
+
 #### Spisak feature-a za ekipu
 
 | ID | Šta | Status |
@@ -914,7 +922,7 @@ ne čekira šta treba, nego se u „Ko radi" bira po veštini ko ulazi u ekipu.
 | TEAM-001 | Katalog veština firme (konzola) | gotovo |
 | TEAM-002 | Ekran „Ekipa": veštine i bodovi po članu | gotovo |
 | TEAM-003 | EXP traka i nivoi | gotovo |
-| TEAM-004 | Filter po veštini u „Ko radi" | nije |
+| TEAM-004 | Filter po veštini u „Ko radi" | gotovo |
 
 #### Spisak feature-a za prijavu i admin konzolu
 

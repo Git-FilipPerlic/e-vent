@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/checklist.dart';
 import '../models/event.dart';
+import '../models/team.dart';
 import '../models/vehicle.dart';
 import '../models/weather.dart';
 import '../services/event_service.dart';
@@ -213,17 +214,23 @@ class _HomeScreenState extends State<HomeScreen> {
     final event = _event;
     if (event == null) return;
 
-    List<String> team;
+    // Uz imena stižu i veštine: po njima se u listu sužava spisak na one
+    // koji traženo umeju.
+    List<TeamMember> team;
+    List<Skill> skills;
     try {
-      team = await _service.loadTeamMembers();
+      team = await _service.loadTeam();
+      skills = await _service.loadSkills();
     } catch (_) {
       team = const [];
+      skills = const [];
     }
     if (!mounted) return;
 
     final picked = await showAssignPicker(
       context,
       team: team,
+      skills: skills,
       assignedTo: event.assignedTo,
     );
     if (picked == null) return;

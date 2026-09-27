@@ -1,6 +1,5 @@
 // Ekran „Ekipa": ko šta ume, koliko je odradio, i da to menja samo manager.
 
-import 'package:event_app/models/team.dart';
 import 'package:event_app/screens/team_screen.dart';
 import 'package:event_app/services/mock_event_service.dart';
 import 'package:event_app/theme/app_theme.dart';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../models/team.dart';
 import '../../theme/app_theme.dart';
 
 /// Kome je događaj dodeljen — „share" iz „create and share".
@@ -108,7 +109,8 @@ class _PersonChip extends StatelessWidget {
 /// Vraća nov spisak imena, ili `null` ako je korisnik odustao.
 Future<List<String>?> showAssignPicker(
   BuildContext context, {
-  required List<String> team,
+  required List<TeamMember> team,
+  required List<Skill> skills,
   required List<String> assignedTo,
 }) {
   return showModalBottomSheet<List<String>>(
@@ -116,14 +118,20 @@ Future<List<String>?> showAssignPicker(
     backgroundColor: AppColors.surface,
     showDragHandle: true,
     isScrollControlled: true,
-    builder: (context) => _AssignPicker(team: team, assignedTo: assignedTo),
+    builder: (context) =>
+        _AssignPicker(team: team, skills: skills, assignedTo: assignedTo),
   );
 }
 
 class _AssignPicker extends StatefulWidget {
-  const _AssignPicker({required this.team, required this.assignedTo});
+  const _AssignPicker({
+    required this.team,
+    required this.skills,
+    required this.assignedTo,
+  });
 
-  final List<String> team;
+  final List<TeamMember> team;
+  final List<Skill> skills;
   final List<String> assignedTo;
 
   @override
@@ -133,9 +141,34 @@ class _AssignPicker extends StatefulWidget {
 class _AssignPickerState extends State<_AssignPicker> {
   late final Set<String> _selected = {...widget.assignedTo};
 
+  /// Po kojoj se veštini gleda ekipa; `null` znači svi.
+  ///
+  /// **Filter, ne zahtev** (odluka od 27. septembra 2026): na događaju se ne
+  /// čekira šta treba, nego se ovde suzi spisak na one koji to umeju. Jedna
+  /// veština u jednom trenutku — „ko zna i vatru i vožnju" je pitanje koje se
+  /// pred nastup ne postavlja.
+  String? _skillId;
+
+  /// Ekipa posle filtera.
+  List<TeamMember> get _shown {
+    final skillId = _skillId;
+    if (skillId == null) return widget.team;
+    return [
+      for (final member in widget.team)
+        if (member.knows(skillId)) member,
+    ];
+  }
+
+  /// Koliko je izabranih sakrio filter — da se ne pomisli da su odčekirani.
+  int get _hiddenSelected {
+    final shown = {for (final member in _shown) member.name};
+    return _selected.where((name) => !shown.contains(name)).length;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final shown = _shown;
 
     return SafeArea(
       child: Column(
@@ -169,6 +202,45 @@ class _AssignPickerState extends State<_AssignPicker> {
               ],
             ),
           ),
+          if (widget.skills.isNotEmpty)
+            SizedBox(
+              height: 44,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                children: [
+                  _SkillFilterChip(
+                    label: 'Svi',
+                    selected: _skillId == null,
+                    onTap: () => setState(() => _skillId = null),
+                  ),
+                  for (final skill in widget.skills)
+                    _SkillFilterChip(
+                      label: skill.name,
+                      selected: _skillId == skill.id,
+                      // Ponovni dodir na istu veštinu vraća ceo spisak.
+                      onTap: () => setState(
+                        () => _skillId = _skillId == skill.id ? null : skill.id,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          if (_hiddenSelected > 0)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.xs,
+                AppSpacing.md,
+                0,
+              ),
+              child: Text(
+                'Još $_hiddenSelected izabranih je van filtera — ostaju dodeljeni.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.warning,
+                ),
+              ),
+            ),
           if (widget.team.isEmpty)
             Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
@@ -180,26 +252,51 @@ class _AssignPickerState extends State<_AssignPicker> {
                 ),
               ),
             )
+          else if (shown.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Text(
+                'Tu veštinu za sada niko nema upisanu.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            )
           else
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: widget.team.length,
+                itemCount: shown.length,
                 itemBuilder: (context, index) {
-                  final member = widget.team[index];
+                  final member = shown[index];
+                  final known = [
+                    for (final skill in widget.skills)
+                      if (member.knows(skill.id)) skill.name,
+                  ];
                   return CheckboxListTile(
-                    value: _selected.contains(member),
+                    value: _selected.contains(member.name),
                     onChanged: (value) => setState(() {
                       if (value ?? false) {
-                        _selected.add(member);
+                        _selected.add(member.name);
                       } else {
-                        _selected.remove(member);
+                        _selected.remove(member.name);
                       }
                     }),
                     title: Text(
-                      member,
+                      member.name,
                       style: const TextStyle(color: AppColors.textPrimary),
                     ),
+                    subtitle: known.isEmpty
+                        ? null
+                        : Text(
+                            known.join(' · '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                     activeColor: AppColors.accent,
                     controlAffinity: ListTileControlAffinity.leading,
                   );
@@ -229,6 +326,31 @@ class _AssignPickerState extends State<_AssignPicker> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Dugme filtera po veštini, u vodoravnom spisku iznad ekipe.
+class _SkillFilterChip extends StatelessWidget {
+  const _SkillFilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: AppSpacing.sm),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => onTap(),
       ),
     );
   }

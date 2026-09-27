@@ -1978,6 +1978,23 @@ i pripada.
   to je ono što je korisnik izabrao umesto zahteva na samom događaju
 - Sledeće: TEAM-004, pa provera na telefonu sa pravim ljudima iz baze
 
+## 27. septembar 2026 — filter po veštini u „Ko radi" (TEAM-004)
+
+- Urađeno:
+  - list „Ko radi" sada učitava ekipu sa veštinama (`loadTeam` + `loadSkills`)
+    umesto samo imena
+  - iznad spiska stoji red dugmića: **Svi** i po jedno za svaku veštinu;
+    jedna veština u jednom trenutku, ponovni dodir vraća ceo spisak
+  - uz svako ime stoji šta ta osoba ume, pa se vidi zašto je u spisku
+  - **filter ne odčekirava nikoga**: ko je dodeljen a sakriven, ostaje
+    dodeljen, i to piše iznad spiska u boji upozorenja
+  - kad tu veštinu niko nema upisanu, spisak to i kaže umesto da bude prazan
+- Provereno: `flutter analyze` bez primedbi, **352 testa prolaze** (nov test
+  sužava spisak na Svilu, proverava poruku o sakrivenim izabranima i povratak
+  na ceo spisak). Instalirano na telefon
+- Otvoreni problemi: nema. Time je ceo TEAM spisak (001–004) gotov
+- Sledeće: čeka se korisnikova reč — ostaju scratch, saobraćaj na ruti i push
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`
