@@ -877,6 +877,45 @@ popunjavanje tabele koja se posle deli timu.
   (glavni, vozač, pomoćni), a *Ko radi* kome se događaj uopšte pojavljuje u
   aplikaciji
 
+### Ekipa: veštine i bodovi (dogovoreno 27. septembra 2026)
+
+Uz opremu firme, u konzoli stoji i **Ekipa** — ko šta ume i koliko je odradio.
+Do nje se stiže istim putem i istim pravom: samo uz prijavu, i menja je onaj
+ko vodi ekipu.
+
+**Veštine su katalog firme**, kao i kategorije opreme: manager jednom upiše
+šta se kod njih radi (Vatra, Svila, Voditelj, Vozač, LED…), pa uz svakog
+člana samo čekira. Slobodan unos bi značio da se ista veština piše na tri
+načina, pa se po njoj ne bi moglo filtrirati.
+
+**Veštine i bodove upisuje manager, ne sam član.** Spisak koji svako sebi
+popunjava ne znači ništa, a bodovi bi bili šala. To brane i pravila baze:
+čovek sme da promeni svoje ime, ali ne i svoje veštine ni bodove.
+
+**Bodovi se dodeljuju ručno**, posle odrađenog posla — dugmad `+10`, `+25`,
+`+50`, i oduzimanje po 10 za ispravku greške. Ne računaju se sami iz
+odrađenih događaja: manager zna ko je šta stvarno radio, a aplikacija ne.
+
+**Nivo je svakih 100 bodova**, i prvi nivo je 1 — čovek bez ijednog boda je i
+dalje na nekom nivou. Sto je izabrano zato što se lako računa u glavi.
+Uz traku uvek stoji i tačan broj bodova, jer traka sama kaže samo „negde oko
+pola", a manageru treba brojka kad dodaje nove.
+
+**Obrisana veština se skida i sa ljudi** — inače bi ostala zalepljena za njih
+kao id koji više ništa ne znači.
+
+**Dodela po veštini je filter, ne zahtev** (izbor korisnika): na događaju se
+ne čekira šta treba, nego se u „Ko radi" bira po veštini ko ulazi u ekipu.
+
+#### Spisak feature-a za ekipu
+
+| ID | Šta | Status |
+|---|---|---|
+| TEAM-001 | Katalog veština firme (konzola) | gotovo |
+| TEAM-002 | Ekran „Ekipa": veštine i bodovi po članu | gotovo |
+| TEAM-003 | EXP traka i nivoi | gotovo |
+| TEAM-004 | Filter po veštini u „Ko radi" | nije |
+
 #### Spisak feature-a za prijavu i admin konzolu
 
 | ID | Šta | Status |

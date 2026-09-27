@@ -1960,6 +1960,24 @@ i pripada.
   konzolu može uz izlaz na prvoj stranici
 - Sledeće: korisnik sluša kako sada zvuči preklop
 
+## 27. septembar 2026 — Ekipa: veštine i bodovi
+
+- Urađeno:
+  - **Model i servis**: `Skill` (katalog firme) i `TeamMember` (veštine,
+    bodovi, nivo). Nivo je svakih 100 bodova, prvi je 1
+  - **Pravila baze**: veštine i bodove menja samo `glavni`; čovek i dalje sme
+    da promeni svoje ime, ali ne i svoje veštine ni bodove
+  - **Ekran „Veštine firme"** — katalog, isti obrazac kao „Oprema firme".
+    Brisanje veštine skida je i sa svih ljudi
+  - **Ekran „Ekipa"** — spisak sa EXP trakom i veštinama; dodir na čoveka
+    otvara list sa kvačicama za veštine i dugmadima `+10 / +25 / +50`
+  - **Dugme „Uredi ekipu" u konzoli**, pored opreme firme
+- Provereno: `flutter analyze` bez primedbi, **351 test prolazi** (12 novih:
+  model, katalog, čuvanje člana i sam ekran). Instalirano na telefon
+- Otvoreni problemi: ostaje **filter po veštini u „Ko radi"** (TEAM-004) —
+  to je ono što je korisnik izabrao umesto zahteva na samom događaju
+- Sledeće: TEAM-004, pa provera na telefonu sa pravim ljudima iz baze
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

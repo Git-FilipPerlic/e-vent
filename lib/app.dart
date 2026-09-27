@@ -8,6 +8,7 @@ import 'screens/equipment_screen.dart';
 import 'screens/events_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/team_screen.dart';
 import 'screens/lager_screen.dart';
 import 'screens/led_screen.dart';
 import 'screens/music_screen.dart';
@@ -162,6 +163,14 @@ class _RootNavigationState extends State<RootNavigation> {
 
   /// Spisak opreme cele firme — odatle se prave kategorije koje se posle
   /// biraju po događaju.
+  /// Ekipa — ko šta ume i koliko je odradio. Stoji pored opreme firme, jer
+  /// se i jedno i drugo dira retko i samo uz prijavu.
+  Future<void> _openTeam() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => TeamScreen(service: _events)),
+    );
+  }
+
   Future<void> _openEquipment() async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(builder: (_) => EquipmentScreen(service: _events)),
@@ -185,6 +194,7 @@ class _RootNavigationState extends State<RootNavigation> {
           onOpenEquipment: _auth.can(AppPermission.editEvent)
               ? _openEquipment
               : null,
+          onOpenTeam: _auth.can(AppPermission.editEvent) ? _openTeam : null,
         ),
       ),
     );

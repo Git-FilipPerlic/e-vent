@@ -23,10 +23,14 @@ class LoginScreen extends StatefulWidget {
     this.onRemoveLogo,
     this.hasLogo = false,
     this.onOpenEquipment,
+    this.onOpenTeam,
   });
 
   /// Otvara spisak opreme firme. `null` kad korisnik nema dozvolu.
   final VoidCallback? onOpenEquipment;
+
+  /// Otvara ekipu — ko šta ume i koliko je odradio. `null` bez dozvole.
+  final VoidCallback? onOpenTeam;
 
   final AuthService auth;
 
@@ -193,6 +197,31 @@ class _LoginScreenState extends State<LoginScreen> {
             onPressed: widget.onOpenEquipment,
             icon: const Icon(Icons.checklist_rounded, size: 20),
             label: const Text('Uredi spisak opreme'),
+          ),
+        ],
+
+        if (widget.onOpenTeam != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Ekipa',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textSecondary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Ko šta ume i koliko je odradio. Veštine se čekiraju iz kataloga '
+            'firme, a bodovi se dodeljuju posle odrađenog posla.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            onPressed: widget.onOpenTeam,
+            icon: const Icon(Icons.groups_rounded, size: 20),
+            label: const Text('Uredi ekipu'),
           ),
         ],
 
