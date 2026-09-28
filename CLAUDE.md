@@ -327,8 +327,9 @@ dugmetom.
 
    Brzina se **pamti preko numera**: sledeća pesma kreće istom brzinom, kao
    što se ni platter na gramofonu ne ubrza sam kad se promeni ploča.
-   Scratch (vučenje zvuka prstom napred-nazad) **još nije urađen** — to nije
-   podešavanje nego nov sloj obrade zvuka, pa ide zasebno.
+   **Vučenje zvuka prstom** (scratch) je urađeno 28. septembra 2026, ali ne
+   ovde nego na ekranu sa talasom, kao prekidač `Scratch` — opis stoji u
+   delu o talasu.
 
 8. **Red u spisku je 44 dp** (od 26. septembra 2026; ranije 60) — svesno
    ispod minimalne dodirne mete od 48 dp, zbog gustine spiska na nastupu.
