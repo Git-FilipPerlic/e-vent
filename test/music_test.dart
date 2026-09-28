@@ -527,7 +527,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byType(WaveScreen),
-          matching: find.byType(SlideSwitch),
+          matching: _switch('Pretapanje'),
         ),
         findsOneWidget,
       );

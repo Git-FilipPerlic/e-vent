@@ -2137,6 +2137,35 @@ i pripada.
   preglednije — traži proveru šta tačno očekuje
 - Sledeće: to razjasniti
 
+## 28. septembar 2026 — vučenje zvuka prstom po talasu (scratch)
+
+- Urađeno:
+  - Na ekranu sa talasom stoji nov prekidač **Scratch**, ispod `Fade` u
+    istom uglu. Dok je uključen i numera svira, prevlačenje po talasu
+    premotava zvuk tamo gde je prst, a brzina i visina tona idu po tome
+    koliko se brzo vuče (kao ploča koja se gura rukom).
+  - `AudioPlayback` je dobio `setSpeedNow` (brzina odmah, bez klizanja) i
+    `endScratch` (vraćanje na zadatu brzinu kad se prst podigne).
+  - `MusicPlayerController.scratchTo(position, speed)` premotava i menja
+    brzinu; `endScratch()` vraća normalnu.
+  - Zvuk se pomera najviše svakih 70 ms, a brzina je ograničena na
+    0,25–2,5. Vreme se meri **vremenom kadra**, ne satom — sat u testu stoji.
+- Provereno: `flutter analyze` bez greške, ceo paket testova prolazi (394).
+  Nov fajl `test/scratch_test.dart` (8 testova): premotavanje i brzina,
+  vučenje unazad, ništa se ne dira dok numera ne svira, prekidač se menja
+  samo prevlačenjem, i isključen prekidač ne dira zvuk.
+- Otvoreni problemi:
+  - **Pravog scratch-a nema** — `just_audio` ne svira unazad, pa se vučenje
+    nagore čuje kao isprekidano premotavanje uz najniži ton. Ako to ne bude
+    dovoljno, jedini put je zaseban plejer koji sam čita uzorke (velik posao
+    i nov paket).
+  - Kako to zvuči preko Bluetooth-a na mikseti treba proveriti na nastupu:
+    kašnjenje od 100–200 ms se na vučenju prstom oseti više nego inače.
+- Sledeće: proba na telefonu (release APK), pa odluka da li vučenje ostaje
+  takvo ili se odustaje.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`
