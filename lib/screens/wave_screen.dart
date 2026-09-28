@@ -5,9 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/track.dart';
+import '../models/track_note.dart';
 import '../services/music_player_controller.dart';
+import '../services/track_note_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/common/edit_text_sheet.dart';
 import '../widgets/common/slide_switch.dart';
+import '../widgets/common/team_avatar.dart';
 import '../widgets/music/track_tile.dart';
 
 /// Talasni oblik numere preko **celog ekrana, odozgo nadole**.
@@ -34,6 +38,9 @@ class WaveScreen extends StatefulWidget {
     required this.controller,
     required this.track,
     required this.fade,
+    this.notes,
+    this.authorName,
+    this.authorAvatarId,
   });
 
   final MusicPlayerController controller;
@@ -42,17 +49,34 @@ class WaveScreen extends StatefulWidget {
   /// Da li se na drugu numeru prelazi pretapanjem.
   final bool fade;
 
+  /// Beleške na pesmi, koje vidi cela ekipa. `null` znači bez beleški —
+  /// tako ekran u testu ne ide na mrežu.
+  final TrackNoteService? notes;
+
+  /// Ko upisuje belešku. `null` (neprijavljen) ih samo čita.
+  final String? authorName;
+  final String? authorAvatarId;
+
   /// Otvaranje uz blago „izranjanje" — ekran se pojavi, ne klizne.
   static Route<bool> route({
     required MusicPlayerController controller,
     required Track track,
     required bool fade,
+    TrackNoteService? notes,
+    String? authorName,
+    String? authorAvatarId,
   }) {
     return PageRouteBuilder<bool>(
       transitionDuration: const Duration(milliseconds: 320),
       reverseTransitionDuration: const Duration(milliseconds: 220),
-      pageBuilder: (_, _, _) =>
-          WaveScreen(controller: controller, track: track, fade: fade),
+      pageBuilder: (_, _, _) => WaveScreen(
+        controller: controller,
+        track: track,
+        fade: fade,
+        notes: notes,
+        authorName: authorName,
+        authorAvatarId: authorAvatarId,
+      ),
       transitionsBuilder: (context, animation, _, child) {
         if (MediaQuery.of(context).disableAnimations) return child;
         final curved = CurvedAnimation(
@@ -88,6 +112,114 @@ class _WaveScreenState extends State<WaveScreen>
   /// tabu, ali se ovde menja: na talasu se bira deo pesme koji ulazi, pa
   /// se tu i odlučuje da li prethodna numera izlazi pretapanjem.
   late bool _fade = widget.fade;
+
+  /// Beleške koje je ekipa ostavila na ovoj pesmi.
+  List<TrackNote> _trackNotes = const [];
+
+  /// Po čemu se numera prepoznaje na svim telefonima — naziv fajla, ne
+  /// putanja, jer isti fajl kod svakog stoji na svom mestu.
+  String get _noteKey {
+    final path = widget.track.path;
+    return path == null ? '' : TrackNote.keyForPath(path);
+  }
+
+  /// Gde je beleška u pesmi, 0..1. `null` kad se trajanje ne zna — tada se
+  /// ne nagađa gde bi stajala.
+  double? _fractionOf(TrackNote note) {
+    final total = _duration;
+    if (total == null || total == Duration.zero) return null;
+    return (note.positionMs / total.inMilliseconds).clamp(0.0, 1.0);
+  }
+
+  /// Mesta beleški, za isprekidane linije na talasu.
+  List<double> get _noteFractions => [
+    for (final note in _trackNotes)
+      if (_fractionOf(note) != null) _fractionOf(note)!,
+  ];
+
+  /// Otvara belešku: tekst, ko ju je ostavio i gde je u pesmi.
+  Future<void> _openNote(TrackNote note) async {
+    final removed = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) => _NoteSheet(
+        note: note,
+        // Svoju belešku svako sme da skloni; tuđu ne dira.
+        canRemove: widget.authorName != null &&
+            widget.authorName == note.authorName,
+      ),
+    );
+    if (removed != true || !mounted) return;
+
+    setState(() {
+      _trackNotes = [
+        for (final one in _trackNotes)
+          if (one.id != note.id) one,
+      ];
+    });
+    try {
+      await widget.notes?.remove(note.id);
+    } catch (_) {
+      await _loadNotes();
+    }
+  }
+
+  /// Ostavlja belešku tamo gde stoji linija.
+  ///
+  /// Mesto je ono što se vidi — linija na sredini ekrana — pa se ne pita
+  /// „gde", nego samo „šta".
+  Future<void> _addNote() async {
+    final service = widget.notes;
+    final author = widget.authorName;
+    final total = _duration;
+    if (service == null || author == null || total == null) return;
+
+    final text = await showEditTextSheet(
+      context,
+      label: 'Beleška na ${TrackTile.formatDuration(_positionNow(total))}',
+      value: null,
+      hint: 'na primer omiljeni deo',
+    );
+    final trimmed = text?.trim();
+    if (trimmed == null || trimmed.isEmpty || !mounted) return;
+
+    final draft = TrackNote(
+      id: '',
+      trackKey: _noteKey,
+      positionMs: _positionNow(total).inMilliseconds,
+      text: trimmed,
+      authorName: author,
+      authorAvatarId: widget.authorAvatarId,
+    );
+
+    try {
+      final saved = await service.add(draft);
+      if (!mounted) return;
+      setState(() => _trackNotes = [..._trackNotes, saved]);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('Beleška nije sačuvana.')));
+    }
+  }
+
+  /// Gde je linija u pesmi, u vremenu.
+  Duration _positionNow(Duration total) =>
+      Duration(milliseconds: (total.inMilliseconds * _fraction).round());
+
+  Future<void> _loadNotes() async {
+    final service = widget.notes;
+    if (service == null || _noteKey.isEmpty) return;
+    try {
+      final notes = await service.notesFor(_noteKey);
+      if (!mounted) return;
+      setState(() => _trackNotes = notes);
+    } catch (_) {
+      // Bez beleški talas i dalje radi — one su dopuna, ne uslov.
+    }
+  }
 
   List<double>? _amplitudes;
   bool _loaded = false;
@@ -130,6 +262,7 @@ class _WaveScreenState extends State<WaveScreen>
   void initState() {
     super.initState();
     _loadWave();
+    _loadNotes();
   }
 
   Future<void> _loadWave() async {
@@ -282,16 +415,42 @@ class _WaveScreenState extends State<WaveScreen>
                   },
                   child: SingleChildScrollView(
                     controller: _scroll,
-                    child: AnimatedBuilder(
-                      animation: _scroll,
-                      builder: (context, _) => CustomPaint(
-                        size: Size(width, _contentHeight + _viewport),
-                        painter: _WavePainter(
-                          amplitudes: _amplitudes,
-                          top: half,
-                          height: _contentHeight,
-                          playheadY: half + _fraction * _contentHeight,
-                        ),
+                    child: SizedBox(
+                      width: width,
+                      height: _contentHeight + _viewport,
+                      child: Stack(
+                        children: [
+                          AnimatedBuilder(
+                            animation: _scroll,
+                            builder: (context, _) => CustomPaint(
+                              size: Size(width, _contentHeight + _viewport),
+                              painter: _WavePainter(
+                                amplitudes: _amplitudes,
+                                top: half,
+                                height: _contentHeight,
+                                playheadY: half + _fraction * _contentHeight,
+                                notes: _noteFractions,
+                              ),
+                            ),
+                          ),
+                          // Ikonica onoga ko je ostavio belešku stoji uz levu
+                          // ivicu, na visini svog mesta u pesmi.
+                          for (final note in _trackNotes)
+                            if (_fractionOf(note) != null)
+                              Positioned(
+                                left: AppSpacing.sm,
+                                top:
+                                    half +
+                                    _fractionOf(note)! * _contentHeight -
+                                    16,
+                                child: GestureDetector(
+                                  onTap: () => _openNote(note),
+                                  child: TeamAvatarDot(
+                                    avatarId: note.authorAvatarId,
+                                  ),
+                                ),
+                              ),
+                        ],
                       ),
                     ),
                   ),
@@ -395,6 +554,18 @@ class _WaveScreenState extends State<WaveScreen>
                   ],
                 ),
               ),
+              // Beleška se ostavlja tamo gde stoji linija — mesto se vidi,
+              // pa se pita samo šta piše.
+              if (widget.notes != null && widget.authorName != null)
+                Positioned(
+                  right: AppSpacing.md,
+                  bottom: MediaQuery.of(context).padding.bottom + AppSpacing.md,
+                  child: FloatingActionButton.extended(
+                    onPressed: _addNote,
+                    icon: const Icon(Icons.bookmark_add_rounded),
+                    label: const Text('Zabeleži'),
+                  ),
+                ),
               // Jedino dugme: nazad na spisak.
               Positioned(
                 left: AppSpacing.md,
@@ -429,6 +600,7 @@ class _WavePainter extends CustomPainter {
     required this.top,
     required this.height,
     required this.playheadY,
+    this.notes = const [],
   });
 
   /// Vrednosti 0..1; `null` = crta se tanka ravna linija.
@@ -442,6 +614,9 @@ class _WavePainter extends CustomPainter {
 
   /// Gde je linija, u koordinatama sadržaja.
   final double playheadY;
+
+  /// Mesta beleški u pesmi, 0..1 — svaka dobija isprekidanu liniju.
+  final List<double> notes;
 
   /// Koliko visine uzima jedna crtica sa razmakom.
   static const double _barPitch = 3;
@@ -502,6 +677,27 @@ class _WavePainter extends CustomPainter {
         y + thickness / 2 < playheadY ? past : ahead,
       );
     }
+
+    _paintNotes(canvas, size);
+  }
+
+  /// Isprekidana linija preko celog talasa, tamo gde je neko ostavio
+  /// belešku. Ikonicu crta sam ekran, jer je to widget.
+  void _paintNotes(Canvas canvas, Size size) {
+    if (notes.isEmpty) return;
+
+    final paint = Paint()
+      ..color = AppColors.textSecondary
+      ..strokeWidth = 1;
+    const dash = 6.0;
+    const gap = 5.0;
+
+    for (final fraction in notes) {
+      final y = top + fraction * height;
+      for (var x = 0.0; x < size.width; x += dash + gap) {
+        canvas.drawLine(Offset(x, y), Offset(x + dash, y), paint);
+      }
+    }
   }
 
   @override
@@ -509,5 +705,69 @@ class _WavePainter extends CustomPainter {
       old.amplitudes != amplitudes ||
       old.top != top ||
       old.height != height ||
-      old.playheadY != playheadY;
+      old.playheadY != playheadY ||
+      old.notes.length != notes.length;
+}
+
+/// Beleška u listu: šta piše, ko ju je ostavio i gde je u pesmi.
+class _NoteSheet extends StatelessWidget {
+  const _NoteSheet({required this.note, required this.canRemove});
+
+  final TrackNote note;
+
+  /// Svoju belešku svako sme da skloni; tuđu ne dira.
+  final bool canRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          0,
+          AppSpacing.lg,
+          AppSpacing.lg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                TeamAvatarDot(avatarId: note.authorAvatarId),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    note.authorName.isEmpty ? 'Neko iz ekipe' : note.authorName,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
+                Text(
+                  TrackTile.formatDuration(note.position),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(note.text, style: theme.textTheme.bodyLarge),
+            if (canRemove) ...[
+              const SizedBox(height: AppSpacing.lg),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).pop(true),
+                icon: const Icon(Icons.delete_outline_rounded),
+                label: const Text('Skloni belešku'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.danger,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 }

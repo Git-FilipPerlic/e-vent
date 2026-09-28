@@ -418,6 +418,24 @@ izgledala kao blok boje — sve je bilo na vrhu, pa se od talasa ništa nije
 videlo. Uz razmak između crtica i blagu krivu (amplituda na 1,6) razlika
 između tihog i glasnog se vidi.
 
+**Na talasu stoje beleške ekipe** (od 28. septembra 2026). Svako može da
+označi mesto u pesmi — „omiljeni deo", „ovde ulazi vatra", „skrati" — i to
+**vidi cela ekipa**. Beleška se crta kao **isprekidana linija preko talasa**,
+sa ikonicom onoga ko ju je ostavio uz levu ivicu; dodir na ikonicu pokazuje
+šta piše.
+
+Mesto se ne bira posebno: beleška ide **tamo gde stoji linija**, pa se pita
+samo šta piše. Svoju belešku svako sme da skloni, tuđu ne — to brane i
+pravila baze.
+
+**Numera se prepoznaje po nazivu fajla**, ne po putanji: isti fajl kod svakog
+stoji na svom mestu, a naziv ostaje isti kad se pesma prekopira sa telefona
+na telefon. Cena je što preimenovan fajl gubi svoje beleške; to je prihvaćeno,
+jer je bolje nego da se beleške vide samo na jednom telefonu.
+
+Beleške idu u Firestore (`trackNotes`), koji je već u upotrebi i čiji je
+besplatan nivo za ovo dovoljan.
+
 **Zumiran talas pokazuje pravi detalj, ne razvučen isti** (od 28. septembra
 2026). Iz fajla se izvlači **2400 vrednosti**, mnogo više nego što stane na
 ekran, a crta se onoliko crtica koliko ih staje po visini (jedna crtica sa

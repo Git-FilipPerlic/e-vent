@@ -10,6 +10,7 @@ import '../services/music_player_controller.dart';
 import '../services/music_service.dart';
 import '../services/track_library_service.dart';
 import '../services/track_metadata_service.dart';
+import '../services/track_note_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
 import '../widgets/music/music_controls.dart';
@@ -44,6 +45,9 @@ class MusicScreen extends StatefulWidget {
     this.controller,
     this.audioHandler,
     this.metadata,
+    this.notes,
+    this.authorName,
+    this.authorAvatarId,
   });
 
   /// Veza sa notifikacijom i kontrolama van aplikacije.
@@ -56,6 +60,13 @@ class MusicScreen extends StatefulWidget {
   /// Čitač podataka iz fajla; u testu se podmeće lažni, jer se pravi
   /// audio fajlovi u testu ne čitaju.
   final TrackMetadataService? metadata;
+
+  /// Beleške na pesmama, koje vidi cela ekipa. `null` znači bez njih.
+  final TrackNoteService? notes;
+
+  /// Ko upisuje belešku — prijavljeni korisnik. Neprijavljen ih čita.
+  final String? authorName;
+  final String? authorAvatarId;
 
   @override
   State<MusicScreen> createState() => _MusicScreenState();
@@ -323,7 +334,14 @@ class _MusicScreenState extends State<MusicScreen> {
   Future<void> _openWave(Track track) async {
     HapticFeedback.mediumImpact();
     await Navigator.of(context).push<bool>(
-      WaveScreen.route(controller: _player, track: track, fade: _player.fade),
+      WaveScreen.route(
+        controller: _player,
+        track: track,
+        fade: _player.fade,
+        notes: widget.notes,
+        authorName: widget.authorName,
+        authorAvatarId: widget.authorAvatarId,
+      ),
     );
   }
 

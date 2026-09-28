@@ -2096,6 +2096,27 @@ i pripada.
   ih vidi cela ekipa
 - Sledeće: ta odluka, pa komentari na talasu
 
+## 28. septembar 2026 — beleške na delovima pesme
+
+- Urađeno:
+  - **`TrackNote`** i `TrackNoteService` (Firestore + verzija u memoriji za
+    razvoj i testove). Kolekcija `trackNotes`, pravila objavljena: čita
+    prijavljen, upisuje svako pod svojim imenom, briše svoju belešku ili
+    `glavni`
+  - **numera se prepoznaje po nazivu fajla**, ne po putanji — isti fajl kod
+    svakog stoji na svom mestu. Preimenovan fajl gubi beleške; prihvaćeno
+  - **na talasu**: isprekidana linija preko celog talasa i ikonica autora uz
+    levu ivicu; dodir otvara tekst, dugme „Zabeleži" upisuje novu na mestu
+    gde stoji linija
+  - neprijavljen ih samo čita — nema čime da se potpiše
+- Provereno: `flutter analyze` bez primedbi, **378 testova prolazi** (8 novih:
+  ključ numere, čuvanje i redosled, ikonica na talasu, tuđa beleška i stanje
+  bez prijave). Instalirano na telefon
+- Otvoreni problemi: u testu se dodir na ikonicu okida tek kad istekne vreme
+  za dva brza dodira (zum na talasu) — zato testovi pumpaju 400 ms pre
+  provere. To je i realno ponašanje na telefonu: običan dodir kasni toliko
+- Sledeće: proba u ekipi — da li se beleške vide i kod drugog naloga
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

@@ -21,6 +21,7 @@ import 'services/mock_event_service.dart';
 import 'services/background_audio.dart';
 import 'services/route_service.dart';
 import 'services/team_logo_service.dart';
+import 'services/track_note_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/date_format.dart';
 import 'widgets/common/app_header.dart';
@@ -126,6 +127,12 @@ class _RootNavigationState extends State<RootNavigation> {
       ? FirestoreEventService()
       : MockEventService();
   final TeamLogoService _logoService = const TeamLogoService();
+
+  /// Beleške na pesmama — vidi ih cela ekipa, pa idu u bazu. Bez
+  /// Firebase-a rade u memoriji, da razvoj i testovi ne diraju mrežu.
+  late final TrackNoteService _trackNotes = widget.hasFirebase
+      ? FirestoreTrackNoteService()
+      : InMemoryTrackNoteService();
 
 
 
@@ -427,7 +434,12 @@ class _RootNavigationState extends State<RootNavigation> {
                                 ),
                         ),
                         _KeepAlivePage(
-                          child: MusicScreen(audioHandler: widget.audioHandler),
+                          child: MusicScreen(
+                            audioHandler: widget.audioHandler,
+                            notes: _trackNotes,
+                            authorName: user?.name,
+                            authorAvatarId: user?.avatarId,
+                          ),
                         ),
                         const _KeepAlivePage(child: LedScreen()),
                         _KeepAlivePage(

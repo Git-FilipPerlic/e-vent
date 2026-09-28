@@ -75,6 +75,19 @@ service cloud.firestore {
       allow create, update, delete: if isGlavni();
     }
 
+    // --- Beleške na pesmama ------------------------------------------------
+    //
+    // „Omiljeni deo", „ovde ulazi vatra" — ostavlja ih svako iz ekipe, a vidi
+    // ih cela ekipa, jer je to i smisao. Svoju belešku svako sme da skloni;
+    // tuđu dira samo onaj ko vodi ekipu.
+    match /trackNotes/{noteId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+                    && request.resource.data.authorName == myName();
+      allow update: if false;
+      allow delete: if isGlavni() || resource.data.authorName == myName();
+    }
+
     // --- Podešavanja firme -------------------------------------------------
     //
     // Jedan dokument sa onim što važi za celu firmu — za sada adresa
