@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/team.dart';
 import '../../theme/app_theme.dart';
+import '../common/team_avatar.dart';
 
 /// Kome je događaj dodeljen — „share" iz „create and share".
 ///
@@ -299,6 +300,7 @@ class _AssignPickerState extends State<_AssignPicker> {
                           ),
                     activeColor: AppColors.accent,
                     controlAffinity: ListTileControlAffinity.leading,
+                    secondary: TeamAvatarDot(avatarId: member.avatarId),
                   );
                 },
               ),

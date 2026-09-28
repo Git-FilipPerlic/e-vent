@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/firebase_auth_service.dart';
 import '../widgets/common/edit_text_sheet.dart';
+import '../widgets/common/team_avatar.dart';
 import '../theme/app_theme.dart';
 
 /// Prijava, a posle prijave i **konzola**.
@@ -120,6 +121,35 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {});
   }
 
+  /// Bira ikonicu pod kojom te ekipa prepoznaje.
+  ///
+  /// Nisu fotografije nego dvanaest gotovih ikonica: aplikacija nije
+  /// pravljena za profilne slike, a prave slike bi tražile Storage, koji se
+  /// preko besplatnog nivoa plaća.
+  Future<void> _editAvatar() async {
+    final auth = widget.auth;
+    if (auth is! FirebaseAuthService) return;
+
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) => _AvatarPicker(selected: auth.currentUser?.avatarId),
+    );
+    if (picked == null || !mounted) return;
+
+    final error = await auth.setAvatar(picked);
+    if (!mounted) return;
+
+    if (error != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(error)));
+      return;
+    }
+    setState(() {});
+  }
+
   Future<void> _signOut() async {
     await widget.auth.signOut();
     if (!mounted) return;
@@ -151,6 +181,16 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Row(
           children: [
+            // Ikonica je dugme: dodir otvara izbor.
+            InkWell(
+              customBorder: const CircleBorder(),
+              onTap: widget.auth is FirebaseAuthService ? _editAvatar : null,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.xs),
+                child: TeamAvatarDot(avatarId: user.avatarId, size: 40),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
                 'Prijavljen: ${user.name}',
@@ -398,6 +438,67 @@ class _LoginScreenState extends State<LoginScreen> {
               : const Text('Prijavi se'),
         ),
       ],
+    );
+  }
+}
+
+/// Izbor ikonice — dvanaest gotovih, u jarkim bojama.
+class _AvatarPicker extends StatelessWidget {
+  const _AvatarPicker({required this.selected});
+
+  final String? selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          0,
+          AppSpacing.lg,
+          AppSpacing.lg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tvoja ikonica', style: theme.textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Po njoj te ekipa prepoznaje u spisku.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: AppSpacing.md,
+              runSpacing: AppSpacing.md,
+              children: [
+                for (final avatar in TeamAvatars.all)
+                  InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () => Navigator.of(context).pop(avatar.id),
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: avatar.id == selected
+                              ? AppColors.accent
+                              : Colors.transparent,
+                          width: 2,
+                        ),
+                      ),
+                      child: TeamAvatarDot(avatarId: avatar.id, size: 44),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

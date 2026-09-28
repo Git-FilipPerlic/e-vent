@@ -81,6 +81,7 @@ class FirebaseAuthService extends AuthService {
       return AppUser(
         name: name == null || name.isEmpty ? fallback.name : name,
         role: role == null || role.isEmpty ? UserRole.user : role,
+        avatarId: (data['avatar'] as String?)?.trim(),
       );
     } catch (_) {
       return fallback;
@@ -121,6 +122,26 @@ class FirebaseAuthService extends AuthService {
     if (value.isEmpty) return 'Korisnik';
     final at = value.indexOf('@');
     return at > 0 ? value.substring(0, at) : value;
+  }
+
+  /// Menja ikonicu pod kojom ga ekipa prepoznaje.
+  ///
+  /// To i ime su jedino što čovek sam menja na svom profilu; veštine, bodove
+  /// i ulogu upisuje onaj ko vodi ekipu.
+  Future<String?> setAvatar(String avatarId) async {
+    final user = _auth.currentUser;
+    if (user == null) return 'Nisi prijavljen.';
+
+    try {
+      await _db.collection('users').doc(user.uid).set({
+        'avatar': avatarId,
+      }, SetOptions(merge: true));
+      _currentUser = await _profileFor(user);
+      notifyListeners();
+      return null;
+    } catch (_) {
+      return 'Ikonica nije sačuvana.';
+    }
   }
 
   /// Menja ime pod kojim se korisnik vidi u ekipi.

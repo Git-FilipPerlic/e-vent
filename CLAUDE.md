@@ -956,6 +956,20 @@ ostaje dodeljen — i to piše iznad spiska, da se ne pomisli da je ispao.
 | ADMIN-007 | „Create and share" — dodela događaja timu | gotovo |
 | ADMIN-008 | Zamena lokalne prijave Firebase Auth-om | gotovo |
 
+**Ikonica člana nije fotografija** (odluka od 28. septembra 2026). Nudi se
+**dvanaest gotovih ikonica** — jarka boja i jednostavan simbol — i bira se u
+konzoli, dodirom na sopstvenu ikonicu. Prave slike bi tražile Firebase
+Storage, koji se preko besplatnog nivoa plaća; to čeka prve klijente.
+
+Ikonice **ne zauzimaju ni bajt u APK-u**: crtaju se iz ugrađenih Material
+simbola, pa su oštre u svakoj veličini. Boje za njih su jedine jarke u
+aplikaciji i stoje u `app_theme.dart` kao `avatar*`; koriste se samo za ovo,
+da ostatak palete i dalje nosi značenje.
+
+**Ikonicu i ime bira čovek sam** — veštine, bodove i ulogu upisuje onaj ko
+vodi ekipu. Nepoznat ili prazan zapis daje prvu ikonicu, pa se čovek uvek
+nacrta.
+
 **Ime pod kojim te ekipa vidi menja se u konzoli.** Podrazumevano stoji deo
 mejla pre `@`, jer se **ljudi pamte po imenu, ne po adresi** — a to ime stoji
 i u „Ko radi", gde bi spisak mejlova bio neupotrebljiv. Svako sme da promeni

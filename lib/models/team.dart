@@ -34,6 +34,7 @@ class TeamMember {
     this.role = 'user',
     this.skillIds = const [],
     this.exp = 0,
+    this.avatarId,
   });
 
   /// Nalog kome član pripada (`users/{uid}`).
@@ -50,6 +51,11 @@ class TeamMember {
 
   /// Skupljeni bodovi. Manager ih dodeljuje posle odrađenog posla.
   final int exp;
+
+  /// Ikonica pod kojom ga ekipa prepoznaje. `null` znači podrazumevanu.
+  /// Bira je čovek sam — to je jedino što na svom profilu sme da menja
+  /// uz ime.
+  final String? avatarId;
 
   /// Koliko bodova nosi jedan nivo.
   ///
@@ -69,11 +75,17 @@ class TeamMember {
 
   bool knows(String skillId) => skillIds.contains(skillId);
 
-  TeamMember copyWith({String? name, List<String>? skillIds, int? exp}) {
+  TeamMember copyWith({
+    String? name,
+    List<String>? skillIds,
+    int? exp,
+    String? avatarId,
+  }) {
     return TeamMember(
       id: id,
       name: name ?? this.name,
       role: role,
+      avatarId: avatarId ?? this.avatarId,
       skillIds: skillIds ?? this.skillIds,
       // Bodovi ne idu ispod nule: oduzimanje je ispravka greške, ne kazna.
       exp: exp == null ? this.exp : (exp < 0 ? 0 : exp),
@@ -90,6 +102,7 @@ class TeamMember {
       id: (map['id'] as String?) ?? '',
       name: ((map['name'] as String?) ?? '').trim(),
       role: ((map['role'] as String?) ?? 'user').trim(),
+      avatarId: (map['avatar'] as String?)?.trim(),
       skillIds: skills is List
           ? [
               for (final value in skills)

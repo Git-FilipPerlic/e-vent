@@ -64,6 +64,19 @@ abstract final class AppColors {
   /// Greška, problem.
   static const Color danger = Color(0xFFD1453B);
 
+  /// Boje ikonica članova ekipe.
+  ///
+  /// Jarke su namerno i jedine su takve u aplikaciji: služe da se čovek
+  /// prepozna na prvi pogled, u spisku ili na talasu. Ne koriste se ni za
+  /// šta drugo — ostatak palete i dalje nosi značenje, ne ukras.
+  static const Color avatarRed = Color(0xFFE23B2E);
+  static const Color avatarOrange = Color(0xFFF07B1D);
+  static const Color avatarYellow = Color(0xFFE2A400);
+  static const Color avatarGreen = Color(0xFF17924F);
+  static const Color avatarBlue = Color(0xFF1F6FEB);
+  static const Color avatarPurple = Color(0xFF7A3FD1);
+  static const Color avatarPink = Color(0xFFD1348A);
+
   /// Tekst i ikonice na safirnoj podlozi.
   static const Color onAccent = Color(0xFFFFFFFF);
 

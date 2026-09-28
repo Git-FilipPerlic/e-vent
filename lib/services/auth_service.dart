@@ -26,10 +26,13 @@ abstract final class UserRole {
 
 /// Prijavljeni korisnik.
 class AppUser {
-  const AppUser({required this.name, required this.role});
+  const AppUser({required this.name, required this.role, this.avatarId});
 
   final String name;
   final String role;
+
+  /// Ikonica pod kojom ga ekipa prepoznaje; `null` je podrazumevana.
+  final String? avatarId;
 
   bool get isGlavni => role == UserRole.glavni;
 }

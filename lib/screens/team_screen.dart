@@ -4,6 +4,7 @@ import '../models/team.dart';
 import '../services/event_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common/error_retry.dart';
+import '../widgets/common/team_avatar.dart';
 import 'skills_screen.dart';
 
 /// Ekipa — ko šta ume i koliko je odradio.
@@ -186,6 +187,8 @@ class _MemberCard extends StatelessWidget {
             children: [
               Row(
                 children: [
+                  TeamAvatarDot(avatarId: member.avatarId),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       member.name,

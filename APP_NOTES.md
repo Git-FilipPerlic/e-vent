@@ -2077,6 +2077,25 @@ i pripada.
   se čita duplo gušće. Ako se to oseti na velikim fajlovima, spušta se nazad
 - Sledeće: korisnikov predlog — profilne slike i komentari na delovima pesme
 
+## 28. septembar 2026 — ikonice članova umesto profilnih slika
+
+- Urađeno:
+  - **dvanaest gotovih ikonica** (jarka boja + simbol) umesto fotografija.
+    Korisnikova odluka: aplikacija nije pravljena za profilne slike, a prave
+    bi tražile Firebase Storage, koji se plaća — to čeka prve klijente
+  - ikonice se **crtaju iz Material simbola**, ne pakuju kao slike: nula
+    bajtova u APK-u i oštre na svakom ekranu. Boje su u `app_theme.dart`
+    (`avatar*`) i jedine su jarke u aplikaciji
+  - bira se u konzoli, dodirom na sopstvenu ikonicu; pamti se u
+    `users/{uid}.avatar`
+  - vidi se u „Ekipi" i u listu „Ko radi"
+- Provereno: `flutter analyze` bez primedbi, **370 testova prolazi** (3 nova:
+  podrazumevana ikonica, jedinstveni id-jevi, čitanje iz baze). Instalirano
+- Otvoreni problemi: nema. Komentari na delovima pesme — ono zbog čega su
+  ikonice i tražene — još nisu rađeni; čeka se odluka da li su privatni ili
+  ih vidi cela ekipa
+- Sledeće: ta odluka, pa komentari na talasu
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

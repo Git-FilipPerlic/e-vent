@@ -2,6 +2,7 @@
 
 import 'package:event_app/models/team.dart';
 import 'package:event_app/services/mock_event_service.dart';
+import 'package:event_app/widgets/common/team_avatar.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -41,6 +42,31 @@ void main() {
       final empty = TeamMember.fromMap(const {});
       expect(empty.exp, 0);
       expect(empty.skillIds, isEmpty);
+    });
+  });
+
+  group('ikonica člana', () {
+    // Nisu fotografije nego dvanaest gotovih ikonica: aplikacija nije
+    // pravljena za profilne slike, a prave bi tražile Storage koji se plaća.
+    test('nepoznata ili prazna ikonica daje podrazumevanu', () {
+      expect(TeamAvatars.byId(null).id, TeamAvatars.all.first.id);
+      expect(TeamAvatars.byId('nema-ovoga').id, TeamAvatars.all.first.id);
+      expect(TeamAvatars.byId('vatra').id, 'vatra');
+    });
+
+    test('svaka ikonica ima svoj id', () {
+      final ids = TeamAvatars.all.map((a) => a.id).toSet();
+      expect(ids.length, TeamAvatars.all.length);
+      expect(TeamAvatars.all.length, 12);
+    });
+
+    test('ikonica se čita iz zapisa u bazi', () {
+      final member = TeamMember.fromMap({
+        'id': 'u1',
+        'name': 'Ana',
+        'avatar': 'nota',
+      });
+      expect(member.avatarId, 'nota');
     });
   });
 
