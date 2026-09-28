@@ -2286,8 +2286,9 @@ i pripada.
     sada je sve isti podatak, pa se i svaka tačka briše.
 - Provereno: `flutter analyze` bez greške, 404 testa prolaze; novi testovi
   da se dodata tačka upiše u događaj i da bez prijave nema izmene.
-- Otvoreni problemi: brisanje nema potvrdu ni „poništi" — pogrešan dodir
-  briše tačku za celu ekipu.
+- Dopuna istog dana: posle brisanja tačke izlazi poruka „Obrisano: …" sa
+  dugmetom **„Poništi"**, koje tačku vraća na isto mesto. X je sitan, a
+  brisanje važi za celu ekipu. Test za to dodat; 405 testova prolazi.
 - Sledeće: proba na telefonu.
 
 ---

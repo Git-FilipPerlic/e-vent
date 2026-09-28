@@ -158,6 +158,45 @@ void main() {
       expect(saved!.scenario.last, 'Torta');
     });
 
+    testWidgets('obrisana tačka se vraća na isto mesto kroz „Poništi"',
+        (WidgetTester tester) async {
+      final auth = MockAuthService();
+      await auth.signIn(name: 'Filip', pin: '1234');
+      final service = MockEventService();
+
+      await tester.pumpWidget(
+        _wrap(HomeScreen(auth: auth, service: service)),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Igre za decu'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.ensureVisible(find.text('Igre za decu'));
+      await tester.pumpAndSettle();
+
+      // Druga tačka: Doček gostiju, Igre za decu, Završni plesni program.
+      await tester.tap(find.byTooltip('Obriši tačku').at(1));
+      // Poruka izlazi tek kad je upis gotov, pa joj treba još kadrova.
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Igre za decu'), findsNothing);
+      expect(find.text('Obrisano: Igre za decu'), findsOneWidget);
+
+      await tester.tap(find.text('Poništi'));
+      await tester.pump(const Duration(seconds: 1));
+
+      final saved = await tester.runAsync(() => service.loadEvent('evt-001'));
+      expect(saved!.scenario, [
+        'Doček gostiju',
+        'Igre za decu',
+        'Završni plesni program',
+      ]);
+    });
+
     testWidgets('bez prijave scenario se ne menja',
         (WidgetTester tester) async {
       await tester.pumpWidget(_wrap(HomeScreen(auth: MockAuthService())));

@@ -152,19 +152,22 @@ class _HomeScreenState extends State<HomeScreen> {
   ///
   /// Ako upis pukne, vraća se staro stanje i javi porukom — bolje nego da
   /// korisnik ostane sa podatkom koji misli da je sačuvan.
-  Future<void> _saveEdited(Event updated, {required Event previous}) async {
+  /// Vraća da li je upis uspeo.
+  Future<bool> _saveEdited(Event updated, {required Event previous}) async {
     setState(() => _event = updated);
 
     try {
       await _service.saveEvent(updated);
+      return true;
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) return false;
       setState(() => _event = previous);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
           const SnackBar(content: Text('Izmena nije sačuvana.')),
         );
+      return false;
     }
   }
 
@@ -255,13 +258,41 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Upisuje scenario u događaj, pa ga vidi cela ekipa.
   ///
   /// [change] dobija kopiju spiska i menja je na mestu.
-  Future<void> _editScenario(void Function(List<String> items) change) async {
+  Future<bool> _editScenario(void Function(List<String> items) change) async {
     final event = _event;
-    if (event == null) return;
+    if (event == null) return false;
 
     final items = [...event.scenario];
     change(items);
-    await _saveEdited(event.copyWith(scenario: items), previous: event);
+    return _saveEdited(event.copyWith(scenario: items), previous: event);
+  }
+
+  /// Briše tačku scenarija i nudi „Poništi".
+  ///
+  /// Brisanje važi za celu ekipu, a X je sitan i lako se okrzne — zato se
+  /// tačka može vratiti na isto mesto, umesto da se kuca i premešta iznova.
+  Future<void> _removeScenarioPoint(int index) async {
+    final text = _event?.scenario[index];
+    if (text == null) return;
+
+    final saved = await _editScenario((items) => items.removeAt(index));
+    if (!saved || !mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('Obrisano: $text'),
+          action: SnackBarAction(
+            label: 'Poništi',
+            // Spisak je u međuvremenu mogao da se promeni, pa mesto ne sme
+            // da ispadne van njega.
+            onPressed: () => _editScenario(
+              (items) => items.insert(index.clamp(0, items.length), text),
+            ),
+          ),
+        ),
+      );
   }
 
   Future<void> _loadEvent() async {
@@ -618,8 +649,7 @@ class _HomeScreenState extends State<HomeScreen> {
             items: _event?.scenario ?? const [],
             canEdit: _canEdit,
             onAdd: (text) => _editScenario((items) => items.add(text)),
-            onRemove: (index) =>
-                _editScenario((items) => items.removeAt(index)),
+            onRemove: _removeScenarioPoint,
             onReorder: (from, to) => _editScenario(
               (items) => items.insert(to, items.removeAt(from)),
             ),
