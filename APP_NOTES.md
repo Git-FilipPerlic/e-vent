@@ -2271,6 +2271,27 @@ i pripada.
 
 ---
 
+## 28. septembar 2026 — scenario se čuva u događaju
+
+- Zahtev korisnika: da se scenario čuva u događaju.
+- Urađeno:
+  - Svako dodavanje, brisanje i premeštanje odmah se upisuje u
+    `Event.scenario` (`saveEvent`), pa scenario vidi cela ekipa i ostaje
+    posle zatvaranja aplikacije. Ako upis pukne, vraća se staro stanje uz
+    poruku „Izmena nije sačuvana." — isto kao kod ostalih kartica.
+  - Menja ga samo ko ima dozvolu `editEvent`; ostali vide spisak bez ručica,
+    brisanja i „Dodaj tačku". Pravila baze to već brane (upis u `events`
+    samo `glavni`), pa ih nije trebalo menjati ni objavljivati.
+  - Otpala je razlika „tačka iz baze / dodata tačka" (`ScenarioPoint`):
+    sada je sve isti podatak, pa se i svaka tačka briše.
+- Provereno: `flutter analyze` bez greške, 404 testa prolaze; novi testovi
+  da se dodata tačka upiše u događaj i da bez prijave nema izmene.
+- Otvoreni problemi: brisanje nema potvrdu ni „poništi" — pogrešan dodir
+  briše tačku za celu ekipu.
+- Sledeće: proba na telefonu.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

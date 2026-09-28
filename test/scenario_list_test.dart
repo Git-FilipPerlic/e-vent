@@ -10,20 +10,22 @@ Widget _wrap(Widget child) {
   );
 }
 
-const List<ScenarioPoint> _fromDatabase = [
-  ScenarioPoint('Doček gostiju'),
-  ScenarioPoint('Igre za decu'),
-  ScenarioPoint('Završni plesni program'),
+const List<String> _fromDatabase = [
+  'Doček gostiju',
+  'Igre za decu',
+  'Završni plesni program',
 ];
 
 ScenarioList _list(
-  List<ScenarioPoint> points, {
+  List<String> items, {
+  bool canEdit = true,
   ValueChanged<String>? onAdd,
   ValueChanged<int>? onRemove,
   void Function(int from, int to)? onReorder,
 }) {
   return ScenarioList(
-    points: points,
+    items: items,
+    canEdit: canEdit,
     onAdd: onAdd ?? (_) {},
     onRemove: onRemove ?? (_) {},
     onReorder: onReorder ?? (_, _) {},
@@ -41,53 +43,31 @@ void main() {
     expect(find.text('3'), findsOneWidget);
   });
 
-  testWidgets('dodate tačke nastavljaju numeraciju',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(
-      _wrap(
-        _list(const [..._fromDatabase, ScenarioPoint('Bis', isAdded: true)]),
-      ),
-    );
-
-    expect(find.text('4.'), findsOneWidget);
-    expect(find.text('Bis'), findsOneWidget);
-  });
-
-  testWidgets('tačke iz baze se ne brišu, dodate se brišu',
+  testWidgets('svaka tačka se briše i ima ručicu za premeštanje',
       (WidgetTester tester) async {
     int? removedIndex;
     await tester.pumpWidget(
-      _wrap(
-        _list(
-          const [
-            ScenarioPoint('Doček gostiju'),
-            ScenarioPoint('Bis', isAdded: true),
-            ScenarioPoint('Igre za decu'),
-          ],
-          onRemove: (index) => removedIndex = index,
-        ),
-      ),
+      _wrap(_list(_fromDatabase, onRemove: (index) => removedIndex = index)),
     );
 
-    // Samo dodata tačka ima dugme za brisanje.
-    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.drag_indicator_rounded), findsNWidgets(3));
+    expect(find.byIcon(Icons.close_rounded), findsNWidgets(3));
 
-    await tester.tap(find.byIcon(Icons.close_rounded));
+    await tester.tap(find.byIcon(Icons.close_rounded).at(1));
     await tester.pump();
 
-    // Broj je mesto u celom spisku, ne među dodatim.
     expect(removedIndex, 1);
   });
 
-  testWidgets('svaka tačka ima ručicu za premeštanje',
+  testWidgets('bez prava izmene spisak se samo čita',
       (WidgetTester tester) async {
-    await tester.pumpWidget(
-      _wrap(
-        _list(const [..._fromDatabase, ScenarioPoint('Bis', isAdded: true)]),
-      ),
-    );
+    await tester.pumpWidget(_wrap(_list(_fromDatabase, canEdit: false)));
 
-    expect(find.byIcon(Icons.drag_indicator_rounded), findsNWidgets(4));
+    expect(find.text('Doček gostiju'), findsOneWidget);
+    expect(find.text('3.'), findsOneWidget);
+    expect(find.byIcon(Icons.drag_indicator_rounded), findsNothing);
+    expect(find.byIcon(Icons.close_rounded), findsNothing);
+    expect(find.text('Dodaj tačku'), findsNothing);
   });
 
   testWidgets('prevlačenje za ručicu javlja novo mesto tačke',

@@ -106,7 +106,7 @@ Ne treba ga ponovo dogovarati — radi se odozgo nadole, jedan po jedan element.
 | 11 | Spremnost podataka | šta od podataka o događaju nedostaje | HOME-011 |
 | 12 | Status događaja | izveden iz vremena: planirano / polazak / u toku / završeno | HOME-018 |
 | 13 | Podsetnik | koliko je ostalo do polaska ili početka događaja | HOME-019 |
-| 14 | Scenario | tačke programa; stavke iz baze + korisnik može da doda svoje; sve se premeštaju prevlačenjem za ručicu | HOME-025 |
+| 14 | Scenario | tačke programa, čuvaju se u događaju i vidi ih cela ekipa; ko ima pravo izmene dodaje, briše i premešta ih prevlačenjem za ručicu | HOME-025 |
 
 **U listovima za unos prazna polja ostaju prazna.** Pravilo „Datum nije unet"
 važi za **kartice**, gde podatak stoji sam. U listu „Kada i koliko" svaki red

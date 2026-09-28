@@ -2,38 +2,33 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
 
-/// Jedna tačka programa, onako kako stoji u spisku.
-class ScenarioPoint {
-  const ScenarioPoint(this.text, {this.isAdded = false});
-
-  final String text;
-
-  /// `true` za tačku koju je korisnik sam dodao — samo se takva briše.
-  final bool isAdded;
-}
-
 /// HOME-025 — scenario: tačke programa.
 ///
-/// Tačke iz baze se ne brišu; korisnik može da doda svoje i da ih obriše.
-/// **Sve tačke se premeštaju prevlačenjem** za ručicu levo: kad se jedna
-/// preskoči, ne briše se ceo spisak nego se samo promeni redosled.
+/// Scenario je deo događaja i vidi ga cela ekipa. Ko ima pravo izmene može
+/// da doda tačku, obriše je i **premesti prevlačenjem** za ručicu levo: kad
+/// se jedna preskoči, ne briše se ceo spisak nego se samo promeni redosled.
+/// Bez prava izmene spisak se samo čita.
 /// Widget je "glup": dobija spisak kroz konstruktor, a dodavanje, brisanje i
 /// premeštanje javlja ekranu.
 class ScenarioList extends StatefulWidget {
   const ScenarioList({
     super.key,
-    required this.points,
+    required this.items,
+    required this.canEdit,
     required this.onAdd,
     required this.onRemove,
     required this.onReorder,
   });
 
   /// Tačke programa, redom kojim se izvode.
-  final List<ScenarioPoint> points;
+  final List<String> items;
+
+  /// `false` — nema ručica, brisanja ni dodavanja; spisak se samo čita.
+  final bool canEdit;
 
   final ValueChanged<String> onAdd;
 
-  /// Briše dodatu tačku po rednom broju unutar [points].
+  /// Briše tačku po rednom broju unutar [items].
   final ValueChanged<int> onRemove;
 
   /// Tačka sa mesta `from` ide na mesto `to`, računato **posle** vađenja iz
@@ -67,7 +62,7 @@ class _ScenarioListState extends State<ScenarioList> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final points = widget.points;
+    final items = widget.items;
 
     return Card(
       child: Padding(
@@ -85,9 +80,9 @@ class _ScenarioListState extends State<ScenarioList> {
                   ),
                 ),
                 const Spacer(),
-                if (points.isNotEmpty)
+                if (items.isNotEmpty)
                   Text(
-                    '${points.length}',
+                    '${items.length}',
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -95,13 +90,16 @@ class _ScenarioListState extends State<ScenarioList> {
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            if (points.isEmpty)
+            if (items.isEmpty)
               Text(
                 'Scenario nije unet',
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: AppColors.textSecondary,
                 ),
               )
+            else if (!widget.canEdit)
+              for (var i = 0; i < items.length; i++)
+                _ScenarioRow(index: i, text: items[i])
             else
               // Spisak ne skroluje sam — skroluje ceo Home ekran oko njega.
               ReorderableListView.builder(
@@ -111,7 +109,7 @@ class _ScenarioListState extends State<ScenarioList> {
                 // Premešta se samo za ručicu: dug pritisak bilo gde po redu
                 // bi se otimao sa skrolovanjem i prevlačenjem između stranica.
                 buildDefaultDragHandles: false,
-                itemCount: points.length,
+                itemCount: items.length,
                 onReorderItem: (from, to) {
                   if (to != from) widget.onReorder(from, to);
                 },
@@ -122,15 +120,15 @@ class _ScenarioListState extends State<ScenarioList> {
                 ),
                 itemBuilder: (context, i) => _ScenarioRow(
                   // Ista tačka može da se upiše dvaput, pa ključ nosi i mesto.
-                  key: ValueKey('scenario-$i-${points[i].text}'),
+                  key: ValueKey('scenario-$i-${items[i]}'),
                   index: i,
-                  text: points[i].text,
-                  onRemove:
-                      points[i].isAdded ? () => widget.onRemove(i) : null,
+                  text: items[i],
+                  onRemove: () => widget.onRemove(i),
+                  canMove: true,
                 ),
               ),
-            const SizedBox(height: AppSpacing.sm),
-            if (!_isAdding)
+            if (widget.canEdit) const SizedBox(height: AppSpacing.sm),
+            if (widget.canEdit && !_isAdding)
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
@@ -139,7 +137,7 @@ class _ScenarioListState extends State<ScenarioList> {
                   label: const Text('Dodaj tačku'),
                 ),
               )
-            else
+            else if (widget.canEdit)
               Row(
                 children: [
                   Expanded(
@@ -172,44 +170,49 @@ class _ScenarioListState extends State<ScenarioList> {
   }
 }
 
-/// Jedna tačka programa: ručica za premeštanje, redni broj, tekst i — ako
-/// je korisnik sam dodao — dugme za brisanje.
+/// Jedna tačka programa: redni broj i tekst, a uz pravo izmene i ručica za
+/// premeštanje i dugme za brisanje.
 class _ScenarioRow extends StatelessWidget {
   const _ScenarioRow({
     super.key,
     required this.index,
     required this.text,
     this.onRemove,
+    this.canMove = false,
   });
 
   /// Mesto u spisku, od nule.
   final int index;
   final String text;
 
-  /// `null` za tačke iz baze — one se ne brišu.
+  /// `null` kad nema prava izmene.
   final VoidCallback? onRemove;
+
+  /// Da li stoji ručica za premeštanje. Traži [ReorderableListView] iznad.
+  final bool canMove;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Row(
+    final row = Row(
       children: [
-        ReorderableDragStartListener(
-          index: index,
-          child: Semantics(
-            label: 'Premesti tačku',
-            child: SizedBox(
-              width: kMinTouchTarget,
-              height: kMinTouchTarget,
-              child: Icon(
-                Icons.drag_indicator_rounded,
-                size: 20,
-                color: AppColors.textSecondary,
+        if (canMove)
+          ReorderableDragStartListener(
+            index: index,
+            child: Semantics(
+              label: 'Premesti tačku',
+              child: SizedBox(
+                width: kMinTouchTarget,
+                height: kMinTouchTarget,
+                child: Icon(
+                  Icons.drag_indicator_rounded,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
           ),
-        ),
         SizedBox(
           width: 24,
           child: Text(
@@ -236,6 +239,13 @@ class _ScenarioRow extends StatelessWidget {
             tooltip: 'Obriši tačku',
           ),
       ],
+    );
+
+    // Bez ručice i dugmeta red je nizak, pa mu treba malo vazduha.
+    if (canMove || onRemove != null) return row;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: row,
     );
   }
 }

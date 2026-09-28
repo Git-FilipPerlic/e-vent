@@ -125,6 +125,55 @@ void main() {
     });
   });
 
+  group('scenario', () {
+    testWidgets('dodata tačka se upisuje u događaj',
+        (WidgetTester tester) async {
+      final auth = MockAuthService();
+      await auth.signIn(name: 'Filip', pin: '1234');
+      final service = MockEventService();
+
+      await tester.pumpWidget(
+        _wrap(HomeScreen(auth: auth, service: service)),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Dodaj tačku'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.ensureVisible(find.text('Dodaj tačku'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dodaj tačku'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Torta');
+      await tester.tap(find.text('Dodaj'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Torta'), findsOneWidget);
+      // Upis u servis traje koliko i mock kašnjenje.
+      await tester.pump(const Duration(seconds: 2));
+      // Servis kasni namerno, a lažni sat testa ne teče sam — zato runAsync.
+      final saved = await tester.runAsync(() => service.loadEvent('evt-001'));
+      expect(saved!.scenario.last, 'Torta');
+    });
+
+    testWidgets('bez prijave scenario se ne menja',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(_wrap(HomeScreen(auth: MockAuthService())));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Doček gostiju'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      expect(find.text('Dodaj tačku'), findsNothing);
+      expect(find.byIcon(Icons.drag_indicator_rounded), findsNothing);
+    });
+  });
+
   group('unos adrese', () {
     testWidgets('polje sa dva reda se otvara bez greške', (
       WidgetTester tester,
