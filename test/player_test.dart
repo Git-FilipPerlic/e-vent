@@ -127,6 +127,39 @@ void main() {
       controller.dispose();
     });
 
+    // Suprotno od zaustavljanja: bez pretapanja zvuk kreće usporen pa se
+    // digne, kao ploča koja se zavrti.
+    test('puštanje bez pretapanja zavrti ploču', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+
+      await controller.play();
+
+      expect(playback.lastWindUp, isTrue);
+      controller.dispose();
+    });
+
+    test('uz pretapanje nema zavrtanja — zvuk ulazi iz tišine', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      controller.setFade(true);
+
+      await controller.play();
+
+      expect(playback.lastWindUp, isFalse);
+      controller.dispose();
+    });
+
+    test('ploča staje dovoljno duboko da se čuje', () {
+      // Na dvadeset posto se pad jedva čuje; ovde treba da zvuči kao platter
+      // koji staje.
+      expect(JustAudioPlayback.recordStopSpeed, lessThan(0.1));
+      expect(
+        JustAudioPlayback.recordStopGlide.inMilliseconds,
+        greaterThanOrEqualTo(1000),
+      );
+    });
+
     // Sa uključenim `Fade` pauza je povlačenje pred publikom — šest sekundi
     // mirnog izlaska, bez efekta.
     test('uz pretapanje pauza ostaje mirno povlačenje', () async {

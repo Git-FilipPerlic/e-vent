@@ -8,6 +8,7 @@ class TrackNote {
     required this.id,
     required this.trackKey,
     required this.positionMs,
+    this.trackDurationMs,
     required this.text,
     required this.authorName,
     this.authorAvatarId,
@@ -29,6 +30,15 @@ class TrackNote {
   /// Gde u pesmi, u milisekundama od početka.
   final int positionMs;
 
+  /// Koliko je pesma trajala **po onome ko je belešku ostavio**.
+  ///
+  /// Čuva se zato što se trajanje razlikuje od izvora do izvora: ono iz
+  /// oznaka u fajlu i ono što plejer izmeri nisu uvek isti broj, a kod
+  /// VBR zapisa razlika ume da bude osetna. Bez ovoga bi ista beleška
+  /// sledeći put pala na drugo mesto na talasu. `null` je kod starih
+  /// beleški — tada se uzima trajanje koje telefon trenutno zna.
+  final int? trackDurationMs;
+
   final String text;
 
   /// Ko ju je ostavio — ime pod kojim ga ekipa vidi.
@@ -40,6 +50,16 @@ class TrackNote {
   final DateTime? createdAt;
 
   Duration get position => Duration(milliseconds: positionMs);
+
+  /// Gde je beleška u pesmi, 0..1 — po trajanju koje je uz nju zapamćeno.
+  ///
+  /// [fallback] je trajanje koje telefon trenutno zna; koristi se samo za
+  /// stare beleške, upisane pre nego što se trajanje čuvalo.
+  double? fractionIn(Duration? fallback) {
+    final reference = trackDurationMs ?? fallback?.inMilliseconds;
+    if (reference == null || reference <= 0) return null;
+    return (positionMs / reference).clamp(0.0, 1.0);
+  }
 
   /// Gradi ključ numere od putanje do fajla.
   ///
@@ -56,6 +76,7 @@ class TrackNote {
   Map<String, dynamic> toMap() => {
     'trackKey': trackKey,
     'positionMs': positionMs,
+    'trackDurationMs': trackDurationMs,
     'text': text,
     'authorName': authorName,
     'authorAvatar': authorAvatarId,
@@ -71,6 +92,11 @@ class TrackNote {
         final int value => value < 0 ? 0 : value,
         final num value => value < 0 ? 0 : value.round(),
         _ => 0,
+      },
+      trackDurationMs: switch (map['trackDurationMs']) {
+        final int value => value > 0 ? value : null,
+        final num value => value > 0 ? value.round() : null,
+        _ => null,
       },
       text: ((map['text'] as String?) ?? '').trim(),
       authorName: ((map['authorName'] as String?) ?? '').trim(),

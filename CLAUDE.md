@@ -264,6 +264,13 @@ dugmetom.
    čim se pročitaju. Ako pamćenje pukne, Muzika tab se otvara prazan umesto
    da javi grešku — to je udobnost, ne uslov za rad.
 
+   **Pročitano se pamti između pokretanja** (od 28. septembra 2026). Fajlovi
+   se ne menjaju, pa nema razloga da se pri svakom pokretanju čita isto: uz
+   svaku numeru se pamti i **veličina fajla**, i kad se ona poklopi, oznake se
+   uzimaju iz pamćenja bez ijednog čitanja diska. Kad se fajl zameni drugim
+   pod istim imenom, veličina se razlikuje, pa se čita iznova. Pamti se
+   najviše 300 numera.
+
    **Čitanje ide u zasebnoj niti i u turama** (od 27. septembra 2026).
    Čitanje oznaka je sinhrono i za folder od nekoliko stotina numera traje;
    dok se radilo na glavnoj niti, ekran je zastajkivao, a ceo spisak je stajao
@@ -418,6 +425,12 @@ izgledala kao blok boje — sve je bilo na vrhu, pa se od talasa ništa nije
 videlo. Uz razmak između crtica i blagu krivu (amplituda na 1,6) razlika
 između tihog i glasnog se vidi.
 
+**Beleška nosi i trajanje po kom je računata.** Trajanje iz oznaka u fajlu i
+ono što plejer izmeri nisu uvek isti broj — kod VBR zapisa razlika ume da bude
+osetna — pa bi ista beleška sledeći put pala na drugo mesto na talasu. Zato se
+mesto računa po trajanju zapamćenom **uz belešku**, ne po onom koje telefon
+trenutno zna. Stara beleška bez tog podatka pada na ono što telefon zna.
+
 **Na talasu stoje beleške ekipe** (od 28. septembra 2026). Svako može da
 označi mesto u pesmi — „omiljeni deo", „ovde ulazi vatra", „skrati" — i to
 **vidi cela ekipa**. Beleška se crta kao **isprekidana linija preko talasa**,
@@ -547,10 +560,14 @@ Ostalo:
 **preklapanje** kad se pređe sa numere koja svira na izabranu.
 
 **Bez `Fade` pauza zvuči kao ploča koja staje** (odluka od 27. septembra
-2026). Umesto kratkog spuštanja jačine, zvuk se za oko sekund **uspori i
+2026, pojačano 28.). Umesto kratkog spuštanja jačine, zvuk se za oko sekund **uspori i
 spusti u visini tona**, pa utihne — kao gramofon kome je stao platter. To je
 efekat, ne podešavanje: sam se vrati na normalnu brzinu, pa sledeće puštanje
-kreće kako treba.
+kreće kako treba. Brzina pada na **8%** za **1,2 sekunde** — na dvadeset
+posto se pad jedva čuo.
+
+**Isto važi i obrnuto:** bez `Fade` puštanje **zavrti ploču** — zvuk kreće
+usporen i u niskom tonu, pa se za 0,7 sekundi digne do normalne brzine.
 
 Sa uključenim `Fade` pauza ostaje ono što je bila — mirno povlačenje pred
 publikom, šest sekundi, bez efekta. Tako izvođač bira šta hoće samim

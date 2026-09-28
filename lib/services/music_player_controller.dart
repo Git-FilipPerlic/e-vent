@@ -245,7 +245,13 @@ class MusicPlayerController extends ChangeNotifier {
     if (_isPlaying) {
       await playback.pause(fadeOut: _fade, windDown: !_fade);
     } else {
-      await playback.play(fadeIn: _fade, over: _fadeLength.duration);
+      await playback.play(
+          fadeIn: _fade,
+          over: _fadeLength.duration,
+          // Bez pretapanja zvuk kreće kao ploča koja se zavrti —
+          // suprotno od zaustavljanja na pauzi.
+          windUp: !_fade,
+        );
     }
     notifyListeners();
   }
@@ -562,7 +568,11 @@ class MusicPlayerController extends ChangeNotifier {
 
     _isFadingOut = false;
     _soundingIndex = _selectedIndex;
-    await playback.play(fadeIn: useFade, over: _fadeLength.duration);
+    await playback.play(
+      fadeIn: useFade,
+      over: _fadeLength.duration,
+      windUp: !useFade,
+    );
     notifyListeners();
   }
 
@@ -634,7 +644,11 @@ class MusicPlayerController extends ChangeNotifier {
       _position = from;
       _updateProgress();
     }
-    await playback.play(fadeIn: useFade, over: _fadeLength.duration);
+    await playback.play(
+      fadeIn: useFade,
+      over: _fadeLength.duration,
+      windUp: !useFade,
+    );
     notifyListeners();
   }
 
@@ -692,7 +706,13 @@ class MusicPlayerController extends ChangeNotifier {
   Future<void> _onCompleted() async {
     if (hasNext) {
       await _switchTo(_selectedIndex + 1, crossfade: false);
-      await playback.play(fadeIn: _fade, over: _fadeLength.duration);
+      await playback.play(
+          fadeIn: _fade,
+          over: _fadeLength.duration,
+          // Bez pretapanja zvuk kreće kao ploča koja se zavrti —
+          // suprotno od zaustavljanja na pauzi.
+          windUp: !_fade,
+        );
       return;
     }
     // Kraj reda: numera ostaje, ali se vraća na početak i staje.

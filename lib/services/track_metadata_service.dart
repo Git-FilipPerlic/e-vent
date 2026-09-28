@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:audio_metadata_reader/audio_metadata_reader.dart';
 
@@ -19,6 +22,56 @@ import '../models/track.dart';
 /// stajalo na `--:--` dok poslednja ne bude gotova.
 class TrackMetadataService {
   final Map<String, Track> _cache = {};
+
+  /// Ono što je pročitano u nekom od ranijih pokretanja.
+  ///
+  /// Čitanje oznaka iz fajla traje, a fajlovi se ne menjaju — pa nema razloga
+  /// da se pri svakom pokretanju čita isto. Pamti se uz **veličinu fajla**:
+  /// kad se fajl zameni drugim pod istim imenom, veličina se skoro sigurno
+  /// razlikuje, pa se oznake čitaju iznova.
+  Map<String, dynamic> _remembered = {};
+  bool _rememberedLoaded = false;
+  bool _rememberedChanged = false;
+
+  static const String _prefsKey = 'music_meta_cache';
+
+  /// Koliko se numera najviše pamti. Plejliste su reda nekoliko desetina, a
+  /// ovo pokriva i nekoliko foldera zaredom.
+  static const int maxRemembered = 300;
+
+  Future<void> _loadRemembered() async {
+    if (_rememberedLoaded) return;
+    _rememberedLoaded = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_prefsKey);
+      if (raw == null) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) _remembered = decoded;
+    } catch (_) {
+      // Pamćenje je udobnost, ne uslov: bez njega se oznake samo čitaju
+      // iznova.
+    }
+  }
+
+  Future<void> _saveRemembered() async {
+    if (!_rememberedChanged) return;
+    _rememberedChanged = false;
+    try {
+      // Najstarije ispadaju kad se pređe granica — redosled u mapi je
+      // redosled upisa.
+      if (_remembered.length > maxRemembered) {
+        final keep = _remembered.entries.skip(
+          _remembered.length - maxRemembered,
+        );
+        _remembered = {for (final entry in keep) entry.key: entry.value};
+      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_prefsKey, jsonEncode(_remembered));
+    } catch (_) {
+      // Isto: neuspelo pamćenje ne sme da pokvari spisak.
+    }
+  }
 
   /// Koliko numera ide u jednu turu pre nego što se ekran osveži.
   ///
@@ -40,7 +93,30 @@ class TrackMetadataService {
     // Numera koja stiže kao `content://` adresa se ne može otvoriti kao fajl.
     if (path.contains('://')) return track;
 
-    final tags = await Isolate.run(() => _readTags(path));
+    await _loadRemembered();
+    final size = await _sizeOf(path);
+    final Map<String, Object?>? tags;
+
+    final saved = _remembered[path];
+    if (saved is Map && size != null && saved['size'] == size) {
+      // Pročitano ranije, fajl se nije menjao — ništa se ne čita.
+      tags = {
+        'title': saved['title'] as String?,
+        'artist': saved['artist'] as String?,
+        'ms': saved['ms'] as int?,
+      };
+    } else {
+      tags = await Isolate.run(() => _readTags(path));
+      if (tags != null && size != null) {
+        _remembered[path] = {
+          'size': size,
+          'title': tags['title'],
+          'artist': tags['artist'],
+          'ms': tags['ms'],
+        };
+        _rememberedChanged = true;
+      }
+    }
     if (tags == null) {
       // Fajl bez oznaka ili u obliku koji čitač ne poznaje — numera ostaje
       // kakva jeste. To nije greška koju korisnik treba da vidi.
@@ -87,7 +163,20 @@ class TrackMetadataService {
       }
     }
     if (batch.isNotEmpty) onBatch?.call([...batch]);
+    // Ono što je pročitano ide na disk, da se sledeći put ne čita opet.
+    await _saveRemembered();
     return result;
+  }
+
+  /// Veličina fajla, po kojoj se poznaje da je zamenjen drugim.
+  static Future<int?> _sizeOf(String path) async {
+    try {
+      final file = File(path);
+      if (!await file.exists()) return null;
+      return await file.length();
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Čita oznake iz fajla. Radi se u zasebnoj niti, pa vraća samo obične

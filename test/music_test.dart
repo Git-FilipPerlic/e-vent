@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:event_app/models/track.dart';
@@ -79,7 +80,68 @@ final List<Track> _sample = [
 ];
 
 void main() {
+  // Pamćenje oznaka ide kroz `SharedPreferences`, pa mu treba podignut
+  // test binding i kad se zove iz običnog testa.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('trajanje iz fajla', () {
+    // Oznake se čitaju jednom pa pamte između pokretanja: fajlovi se ne
+    // menjaju, a čitanje traje.
+    test('zapamćene oznake se ne čitaju ponovo', () async {
+      final folder = Directory.systemTemp.createTempSync('evt-meta');
+      addTearDown(() => folder.deleteSync(recursive: true));
+      // Prazan fajl — prava obrada iz njega ne bi izvukla ništa.
+      final file = File('${folder.path}/pesma.mp3')..writeAsBytesSync([1, 2, 3]);
+
+      SharedPreferences.setMockInitialValues({
+        'music_meta_cache': jsonEncode({
+          file.path: {
+            'size': 3,
+            'title': 'Zapamćeni naziv',
+            'artist': 'Zapamćeni izvođač',
+            'ms': 200000,
+          },
+        }),
+      });
+
+      final service = TrackMetadataService();
+      final enriched = await service.enrich(
+        Track(id: 't1', path: file.path),
+      );
+
+      expect(enriched.title, 'Zapamćeni naziv');
+      expect(enriched.artist, 'Zapamćeni izvođač');
+      expect(enriched.duration, const Duration(milliseconds: 200000));
+    });
+
+    // Kad se fajl zameni drugim pod istim imenom, veličina se razlikuje —
+    // pa se oznake čitaju iznova umesto da se veruje starom zapisu.
+    test('promenjen fajl se čita iznova', () async {
+      final folder = Directory.systemTemp.createTempSync('evt-meta2');
+      addTearDown(() => folder.deleteSync(recursive: true));
+      final file = File('${folder.path}/pesma.mp3')..writeAsBytesSync([1, 2, 3]);
+
+      SharedPreferences.setMockInitialValues({
+        'music_meta_cache': jsonEncode({
+          file.path: {
+            'size': 999,
+            'title': 'Stari naziv',
+            'artist': 'Stari izvođač',
+            'ms': 200000,
+          },
+        }),
+      });
+
+      final service = TrackMetadataService();
+      final enriched = await service.enrich(
+        Track(id: 't1', title: 'iz naziva fajla', path: file.path),
+      );
+
+      // Prazan fajl nema oznake, pa numera ostaje kakva je bila.
+      expect(enriched.title, 'iz naziva fajla');
+      expect(enriched.duration, isNull);
+    });
+
     // Na folderu od nekoliko stotina numera čitanje traje. Podaci zato ulaze
     // u turama, da spisak puni trajanja u hodu umesto da sve stoji na
     // `--:--` dok se poslednji fajl ne pročita.

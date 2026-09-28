@@ -123,13 +123,12 @@ class _WaveScreenState extends State<WaveScreen>
     return path == null ? '' : TrackNote.keyForPath(path);
   }
 
-  /// Gde je beleška u pesmi, 0..1. `null` kad se trajanje ne zna — tada se
-  /// ne nagađa gde bi stajala.
-  double? _fractionOf(TrackNote note) {
-    final total = _duration;
-    if (total == null || total == Duration.zero) return null;
-    return (note.positionMs / total.inMilliseconds).clamp(0.0, 1.0);
-  }
+  /// Gde je beleška u pesmi, 0..1.
+  ///
+  /// Računa se po trajanju koje je **uz belešku zapamćeno**, ne po onom koje
+  /// ovaj telefon trenutno zna: ta dva broja ume da se razlikuju, pa je
+  /// ista beleška pri sledećem otvaranju padala na drugo mesto.
+  double? _fractionOf(TrackNote note) => note.fractionIn(_duration);
 
   /// Mesta beleški, za isprekidane linije na talasu.
   List<double> get _noteFractions => [
@@ -188,6 +187,8 @@ class _WaveScreenState extends State<WaveScreen>
       id: '',
       trackKey: _noteKey,
       positionMs: _positionNow(total).inMilliseconds,
+      // Uz mesto se pamti i trajanje po kom je računato.
+      trackDurationMs: total.inMilliseconds,
       text: trimmed,
       authorName: author,
       authorAvatarId: widget.authorAvatarId,

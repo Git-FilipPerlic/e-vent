@@ -2117,6 +2117,26 @@ i pripada.
   provere. To je i realno ponašanje na telefonu: običan dodir kasni toliko
 - Sledeće: proba u ekipi — da li se beleške vide i kod drugog naloga
 
+## 28. septembar 2026 — beleška na pogrešnom mestu, jači efekat ploče, pamćenje oznaka
+
+- Urađeno:
+  - **Ispravljena beleška koja se vraćala na pogrešno mesto.** Upis je bio
+    tačan (test: četvrtina pesme daje 45 s od 3 min), ali se pri crtanju
+    koristilo trajanje koje telefon trenutno zna — a ono iz oznaka i ono koje
+    plejer izmeri nisu isti broj. Sada beleška nosi i trajanje po kom je
+    računata, pa pada na isto mesto uvek
+  - **Efekat ploče je jači**: pad na pauzi ide do 8% brzine za 1,2 s (ranije
+    20% za 0,9 s), a puštanje bez `Fade`-a **zavrti ploču** — zvuk kreće
+    usporen pa se za 0,7 s digne
+  - **Oznake iz fajlova se pamte između pokretanja** (`shared_preferences`,
+    uz veličinu fajla kao proveru). Spisak od nekoliko desetina numera se
+    sledeći put prikaže sa trajanjima odmah, bez ijednog čitanja diska
+- Provereno: `flutter analyze` bez primedbi, **386 testova prolazi**.
+  Instalirano na telefon
+- Otvoreni problemi: korisnik kaže da mu zumiran talas i dalje ne deluje
+  preglednije — traži proveru šta tačno očekuje
+- Sledeće: to razjasniti
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

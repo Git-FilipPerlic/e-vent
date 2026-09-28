@@ -26,7 +26,10 @@ abstract interface class AudioPlayback {
   ///
   /// [over] skraćuje ili produžava taj ulazak; `null` znači uobičajenih
   /// deset sekundi.
-  Future<void> play({bool fadeIn = false, Duration? over});
+  ///
+  /// Uz `windUp` zvuk **kreće usporen pa se digne** do normalne brzine,
+  /// kao ploča koja se zavrti. Suprotno od zaustavljanja na pauzi.
+  Future<void> play({bool fadeIn = false, Duration? over, bool windUp = false});
 
   /// Pauzira. Uz `fadeOut` zvuk se spusti do tišine pa stane — da prekid
   /// ne bude sečen usred takta.
@@ -175,11 +178,22 @@ class JustAudioPlayback implements AudioPlayback {
   static const Duration crossfadeTail = Duration(milliseconds: 250);
 
   /// Koliko traje zaustavljanje ploče na pauzi.
-  static const Duration recordStopGlide = Duration(milliseconds: 900);
+  ///
+  /// Duže nego što deluje potrebno, namerno: kratak pad se čuje kao
+  /// greška u zvuku, a ovoliko se čuje kao potez (produženo 28.
+  /// septembra 2026, na zahtev da bude izraženije).
+  static const Duration recordStopGlide = Duration(milliseconds: 1200);
 
-  /// Dokle se spusti brzina pri zaustavljanju. Nije nula: plejer na
-  /// nuli ne svira ništa, pa bi se poslednji deo zvuka izgubio.
-  static const double recordStopSpeed = 0.2;
+  /// Koliko traje zavrtanje ploče pri puštanju, kad `Fade` nije uključen.
+  static const Duration recordStartGlide = Duration(milliseconds: 700);
+
+  /// Dokle se spusti brzina pri zaustavljanju.
+  ///
+  /// Nije nula: plejer na nuli ne svira ništa, pa bi se poslednji deo
+  /// zvuka izgubio. Spušteno sa 0,2 na 0,08 (28. septembra 2026) — na
+  /// dvadeset posto se pad jedva čuje, a ovde treba da zvuči kao ploča
+  /// kojoj je stao platter.
+  static const double recordStopSpeed = 0.08;
 
   @override
   Future<void> setRecordSpeed(double value) async {
@@ -442,11 +456,24 @@ class JustAudioPlayback implements AudioPlayback {
   Future<void> fadeToSilence(Duration over) => _fade(target: 0, over: over);
 
   @override
-  Future<void> play({bool fadeIn = false, Duration? over}) async {
+  Future<void> play({
+    bool fadeIn = false,
+    Duration? over,
+    bool windUp = false,
+  }) async {
     _fadeTimer?.cancel();
 
     if (!fadeIn) {
       await _active.setVolume(_masterVolume);
+      if (windUp) {
+        // Ploča se zavrti: zvuk kreće usporen i u niskom tonu, pa se digne
+        // do normalne brzine. Suprotno od zaustavljanja na pauzi.
+        await _applySpeed(_active, recordStopSpeed);
+        _speedNow = recordStopSpeed;
+        await _active.play();
+        unawaited(_glideSpeed(_recordSpeed, recordStartGlide));
+        return;
+      }
       await _active.play();
       return;
     }

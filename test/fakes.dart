@@ -58,6 +58,9 @@ class FakePlayback implements AudioPlayback {
 
   /// Da li je traženo zaustavljanje ploče (usporavanje pri pauzi).
   bool? lastWindDown;
+
+  /// Da li je traženo zavrtanje ploče (usporen početak).
+  bool? lastWindUp;
   Duration? lastFadeToSilence;
   String? preloadedPath;
   Duration? lastCrossfade;
@@ -87,10 +90,15 @@ class FakePlayback implements AudioPlayback {
   }
 
   @override
-  Future<void> play({bool fadeIn = false, Duration? over}) async {
+  Future<void> play({
+    bool fadeIn = false,
+    Duration? over,
+    bool windUp = false,
+  }) async {
     lastFadeInOver = over;
     playCalls++;
     lastFadeIn = fadeIn;
+    lastWindUp = windUp;
     _playing.add(true);
   }
 

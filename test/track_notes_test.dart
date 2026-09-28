@@ -101,6 +101,40 @@ void main() {
     });
   });
 
+  group('mesto beleške', () {
+    // Trajanje iz oznaka u fajlu i ono što plejer izmeri nisu uvek isti
+    // broj. Beleška zato nosi trajanje po kom je računata, pa pada na isto
+    // mesto i kad telefon misli da pesma traje drugačije.
+    test('mesto se računa po trajanju zapamćenom uz belešku', () {
+      const note = TrackNote(
+        id: 'n1',
+        trackKey: 'pesma',
+        positionMs: 45000,
+        trackDurationMs: 180000,
+        text: 'omiljeni deo',
+        authorName: 'Filip',
+      );
+
+      // Telefon misli da pesma traje tri i po minuta — mesto se ne pomera.
+      expect(note.fractionIn(const Duration(minutes: 3, seconds: 30)), 0.25);
+      expect(note.fractionIn(null), 0.25);
+    });
+
+    test('stara beleška bez trajanja pada na ono što telefon zna', () {
+      const note = TrackNote(
+        id: 'n1',
+        trackKey: 'pesma',
+        positionMs: 45000,
+        text: 'stara',
+        authorName: 'Ana',
+      );
+
+      expect(note.fractionIn(const Duration(minutes: 3)), 0.25);
+      // Bez ijednog trajanja se ne nagađa.
+      expect(note.fractionIn(null), isNull);
+    });
+  });
+
   group('talas sa beleškama', () {
     testWidgets('ikonica onoga ko je ostavio belešku stoji na talasu', (
       WidgetTester tester,
@@ -184,6 +218,51 @@ void main() {
 
       expect(find.text('ovde ulazi vatra'), findsOneWidget);
       expect(find.text('Skloni belešku'), findsNothing);
+    });
+
+    // Beleška mora da se vrati tačno tamo gde je ostavljena: upisuje se
+    // mesto u pesmi, pa se pri sledećem otvaranju crta na istom procentu.
+    testWidgets('beleška se upisuje na mestu gde stoji linija', (
+      WidgetTester tester,
+    ) async {
+      final playback = FakePlayback(trackDuration: const Duration(minutes: 3));
+      final controller = MusicPlayerController(playback: playback);
+      addTearDown(controller.dispose);
+      final notes = InMemoryTrackNoteService();
+
+      await tester.pumpWidget(
+        _wrap(
+          WaveScreen(
+            controller: controller,
+            track: _track,
+            fade: false,
+            notes: notes,
+            authorName: 'Filip',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Cela pesma je jedan pun skrol: kraj skrola je kraj pesme.
+      final scroll = tester.widget<SingleChildScrollView>(
+        find.byType(SingleChildScrollView).first,
+      );
+      final position = scroll.controller!.position;
+      scroll.controller!.jumpTo(position.maxScrollExtent * 0.25);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Zabeleži'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'omiljeni deo');
+      await tester.tap(find.text('Sačuvaj'));
+      await tester.pumpAndSettle();
+
+      final saved = await notes.notesFor('01. act won');
+      expect(saved.single.text, 'omiljeni deo');
+      // Četvrtina pesme od tri minuta je 45 sekundi.
+      expect(saved.single.positionMs, closeTo(45000, 500));
+      // Uz mesto se pamti i trajanje po kom je računato.
+      expect(saved.single.trackDurationMs, 180000);
     });
 
     // Neprijavljen ih samo čita — nema čime da se potpiše.
