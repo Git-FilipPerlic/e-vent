@@ -448,6 +448,17 @@ izgledala kao blok boje — sve je bilo na vrhu, pa se od talasa ništa nije
 videlo. Uz razmak između crtica i blagu krivu (amplituda na 1,6) razlika
 između tihog i glasnog se vidi.
 
+**Mesto beleške se uzima pre nego što se otvori list za unos** (ispravka od
+28. septembra 2026). Dok se kuca, tastatura skupi ekran, a sa njim i visinu
+talasa — pa je isti skrol posle toga značio drugo mesto u pesmi. Beleška
+namenjena 0:45 je tako završavala na 1:44. Uz to talas **ne menja veličinu**
+kad tastatura izađe (`resizeToAvoidBottomInset: false`), po istom pravilu koje
+već važi za spisak numera: raspored se ne menja dok se radi.
+
+Beleške napravljene pre ove ispravke ostaju na pogrešnom mestu — u njima je
+upisano pogrešno vreme, pa se ne mogu ispraviti računom. Sklanjaju se i
+ostavljaju iznova.
+
 **Beleška nosi i trajanje po kom je računata.** Trajanje iz oznaka u fajlu i
 ono što plejer izmeri nisu uvek isti broj — kod VBR zapisa razlika ume da bude
 osetna — pa bi ista beleška sledeći put pala na drugo mesto na talasu. Zato se

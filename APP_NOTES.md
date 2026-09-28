@@ -2202,6 +2202,28 @@ i pripada.
 
 ---
 
+## 28. septembar 2026 — beleška je padala niže kroz pesmu (tastatura)
+
+- Pritužba korisnika: beleške koje je sam napravio i dalje stoje na pogrešnom
+  mestu, i posle ispravke sa pamćenjem trajanja.
+- Uzrok: mesto se računalo **posle** zatvaranja lista za unos. Dok je list
+  otvoren, tastatura skupi ekran, `_viewport` padne, pa i visina talasa
+  (`_contentHeight = _viewport * _zoom`) — a `_scroll.offset` ostane isti.
+  Isti skrol je time značio veći procenat pesme. Meren u testu: beleška
+  namenjena 0:45 se upisivala na **1:44**.
+- Urađeno: mesto se uzima **pre** otvaranja lista i posle se ne računa
+  ponovo; isti broj ide i u naslov lista i u belešku. Uz to ekran sa talasom
+  više ne menja veličinu kad izađe tastatura
+  (`resizeToAvoidBottomInset: false`).
+- Provereno: `flutter analyze` bez greške, 393 testa prolaze. Nov test
+  (`beleška ostaje na svom mestu i kad se ekran skupi`) pada bez ispravke sa
+  vrednošću 104211 ms umesto 45000 — dokaz da hvata baš ovu grešku.
+- Otvoreni problemi: **stare beleške ostaju pogrešne.** U bazi im je upisano
+  pogrešno vreme, pa se ne mogu ispraviti računom — sklanjaju se i ostavljaju
+  iznova.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

@@ -145,8 +145,8 @@ class _WaveScreenState extends State<WaveScreen>
       builder: (context) => _NoteSheet(
         note: note,
         // Svoju belešku svako sme da skloni; tuđu ne dira.
-        canRemove: widget.authorName != null &&
-            widget.authorName == note.authorName,
+        canRemove:
+            widget.authorName != null && widget.authorName == note.authorName,
       ),
     );
     if (removed != true || !mounted) return;
@@ -174,9 +174,15 @@ class _WaveScreenState extends State<WaveScreen>
     final total = _duration;
     if (service == null || author == null || total == null) return;
 
+    // Mesto se uzima **pre** nego što se otvori list za unos, i posle se ne
+    // računa ponovo. Dok se kuca, tastatura skupi ekran, a sa njim i visinu
+    // talasa; mesto izračunato posle toga je padalo dalje kroz pesmu nego
+    // linija na kojoj je beleška ostavljena.
+    final position = _positionNow(total);
+
     final text = await showEditTextSheet(
       context,
-      label: 'Beleška na ${TrackTile.formatDuration(_positionNow(total))}',
+      label: 'Beleška na ${TrackTile.formatDuration(position)}',
       value: null,
       hint: 'na primer omiljeni deo',
     );
@@ -186,7 +192,7 @@ class _WaveScreenState extends State<WaveScreen>
     final draft = TrackNote(
       id: '',
       trackKey: _noteKey,
-      positionMs: _positionNow(total).inMilliseconds,
+      positionMs: position.inMilliseconds,
       // Uz mesto se pamti i trajanje po kom je računato.
       trackDurationMs: total.inMilliseconds,
       text: trimmed,
@@ -364,6 +370,9 @@ class _WaveScreenState extends State<WaveScreen>
 
     return Scaffold(
       backgroundColor: AppColors.backgroundTop,
+      // Tastatura ne skuplja talas: kad se ekran skrati, linija na sredini
+      // pada na drugo mesto u pesmi, a beleška se ostavlja upravo tu.
+      resizeToAvoidBottomInset: false,
       body: LayoutBuilder(
         builder: (context, constraints) {
           // Gornja traka (zatvaranje i Fade) ne pripada talasu. Bez toga

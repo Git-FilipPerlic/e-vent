@@ -30,10 +30,7 @@ void main() {
         TrackNote.keyForPath('/sdcard/Music/Nrg/01. Act Won.mp3'),
         '01. act won',
       );
-      expect(
-        TrackNote.keyForPath(r'C:\Muzika\01. Act Won.mp3'),
-        '01. act won',
-      );
+      expect(TrackNote.keyForPath(r'C:\Muzika\01. Act Won.mp3'), '01. act won');
       // Isti fajl na dva telefona daje isti ključ.
       expect(
         TrackNote.keyForPath('/storage/emulated/0/Music/01. Act Won.mp3'),
@@ -263,6 +260,57 @@ void main() {
       expect(saved.single.positionMs, closeTo(45000, 500));
       // Uz mesto se pamti i trajanje po kom je računato.
       expect(saved.single.trackDurationMs, 180000);
+    });
+
+    // Dok se kuca, ekran se skupi (tastatura, podeljen ekran) — a sa njim i
+    // visina talasa, pa linija na sredini pada na drugo mesto u pesmi. Mesto
+    // se zato uzima pre nego što se list za unos otvori.
+    testWidgets('beleška ostaje na svom mestu i kad se ekran skupi', (
+      WidgetTester tester,
+    ) async {
+      final playback = FakePlayback(trackDuration: const Duration(minutes: 3));
+      final controller = MusicPlayerController(playback: playback);
+      addTearDown(controller.dispose);
+      final notes = InMemoryTrackNoteService();
+
+      await tester.pumpWidget(
+        _wrap(
+          WaveScreen(
+            controller: controller,
+            track: _track,
+            fade: false,
+            notes: notes,
+            authorName: 'Filip',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final scroll = tester.widget<SingleChildScrollView>(
+        find.byType(SingleChildScrollView).first,
+      );
+      scroll.controller!.jumpTo(
+        scroll.controller!.position.maxScrollExtent * 0.25,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Zabeleži'));
+      await tester.pumpAndSettle();
+
+      // Ekran je sada upola niži.
+      final size = tester.view.physicalSize;
+      addTearDown(tester.view.resetPhysicalSize);
+      tester.view.physicalSize = Size(size.width, size.height / 2);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'omiljeni deo');
+      await tester.tap(find.text('Sačuvaj'));
+      await tester.pumpAndSettle();
+
+      final saved = await notes.notesFor('01. act won');
+      // Četvrtina pesme od tri minuta je 45 sekundi — bez obzira na to što se
+      // ekran u međuvremenu skupio.
+      expect(saved.single.positionMs, closeTo(45000, 500));
     });
 
     // Neprijavljen ih samo čita — nema čime da se potpiše.
