@@ -218,8 +218,10 @@ dugmetom.
      petnaestoj sekundi, uvod se vrati preko nje i dve se preklope. U red
      ulazi njena kopija, pa se na nju pređe pretapanjem; bez `Fade`
      prelaz je odmah, dakle numera kreće iz početka.
-   - **Premotavanje sa talasa nije udvajanje**: kad se numera pušta sa
-     zadatog mesta, ona se samo pomeri, bez druge kopije.
+   - **Isto važi i sa talasa**: kad se ista numera pusti sa izabranog
+     mesta, taj deo ulazi **preko** onoga što svira. Tako se preko refrena
+     vraća bilo koji deo pesme, ne samo uvod. Bez `Fade` se numera samo
+     premota na to mesto — nema šta da se preklopi.
    - **God mode uključen:** dodir samo bira numeru (breskva red + kvačica) i
      sprema je u pozadini. Pušta se sa **Ekrana 2**: ogromno okruglo dugme i
      veliki prekidač Fade in, koji važi samo za to jedno puštanje.

@@ -192,8 +192,10 @@ class _WaveScreenState extends State<WaveScreen>
 
     await widget.controller.playNow(
       widget.track,
-      // Ista numera se samo premota — pretapanje sa samom sobom nema smisla.
-      fade: _isSounding ? false : _fade,
+      // I ista numera ide uz pretapanje: izabrani deo ulazi **preko**
+      // onoga što svira, pa se pesma preklapa sama sa sobom. Bez `Fade`
+      // se samo premota na to mesto.
+      fade: _fade,
       from: from,
     );
     if (!mounted) return;

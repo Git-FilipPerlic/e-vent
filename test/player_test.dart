@@ -58,8 +58,9 @@ void main() {
       controller.dispose();
     });
 
-    // Premotavanje sa talasa nije udvajanje — ista numera se samo pomera.
-    test('puštanje sa zadatog mesta ne udvaja numeru', () async {
+    // Sa talasa: izabrani deo iste pesme ulazi **preko** onoga što svira,
+    // pa se pesma preklapa sama sa sobom.
+    test('sa talasa uz pretapanje ulazi izabrani deo preko iste pesme', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
       controller.setFade(true);
@@ -68,6 +69,26 @@ void main() {
 
       await controller.playNow(
         _tracks[0],
+        fade: true,
+        from: const Duration(seconds: 30),
+      );
+
+      expect(playback.crossfadeCalls, 1);
+      expect(playback.lastSeek, const Duration(seconds: 30));
+      expect(controller.queue.length, before + 1);
+      controller.dispose();
+    });
+
+    // Bez pretapanja nema šta da se preklopi — numera se samo pomeri.
+    test('sa talasa bez pretapanja numera se samo premota', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+      final before = controller.queue.length;
+
+      await controller.playNow(
+        _tracks[0],
+        fade: false,
         from: const Duration(seconds: 30),
       );
 

@@ -2048,11 +2048,16 @@ i pripada.
   - izvedeno postojećim mehanizmom: u red ulazi kopija numere, priprema se u
     drugom plejeru i pretapanje pređe na nju. Bez `Fade` prelaz je odmah,
     dakle numera kreće iz početka
-  - **premotavanje sa talasa se ne udvaja** — kad se pušta sa zadatog mesta,
-    numera se samo pomeri; i pauzirana numera na dodir i dalje samo nastavlja
-- Provereno: `flutter analyze` bez primedbi, **366 testova prolazi** (4 nova:
-  udvajanje uz pretapanje, bez pretapanja, premotavanje i pauza)
-- Otvoreni problemi: nema. Nije jos instalirano na telefon
+  - **i sa talasa ista numera ulazi preko sebe** (dopunjeno istog dana, na
+    korisnikovu prijavu): izabrani deo se pretapa preko onoga što svira, pa
+    se preko refrena vraća bilo koji deo pesme. Bez `Fade` se numera samo
+    premota. Prvo je bilo napravljeno tako da se sa talasa nikad ne udvaja,
+    pa je zvučalo kao prekid — korisnik je probao baš taj put
+  - pauzirana numera na dodir i dalje samo nastavlja
+- Provereno: `flutter analyze` bez primedbi, **367 testova prolazi** (5 novih:
+  udvajanje iz spiska sa i bez pretapanja, sa talasa sa i bez pretapanja,
+  i pauza)
+- Otvoreni problemi: nema. Instalirano na telefon
 - Sledeće: provera na telefonu — kako zvuči kad se uvod vrati preko refrena
 
 ## TODO (skupljati ovde, rešavati kad dođe red)
