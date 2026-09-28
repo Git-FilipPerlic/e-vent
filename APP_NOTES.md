@@ -2154,6 +2154,30 @@ i pripada.
 
 ---
 
+## 28. septembar 2026 — velik spisak numera se učitava bez zastoja
+
+- Pitanje korisnika: da li može da se učita više pesama pri otvaranju
+  aplikacije. Provereno: **broj numera nikad nije bio ograničen** — ni
+  zapamćeni spisak ni dodavanje foldera nemaju gornju granicu. Zastoj je bio
+  u načinu učitavanja.
+- Urađeno:
+  - Provera postojanja fajlova (`TrackLibraryService.load`) ide u zasebnu nit
+    kad je spisak duži od 50 numera; kraći se proverava na mestu.
+  - `TrackMetadataService.enrichAll` čita **celu turu od 20 numera u jednoj
+    niti**, umesto jedne niti po numeri. Veličina fajla se proverava u istoj
+    niti, pa glavna nit ne pita disk.
+  - Pamćenje oznaka podignuto sa 300 na 2000 numera.
+  - Fajl koji je zamenjen ili se ne može pročitati ispada iz pamćenja, da se
+    ne podmeće stari naziv novoj pesmi.
+- Provereno: `flutter analyze` bez greške, 389 testova prolazi; tri nova
+  testa u `test/metadata_test.dart` (dug spisak se učita ceo bez obrisanih
+  fajlova, zapamćene oznake se ne čitaju iznova, zamenjen fajl ne uzima staro
+  pamćenje).
+- Sledeće: proba na telefonu sa velikim folderom — koliko se čeka na spisak i
+  koliko na trajanja.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

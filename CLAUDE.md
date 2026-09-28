@@ -264,6 +264,24 @@ dugmetom.
    čim se pročitaju. Ako pamćenje pukne, Muzika tab se otvara prazan umesto
    da javi grešku — to je udobnost, ne uslov za rad.
 
+   **Velik spisak se učitava bez zastoja** (od 28. septembra 2026). Broj
+   numera nije ograničen ni pre ni sada — ograničenja su bila u tome *kako* se
+   učitavaju, pa je spisak od nekoliko stotina numera zadržavao prvi kadar i
+   dugo stajao na `--:--`. Tri stvari su promenjene:
+
+   - **provera da li fajl još postoji** ide u zasebnu nit kad ih je više od
+     50; za kraći spisak se radi na mestu, jer pravljenje niti traje više od
+     nekoliko pitanja disku
+   - **oznake se čitaju po turi, jednom niti na turu od dvadeset numera.**
+     Ranije je svaka numera dobijala svoju nit, a samo pravljenje niti je
+     na velikom folderu trošilo više vremena nego čitanje
+   - **pamti se 2000 numera** umesto 300, pa i velika plejlista sledeći put
+     ulazi iz pamćenja; jedna numera zauzima stotinak bajtova
+
+   Uz to se zapamćenom fajlu **veličina proverava u istoj niti**, pa glavna
+   nit ne pita disk ni za to. Fajl koji je zamenjen ili se ne može pročitati
+   **ispada iz pamćenja** — inače bi se podmetao stari naziv za novu pesmu.
+
    **Pročitano se pamti između pokretanja** (od 28. septembra 2026). Fajlovi
    se ne menjaju, pa nema razloga da se pri svakom pokretanju čita isto: uz
    svaku numeru se pamti i **veličina fajla**, i kad se ona poklopi, oznake se

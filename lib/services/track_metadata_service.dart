@@ -35,9 +35,12 @@ class TrackMetadataService {
 
   static const String _prefsKey = 'music_meta_cache';
 
-  /// Koliko se numera najviše pamti. Plejliste su reda nekoliko desetina, a
-  /// ovo pokriva i nekoliko foldera zaredom.
-  static const int maxRemembered = 300;
+  /// Koliko se numera najviše pamti.
+  ///
+  /// Podignuto sa 300 na 2000 (28. septembra 2026), da se pri pokretanju
+  /// učita i velika plejlista bez ponovnog čitanja fajlova. Jedna numera u
+  /// pamćenju zauzima stotinak bajtova, pa je i pun spisak reda 200 KB.
+  static const int maxRemembered = 2000;
 
   Future<void> _loadRemembered() async {
     if (_rememberedLoaded) return;
@@ -151,20 +154,143 @@ class TrackMetadataService {
     List<Track> tracks, {
     void Function(List<Track> done)? onBatch,
   }) async {
+    await _loadRemembered();
     final result = <Track>[];
-    final batch = <Track>[];
 
-    for (final track in tracks) {
-      result.add(await enrich(track));
-      batch.add(result.last);
-      if (batch.length >= batchSize) {
-        onBatch?.call([...batch]);
-        batch.clear();
+    for (var start = 0; start < tracks.length; start += batchSize) {
+      final end = start + batchSize;
+      final slice = tracks.sublist(
+        start,
+        end > tracks.length ? tracks.length : end,
+      );
+
+      // Šta u ovoj turi treba pogledati na disku, i koju veličinu fajla
+      // pamtimo od ranije. Veličina ide u nit sa poslom, pa se fajl koji se
+      // nije menjao tamo i preskoči — bez ijednog pitanja glavnoj niti.
+      final ask = <String, int?>{};
+      for (final track in slice) {
+        final path = track.path;
+        if (path == null || path.contains('://')) continue;
+        if (_cache.containsKey(path)) continue;
+        final saved = _remembered[path];
+        ask[path] = saved is Map ? saved['size'] as int? : null;
       }
+
+      final read = ask.isEmpty
+          ? const <String, Map<String, Object?>>{}
+          : await _readBatch(ask);
+
+      for (final entry in read.entries) {
+        final tags = entry.value;
+        if (tags['same'] == true) continue;
+        if (tags['stale'] == true) {
+          // Fajl je zamenjen ili se ne može pročitati — staro pamćenje o
+          // njemu više ne važi i ne sme da se podmetne.
+          if (_remembered.remove(entry.key) != null) _rememberedChanged = true;
+          continue;
+        }
+        _remembered[entry.key] = tags;
+        _rememberedChanged = true;
+      }
+
+      final done = [for (final track in slice) _withTags(track, read)];
+      result.addAll(done);
+      onBatch?.call(done);
     }
-    if (batch.isNotEmpty) onBatch?.call([...batch]);
+
     // Ono što je pročitano ide na disk, da se sledeći put ne čita opet.
     await _saveRemembered();
+    return result;
+  }
+
+  /// Jedna tura čitanja, u **jednoj** zasebnoj niti.
+  ///
+  /// Ranije je svaka numera dobijala svoju nit; pravljenje niti samo po sebi
+  /// traje, pa je spisak od nekoliko stotina numera na to trošio više vremena
+  /// nego na samo čitanje.
+  Future<Map<String, Map<String, Object?>>> _readBatch(
+    Map<String, int?> ask,
+  ) async {
+    try {
+      return await Isolate.run(() => _readMany(ask));
+    } catch (_) {
+      // Bez niti se čita ovde: bolje sporije nego bez trajanja.
+      return _readMany(ask);
+    }
+  }
+
+  /// Numera dopunjena onim što je pročitano ili zapamćeno.
+  Track _withTags(Track track, Map<String, Map<String, Object?>> read) {
+    final path = track.path;
+    if (path == null) return track;
+
+    final cached = _cache[path];
+    if (cached != null) return cached;
+
+    // Šta je tura našla: ako fajl nije ni gledan (već je u kešu, ili je
+    // `content://` adresa) ili se nije menjao, važi ono što je zapamćeno.
+    final found = read[path];
+    final Object? tags = switch (found) {
+      null => _remembered[path],
+      {'same': true} => _remembered[path],
+      {'stale': true} => null,
+      _ => found,
+    };
+    if (tags is! Map) {
+      // Fajl bez oznaka, nepostojeći fajl ili `content://` adresa — numera
+      // ostaje kakva jeste. To nije greška koju korisnik treba da vidi.
+      _cache[path] = track;
+      return track;
+    }
+
+    final milliseconds = tags['ms'] as int?;
+    final enriched = Track(
+      id: track.id,
+      title: _firstFilled([tags['title'] as String?, track.title]),
+      artist: _firstFilled([tags['artist'] as String?, track.artist]),
+      source: track.source,
+      duration: milliseconds == null
+          ? track.duration
+          : Duration(milliseconds: milliseconds),
+      path: path,
+    );
+    _cache[path] = enriched;
+    return enriched;
+  }
+
+  /// Čita oznake za celu turu. Radi se u zasebnoj niti, pa i ulaz i izlaz
+  /// nose samo obične vrednosti.
+  ///
+  /// Fajl čija se veličina poklapa sa zapamćenom se **preskače** — njegove
+  /// oznake već znamo.
+  static Map<String, Map<String, Object?>> _readMany(Map<String, int?> ask) {
+    final result = <String, Map<String, Object?>>{};
+    for (final entry in ask.entries) {
+      try {
+        final file = File(entry.key);
+        if (!file.existsSync()) {
+          result[entry.key] = const {'stale': true};
+          continue;
+        }
+        final size = file.lengthSync();
+        if (entry.value != null && entry.value == size) {
+          // Isti fajl kao prošli put — oznake već znamo, ne čita se.
+          result[entry.key] = const {'same': true};
+          continue;
+        }
+
+        final data = readMetadata(file, getImage: false);
+        result[entry.key] = {
+          'size': size,
+          'title': data.title,
+          'artist': data.artist ?? data.albumArtist,
+          'ms': data.duration?.inMilliseconds,
+        };
+      } catch (_) {
+        // Fajl bez oznaka ili u obliku koji čitač ne poznaje.
+        result[entry.key] = const {'stale': true};
+      }
+    }
     return result;
   }
 

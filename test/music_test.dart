@@ -40,6 +40,18 @@ class FakeMetadata extends TrackMetadataService {
       path: track.path,
     );
   }
+
+  // Ekran čita ceo spisak odjednom, a prava tura ide na disk i u zasebnu
+  // nit — u testu se zato i ona podmeće.
+  @override
+  Future<List<Track>> enrichAll(
+    List<Track> tracks, {
+    void Function(List<Track> done)? onBatch,
+  }) async {
+    final done = [for (final track in tracks) await enrich(track)];
+    if (done.isNotEmpty) onBatch?.call(done);
+    return done;
+  }
 }
 
 /// Lažni izvor numera — spisak u aplikaciji je prazan dok korisnik ne doda
@@ -91,7 +103,8 @@ void main() {
       final folder = Directory.systemTemp.createTempSync('evt-meta');
       addTearDown(() => folder.deleteSync(recursive: true));
       // Prazan fajl — prava obrada iz njega ne bi izvukla ništa.
-      final file = File('${folder.path}/pesma.mp3')..writeAsBytesSync([1, 2, 3]);
+      final file = File('${folder.path}/pesma.mp3')
+        ..writeAsBytesSync([1, 2, 3]);
 
       SharedPreferences.setMockInitialValues({
         'music_meta_cache': jsonEncode({
@@ -105,9 +118,7 @@ void main() {
       });
 
       final service = TrackMetadataService();
-      final enriched = await service.enrich(
-        Track(id: 't1', path: file.path),
-      );
+      final enriched = await service.enrich(Track(id: 't1', path: file.path));
 
       expect(enriched.title, 'Zapamćeni naziv');
       expect(enriched.artist, 'Zapamćeni izvođač');
@@ -119,7 +130,8 @@ void main() {
     test('promenjen fajl se čita iznova', () async {
       final folder = Directory.systemTemp.createTempSync('evt-meta2');
       addTearDown(() => folder.deleteSync(recursive: true));
-      final file = File('${folder.path}/pesma.mp3')..writeAsBytesSync([1, 2, 3]);
+      final file = File('${folder.path}/pesma.mp3')
+        ..writeAsBytesSync([1, 2, 3]);
 
       SharedPreferences.setMockInitialValues({
         'music_meta_cache': jsonEncode({
@@ -153,12 +165,14 @@ void main() {
       ];
 
       final batches = <int>[];
-      await service.enrichAll(tracks, onBatch: (done) => batches.add(done.length));
+      await service.enrichAll(
+        tracks,
+        onBatch: (done) => batches.add(done.length),
+      );
 
       // Dvadeset po turi, pa ostatak.
       expect(batches, [20, 20, 5]);
     });
-
 
     // Spisak se pri povlačenju nadole gradi iznova od dodatih numera, a one
     // se pamte **samo kao putanje**. Dok se pročitani podaci nisu vraćali i
@@ -237,8 +251,9 @@ void main() {
   });
 
   group('red u spisku', () {
-    testWidgets('u jednom redu: naziv sa izvođačem, ikonica izvora, trajanje',
-        (WidgetTester tester) async {
+    testWidgets('u jednom redu: naziv sa izvođačem, ikonica izvora, trajanje', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           TrackTile(
@@ -261,8 +276,7 @@ void main() {
       expect(find.text('2:34'), findsOneWidget);
     });
 
-    testWidgets('bez izvođača stoji samo naziv',
-        (WidgetTester tester) async {
+    testWidgets('bez izvođača stoji samo naziv', (WidgetTester tester) async {
       await tester.pumpWidget(
         _wrap(
           TrackTile(
@@ -301,8 +315,9 @@ void main() {
       expect(find.textContaining('bez-naziva-04'), findsOneWidget);
     });
 
-    testWidgets('bez God mode-a dodir odmah pušta numeru',
-        (WidgetTester tester) async {
+    testWidgets('bez God mode-a dodir odmah pušta numeru', (
+      WidgetTester tester,
+    ) async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = MusicPlayerController(playback: playback);
       addTearDown(controller.dispose);
@@ -325,8 +340,9 @@ void main() {
       expect(controller.sounding?.title, 'Igre za decu');
     });
 
-    testWidgets('u God mode-u dodir samo bira numeru za Ekran 2',
-        (WidgetTester tester) async {
+    testWidgets('u God mode-u dodir samo bira numeru za Ekran 2', (
+      WidgetTester tester,
+    ) async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = MusicPlayerController(playback: playback);
       addTearDown(controller.dispose);
@@ -351,8 +367,9 @@ void main() {
       expect(find.text('SLEDEĆA: IGRE ZA DECU'), findsOneWidget);
     });
 
-    testWidgets('dodir na prekidač ga ne menja, nego kaže da se prevlači',
-        (WidgetTester tester) async {
+    testWidgets('dodir na prekidač ga ne menja, nego kaže da se prevlači', (
+      WidgetTester tester,
+    ) async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = MusicPlayerController(playback: playback);
       addTearDown(controller.dispose);
@@ -369,18 +386,13 @@ void main() {
       await tester.tap(_switch('God mode'));
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('Prevuci prekidač — dodir ga ne menja'),
-        findsOneWidget,
-      );
-      expect(
-        tester.widget<SlideSwitch>(_switch('God mode')).value,
-        isFalse,
-      );
+      expect(find.text('Prevuci prekidač — dodir ga ne menja'), findsOneWidget);
+      expect(tester.widget<SlideSwitch>(_switch('God mode')).value, isFalse);
     });
 
-    testWidgets('Ekran 2 bez God mode-a objasni zašto se ne otvara',
-        (WidgetTester tester) async {
+    testWidgets('Ekran 2 bez God mode-a objasni zašto se ne otvara', (
+      WidgetTester tester,
+    ) async {
       final controller = MusicPlayerController(
         playback: FakePlayback(trackDuration: const Duration(seconds: 60)),
       );
@@ -495,7 +507,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final press = await tester.startGesture(tester.getCenter(find.text('Druga')));
+      final press = await tester.startGesture(
+        tester.getCenter(find.text('Druga')),
+      );
       // Dovoljno da se okine pritisak i da se red prerisa skupljen.
       await tester.pump(const Duration(milliseconds: 150));
       await tester.pump(const Duration(milliseconds: 500));

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,6 +19,9 @@ class TrackLibraryService {
 
   static const String _key = 'music_track_paths';
 
+  /// Od koliko numera se provera prebacuje u zasebnu nit.
+  static const int threadFrom = 50;
+
   /// Učitava zapamćeni spisak.
   ///
   /// **Fajlovi kojih više nema se preskaču** — obrisana numera na nastupu
@@ -33,13 +37,37 @@ class TrackLibraryService {
       return const [];
     }
 
-    final tracks = <Track>[];
-    for (final path in paths) {
-      if (!File(path).existsSync()) continue;
-      tracks.add(trackFor(path));
+    if (paths.isEmpty) return const [];
+
+    // Kratak spisak se proverava ovde: pravljenje niti traje više od nekoliko
+    // pitanja disku. Duži spisak ide **u zasebnu nit**, jer bi nekoliko
+    // stotina provera zadržalo prvi kadar aplikacije.
+    if (paths.length <= threadFrom) {
+      return [
+        for (final path in paths)
+          if (File(path).existsSync()) trackFor(path),
+      ];
     }
-    return tracks;
+
+    final List<String> existing;
+    try {
+      existing = await Isolate.run(() => _existing(paths));
+    } catch (_) {
+      // Ako nit ne prođe, spisak se ne gubi — samo se proverava ovde.
+      return [
+        for (final path in paths)
+          if (File(path).existsSync()) trackFor(path),
+      ];
+    }
+
+    return [for (final path in existing) trackFor(path)];
   }
+
+  /// Putanje fajlova koji i dalje postoje, redom kojim su zapamćene.
+  static List<String> _existing(List<String> paths) => [
+    for (final path in paths)
+      if (File(path).existsSync()) path,
+  ];
 
   /// Pamti ceo spisak, redom kojim stoji na ekranu.
   Future<void> save(List<Track> tracks) async {
