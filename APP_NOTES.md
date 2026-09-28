@@ -2293,6 +2293,19 @@ i pripada.
 
 ---
 
+## 28. septembar 2026 — veštine u „Ko radi" u više redova
+
+- Zahtev korisnika: dugmići veština ne mogu svi da stanu jedan do drugog.
+  Izabrao je raspored u više redova (umesto skrolovanja ili grupa).
+- Urađeno: u listu „Ko radi" vodoravni spisak koji se pomera zamenjen je
+  `Wrap`-om — dugmići prelaze u sledeći red kad ponestane mesta.
+- Provereno: `flutter analyze` bez greške, 406 testova prolazi; nov
+  `test/assign_picker_test.dart` — osam veština na ekranu širokom 360 dp,
+  nijedna ne ispada desno i poslednja se bira bez pomeranja.
+- Sledeće: proba na telefonu sa pravim spiskom veština.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

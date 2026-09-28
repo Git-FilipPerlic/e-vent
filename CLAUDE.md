@@ -1012,7 +1012,10 @@ kao id koji više ništa ne znači.
 **Dodela po veštini je filter, ne zahtev** (izbor korisnika): na događaju se
 ne čekira šta treba, nego se u „Ko radi" bira po veštini ko ulazi u ekipu.
 
-U listu „Ko radi" stoji red dugmića: **Svi** i po jedno za svaku veštinu.
+U listu „Ko radi" stoje dugmići: **Svi** i po jedno za svaku veštinu.
+**Slažu se u više redova**, ne u jedan koji se pomera levo-desno (odluka od
+28. septembra 2026): sve veštine se vide odjednom, pa se ne traži ona koja je
+ispala desno.
 **Jedna veština u jednom trenutku** — pitanje „ko zna i vatru i vožnju" se
 pred nastup ne postavlja. Ponovni dodir na istu veštinu vraća ceo spisak.
 Uz svako ime stoji i šta ta osoba ume, pa se vidi zašto je u spisku.

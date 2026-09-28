@@ -203,12 +203,13 @@ class _AssignPickerState extends State<_AssignPicker> {
               ],
             ),
           ),
+          // Veštine se slažu u više redova, ne u jedan koji se pomera: tako se
+          // sve vide odjednom i ne traži se ona koja je ispala desno.
           if (widget.skills.isNotEmpty)
-            SizedBox(
-              height: 44,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Wrap(
+                spacing: AppSpacing.sm,
                 children: [
                   _SkillFilterChip(
                     label: 'Svi',
@@ -333,7 +334,7 @@ class _AssignPickerState extends State<_AssignPicker> {
   }
 }
 
-/// Dugme filtera po veštini, u vodoravnom spisku iznad ekipe.
+/// Dugme filtera po veštini, u redovima iznad ekipe.
 class _SkillFilterChip extends StatelessWidget {
   const _SkillFilterChip({
     required this.label,
@@ -347,13 +348,10 @@ class _SkillFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: AppSpacing.sm),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onTap(),
-      ),
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onTap(),
     );
   }
 }
