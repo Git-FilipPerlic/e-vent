@@ -2060,6 +2060,23 @@ i pripada.
 - Otvoreni problemi: nema. Instalirano na telefon
 - Sledeće: provera na telefonu — kako zvuči kad se uvod vrati preko refrena
 
+## 28. septembar 2026 — zumiran talas pokazuje detalj
+
+- Urađeno:
+  - iz fajla se sada izvlači **2400 vrednosti** umesto 600 (obrada na 20
+    tačaka po sekundi zvuka umesto 10). Sa 600 je zumiran talas bio samo
+    razvučen, bez ijednog novog podatka
+  - painter crta **onoliko crtica koliko ih staje po visini**, a svaka uzima
+    najglasniju vrednost iz svog opsega. Zumiranjem se opseg po crtici
+    smanjuje, pa detalj izlazi na videlo
+  - **crta se samo vidljivi deo** — bez toga bi se pri svakom pomeraju prsta
+    crtalo hiljadama pravougaonika van ekrana
+- Provereno: `flutter analyze` bez primedbi, **367 testova prolazi`**.
+  Instalirano na telefon
+- Otvoreni problemi: izvlačenje talasa sada traje nešto duže po numeri, jer
+  se čita duplo gušće. Ako se to oseti na velikim fajlovima, spušta se nazad
+- Sledeće: korisnikov predlog — profilne slike i komentari na delovima pesme
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

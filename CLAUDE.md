@@ -418,6 +418,17 @@ izgledala kao blok boje — sve je bilo na vrhu, pa se od talasa ništa nije
 videlo. Uz razmak između crtica i blagu krivu (amplituda na 1,6) razlika
 između tihog i glasnog se vidi.
 
+**Zumiran talas pokazuje pravi detalj, ne razvučen isti** (od 28. septembra
+2026). Iz fajla se izvlači **2400 vrednosti**, mnogo više nego što stane na
+ekran, a crta se onoliko crtica koliko ih staje po visini (jedna crtica sa
+razmakom uzima 3 dp). Svaka crtica uzima **najglasniju** vrednost iz svog
+opsega — ne prosek, koji spljošti pesmu. Kad se zumira, opseg po crtici se
+smanji, pa se pojavi detalj koji je dotle bio sabijen.
+
+**Crta se samo ono što se vidi.** Niz ima 2400 vrednosti, a na ekran ih staje
+nekoliko stotina; bez toga bi se pri svakom pomeraju prsta crtalo hiljadama
+pravougaonika uzalud.
+
 **Gornja traka ekrana sa talasom ne pripada talasu.** Zadržavanje prsta tamo
 ne pušta numeru: pored prekidača Fade i dugmeta za zatvaranje se prst lako
 zadrži, a muzika ne sme da krene od toga.

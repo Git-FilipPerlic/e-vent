@@ -443,6 +443,9 @@ class _WavePainter extends CustomPainter {
   /// Gde je linija, u koordinatama sadržaja.
   final double playheadY;
 
+  /// Koliko visine uzima jedna crtica sa razmakom.
+  static const double _barPitch = 3;
+
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
@@ -463,21 +466,40 @@ class _WavePainter extends CustomPainter {
     final ahead = Paint()..color = AppColors.accent;
 
     final n = values.length;
-    final step = height / n;
-    // Crtice poprečno na putanju, sa razmakom između njih. Puna površina je
-    // izgledala kao blok boje: glasna numera je svuda na vrhu, pa se od nje
-    // ništa nije videlo. Razmak vraća oblik.
-    final bar = math.max(1.0, step * 0.55);
 
-    for (var i = 0; i < n; i++) {
+    // Koliko crtica staje po visini. Crtica i razmak zajedno uzimaju 3 dp —
+    // gušće od toga se stapa u blok boje.
+    final bars = (height / _barPitch).floor().clamp(1, n);
+    final pitch = height / bars;
+    final thickness = math.max(1.0, pitch * 0.55);
+
+    // Crta se **samo ono što se vidi**. Niz ima 2400 vrednosti, a na ekran
+    // ih staje nekoliko stotina; bez ovoga bi se pri svakom pomeraju prsta
+    // crtalo hiljadama pravougaonika uzalud.
+    final scroll = playheadY - top;
+    final first = ((scroll - top) / pitch).floor().clamp(0, bars - 1);
+    final last = ((scroll + top) / pitch).ceil().clamp(0, bars);
+
+    for (var i = first; i < last; i++) {
+      // Jedna crtica pokriva više vrednosti iz niza, pa se uzima **najglasnija**
+      // u tom opsegu. Tako zumiran talas pokazuje pravi detalj, a nezumiran
+      // vrhove — a ne prosek, koji sve spljošti.
+      final from = (i * n / bars).floor();
+      final to = math.max(from + 1, ((i + 1) * n / bars).ceil());
+      var peak = 0.0;
+      for (var j = from; j < to && j < n; j++) {
+        final value = values[j];
+        if (value > peak) peak = value;
+      }
+
       // Blaga kriva razvlači razliku između tihog i glasnog: današnja
       // muzika je izravnata, pa bi bez toga sve bilo podjednako široko.
-      final a = math.pow(values[i].clamp(0.0, 1.0), 1.6).toDouble();
+      final a = math.pow(peak.clamp(0.0, 1.0), 1.6).toDouble();
       final half = math.max(1.0, a * maxHalf);
-      final y = top + i * step;
+      final y = top + i * pitch;
       canvas.drawRect(
-        Rect.fromLTWH(cx - half, y, half * 2, bar),
-        y + bar / 2 < playheadY ? past : ahead,
+        Rect.fromLTWH(cx - half, y, half * 2, thickness),
+        y + thickness / 2 < playheadY ? past : ahead,
       );
     }
   }

@@ -21,9 +21,13 @@ class WaveformService {
   /// svakom otvaranju.
   final Set<String> _failed = <String>{};
 
-  /// Koliko se vrednosti vraća. Otprilike broj tačaka po obimu ekrana —
-  /// finije od toga se ne vidi.
-  static const int defaultSampleCount = 600;
+  /// Koliko se vrednosti vraća.
+  ///
+  /// Više nego što stane na ekran, namerno (od 28. septembra 2026): ekran
+  /// sa talasom se zumira, pa se iz ovog niza crta gušće kad se uđe u
+  /// detalj. Sa 600 vrednosti je zumiran talas bio samo razvučen, bez i
+  /// jednog novog podatka.
+  static const int defaultSampleCount = 2400;
 
   /// Talasni oblik numere, ili `null` ako se ne može izvući.
   ///
@@ -57,12 +61,13 @@ class WaveformService {
       );
 
       Waveform? waveform;
-      // Gušće od ovoga nema smisla: iz celog zapisa se ionako svodi na
-      // ~600 vrednosti, a finija obrada samo duže traje na telefonu.
+      // Dvadeset tačaka po sekundi zvuka: taman da se iz zapisa može
+      // izvući 2400 vrednosti i za kratke numere, a da obrada ne traje
+      // predugo na telefonu.
       await for (final progress in JustWaveform.extract(
         audioInFile: audio,
         waveOutFile: out,
-        zoom: const WaveformZoom.pixelsPerSecond(10),
+        zoom: const WaveformZoom.pixelsPerSecond(20),
       )) {
         onProgress?.call(progress.progress);
         if (progress.waveform != null) waveform = progress.waveform;
