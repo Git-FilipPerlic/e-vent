@@ -75,7 +75,7 @@ class AppHeader extends StatelessWidget {
               child: DecoratedBox(
                 // Isto zatamnjenje kao desno: strelica mora da se vidi i
                 // preko svetlog banera.
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.centerRight,
                     end: Alignment.centerLeft,
@@ -156,7 +156,7 @@ class _Wordmark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.surface),
+      decoration: BoxDecoration(gradient: AppGradients.surface),
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       alignment: Alignment.centerLeft,
       child: Text(
@@ -167,7 +167,7 @@ class _Wordmark extends StatelessWidget {
               fontWeight: FontWeight.w700,
               letterSpacing: 1.5,
             ) ??
-            const TextStyle(color: AppColors.accent),
+            TextStyle(color: AppColors.accent),
       ),
     );
   }

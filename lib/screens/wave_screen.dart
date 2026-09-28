@@ -587,7 +587,7 @@ class _WaveScreenState extends State<WaveScreen>
                   child: IconButton(
                     tooltip: 'Zatvori',
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.keyboard_arrow_down_rounded,
                       color: AppColors.textSecondary,
                     ),

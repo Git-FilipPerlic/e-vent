@@ -73,7 +73,7 @@ class DepartureTime extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.directions_car_rounded,
               color: AppColors.textSecondary,
               size: 20,

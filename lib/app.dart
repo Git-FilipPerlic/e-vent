@@ -20,6 +20,7 @@ import 'services/firestore_event_service.dart';
 import 'services/mock_event_service.dart';
 import 'services/background_audio.dart';
 import 'services/route_service.dart';
+import 'services/skin_service.dart';
 import 'services/team_logo_service.dart';
 import 'services/track_note_service.dart';
 import 'theme/app_theme.dart';
@@ -29,12 +30,14 @@ import 'widgets/common/edit_text_sheet.dart';
 import 'widgets/common/page_dots.dart';
 
 /// Koren aplikacije: tema i navigacija sa 4 taba.
-class EventApp extends StatelessWidget {
+class EventApp extends StatefulWidget {
   const EventApp({
     super.key,
     this.audioHandler,
     this.hasFirebase = false,
     this.routeService,
+    this.skin = const SkinService(),
+    this.initialSkin,
   });
 
   /// Veza sa notifikacijom i kontrolama van aplikacije.
@@ -48,6 +51,49 @@ class EventApp extends StatelessWidget {
   /// Računa put od magacina do događaja. `null` u testovima, da ekran
   /// ne ide na mrežu.
   final RouteService? routeService;
+
+  /// Pamti izabran izgled na telefonu.
+  final SkinService skin;
+
+  /// Izgled pročitan pre prvog kadra. `null` u testovima, gde se čita sam.
+  final AppSkin? initialSkin;
+
+  @override
+  State<EventApp> createState() => _EventAppState();
+}
+
+class _EventAppState extends State<EventApp> {
+  /// Izabran izgled. Boje stoje kao promenljive u `AppColors`, pa promena
+  /// izgleda ne dira ni jedan widget — samo se cela aplikacija prerisa.
+  late AppSkin _skin = widget.initialSkin ?? AppSkin.safir;
+
+  @override
+  void initState() {
+    super.initState();
+    // Kad je izgled već pročitan pre prvog kadra, ne čita se drugi put.
+    if (widget.initialSkin == null) _loadSkin();
+  }
+
+  Future<void> _loadSkin() async {
+    final skin = await widget.skin.load();
+    if (!mounted || skin.id == _skin.id) return;
+    setState(() {
+      _skin = skin;
+      skin.apply();
+    });
+  }
+
+  /// Menja izgled: boje se primenjuju odmah, pa se pamte.
+  ///
+  /// Prerisava se cela aplikacija, ali se ništa ne pravi iznova — muzika
+  /// nastavlja da svira, a otvoren događaj ostaje otvoren.
+  void _setSkin(AppSkin skin) {
+    setState(() {
+      _skin = skin;
+      skin.apply();
+    });
+    widget.skin.save(skin);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,9 +118,11 @@ class EventApp extends StatelessWidget {
       // (odluka od 25. septembra 2026 — ranije je bila samo tamna).
       theme: AppTheme.light,
       home: RootNavigation(
-        audioHandler: audioHandler,
-        hasFirebase: hasFirebase,
-        routeService: routeService,
+        audioHandler: widget.audioHandler,
+        hasFirebase: widget.hasFirebase,
+        routeService: widget.routeService,
+        skin: _skin,
+        onSkin: _setSkin,
       ),
     );
   }
@@ -93,6 +141,8 @@ class RootNavigation extends StatefulWidget {
     this.audioHandler,
     this.hasFirebase = false,
     this.routeService,
+    this.skin = AppSkin.safir,
+    this.onSkin,
   });
 
   final BackgroundAudioHandler? audioHandler;
@@ -102,6 +152,10 @@ class RootNavigation extends StatefulWidget {
 
   /// Računanje puta do događaja; `null` znači da se put ne računa.
   final RouteService? routeService;
+
+  /// Izabran izgled i način da se promeni — prosleđuje se u konzolu.
+  final AppSkin skin;
+  final ValueChanged<AppSkin>? onSkin;
 
   @override
   State<RootNavigation> createState() => _RootNavigationState();
@@ -133,8 +187,6 @@ class _RootNavigationState extends State<RootNavigation> {
   late final TrackNoteService _trackNotes = widget.hasFirebase
       ? FirestoreTrackNoteService()
       : InMemoryTrackNoteService();
-
-
 
   final ImagePicker _picker = ImagePicker();
 
@@ -268,6 +320,8 @@ class _RootNavigationState extends State<RootNavigation> {
           onOpenTeam: _auth.can(AppPermission.editEvent) ? _openTeam : null,
           onEditBase: _auth.can(AppPermission.editEvent) ? _editBase : null,
           baseAddress: _settings.baseAddress,
+          skin: widget.skin,
+          onSkin: widget.onSkin,
         ),
       ),
     );
@@ -352,7 +406,6 @@ class _RootNavigationState extends State<RootNavigation> {
     _eventsRevision.value++;
   }
 
-
   @override
   Widget build(BuildContext context) {
     final path = _logoPath;
@@ -392,73 +445,73 @@ class _RootNavigationState extends State<RootNavigation> {
                 labels: _pageLabels,
               ),
             ),
-            Expanded(
-              // Sadržaj ne sme da upadne pod sistemsku traku sa gestovima,
-              // a statusnu traku iznad njega zaklanja ili header ili traka
-              // sa tačkicama — jedno od to dvoje uvek stoji.
-              child: SafeArea(
-                top: false,
-                child: IndexedStack(
-                  // Spisak događaja i stranice jednog događaja stoje jedno
-                  // pored drugog. Oboje ostaje u stablu: muzika ne prestaje
-                  // dok se bira drugi događaj, a spisak ne gubi svoje mesto.
-                  index: _inEvent ? 1 : 0,
-                  children: [
-                    EventsScreen(
-                      auth: _auth,
-                      service: _events,
-                      onOpen: _openEvent,
-                      reloadSignal: _eventsRevision,
-                    ),
-                    // Između stranica se **prevlači** (odluka od 26.
-                    // septembra 2026). Svaka je `_KeepAlivePage`, jer
-                    // `PageView` inače ukloni stranicu koja nije uz
-                    // trenutnu — a sa Muzika stranicom bi otišao i plejer,
-                    // pa bi muzika stala čim se ode na Lager.
-                    PageView(
-                      controller: _pages,
-                      onPageChanged: _onPageChanged,
-                      children: [
-                        // Ključ po događaju: kad se otvori drugi, ekran se
-                        // gradi iz početka umesto da prikaže tuđe podatke.
-                        _KeepAlivePage(
-                          child: eventId == null
-                              ? const SizedBox.shrink()
-                              : HomeScreen(
-                                  key: ValueKey('home-$eventId'),
-                                  eventId: eventId,
-                                  auth: _auth,
-                                  service: _events,
-                                  route: widget.routeService,
-                                  onExit: _backToList,
-                                ),
+          Expanded(
+            // Sadržaj ne sme da upadne pod sistemsku traku sa gestovima,
+            // a statusnu traku iznad njega zaklanja ili header ili traka
+            // sa tačkicama — jedno od to dvoje uvek stoji.
+            child: SafeArea(
+              top: false,
+              child: IndexedStack(
+                // Spisak događaja i stranice jednog događaja stoje jedno
+                // pored drugog. Oboje ostaje u stablu: muzika ne prestaje
+                // dok se bira drugi događaj, a spisak ne gubi svoje mesto.
+                index: _inEvent ? 1 : 0,
+                children: [
+                  EventsScreen(
+                    auth: _auth,
+                    service: _events,
+                    onOpen: _openEvent,
+                    reloadSignal: _eventsRevision,
+                  ),
+                  // Između stranica se **prevlači** (odluka od 26.
+                  // septembra 2026). Svaka je `_KeepAlivePage`, jer
+                  // `PageView` inače ukloni stranicu koja nije uz
+                  // trenutnu — a sa Muzika stranicom bi otišao i plejer,
+                  // pa bi muzika stala čim se ode na Lager.
+                  PageView(
+                    controller: _pages,
+                    onPageChanged: _onPageChanged,
+                    children: [
+                      // Ključ po događaju: kad se otvori drugi, ekran se
+                      // gradi iz početka umesto da prikaže tuđe podatke.
+                      _KeepAlivePage(
+                        child: eventId == null
+                            ? const SizedBox.shrink()
+                            : HomeScreen(
+                                key: ValueKey('home-$eventId'),
+                                eventId: eventId,
+                                auth: _auth,
+                                service: _events,
+                                route: widget.routeService,
+                                onExit: _backToList,
+                              ),
+                      ),
+                      _KeepAlivePage(
+                        child: MusicScreen(
+                          audioHandler: widget.audioHandler,
+                          notes: _trackNotes,
+                          authorName: user?.name,
+                          authorAvatarId: user?.avatarId,
                         ),
-                        _KeepAlivePage(
-                          child: MusicScreen(
-                            audioHandler: widget.audioHandler,
-                            notes: _trackNotes,
-                            authorName: user?.name,
-                            authorAvatarId: user?.avatarId,
-                          ),
-                        ),
-                        const _KeepAlivePage(child: LedScreen()),
-                        _KeepAlivePage(
-                          child: eventId == null
-                              ? const SizedBox.shrink()
-                              : LagerScreen(
-                                  key: ValueKey('lager-$eventId'),
-                                  eventId: eventId,
-                                  auth: _auth,
-                                  service: _events,
-                                  reloadSignal: _lagerRevision,
-                                ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      const _KeepAlivePage(child: LedScreen()),
+                      _KeepAlivePage(
+                        child: eventId == null
+                            ? const SizedBox.shrink()
+                            : LagerScreen(
+                                key: ValueKey('lager-$eventId'),
+                                eventId: eventId,
+                                auth: _auth,
+                                service: _events,
+                                reloadSignal: _lagerRevision,
+                              ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
+          ),
         ],
       ),
     );

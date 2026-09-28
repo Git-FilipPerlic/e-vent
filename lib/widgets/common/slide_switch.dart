@@ -115,7 +115,7 @@ class _SlideSwitchState extends State<SlideSwitch> {
                     child: Container(
                       width: _knob,
                       height: _knob,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: AppColors.surface,
                         shape: BoxShape.circle,
                         boxShadow: kKnobShadow,

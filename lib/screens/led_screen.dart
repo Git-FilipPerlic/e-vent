@@ -262,13 +262,13 @@ class _LedScreenState extends State<LedScreen> {
           child: ListTile(
             title: Text(
               device.label,
-              style: const TextStyle(color: AppColors.textPrimary),
+              style: TextStyle(color: AppColors.textPrimary),
             ),
             subtitle: Text(
               device.address,
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: AppColors.textSecondary),
             ),
-            trailing: const Icon(
+            trailing: Icon(
               Icons.chevron_right_rounded,
               color: AppColors.accent,
             ),
@@ -558,8 +558,8 @@ class _AddressDialogState extends State<_AddressDialog> {
         keyboardType: TextInputType.number,
         textInputAction: TextInputAction.done,
         onSubmitted: (_) => _submit(),
-        style: const TextStyle(color: AppColors.textPrimary),
-        decoration: const InputDecoration(
+        style: TextStyle(color: AppColors.textPrimary),
+        decoration: InputDecoration(
           hintText: 'na primer 192.168.4.1',
           hintStyle: TextStyle(color: AppColors.textSecondary),
           filled: true,

@@ -275,7 +275,7 @@ class _PickerRow extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(
+            Icon(
               Icons.edit_calendar_rounded,
               color: AppColors.accent,
               size: 20,
@@ -323,8 +323,8 @@ class _MinutesDialogState extends State<_MinutesDialog> {
         keyboardType: TextInputType.number,
         textInputAction: TextInputAction.done,
         onSubmitted: (_) => _submit(),
-        style: const TextStyle(color: AppColors.textPrimary),
-        decoration: const InputDecoration(
+        style: TextStyle(color: AppColors.textPrimary),
+        decoration: InputDecoration(
           hintText: 'na primer 150',
           hintStyle: TextStyle(color: AppColors.textSecondary),
           filled: true,

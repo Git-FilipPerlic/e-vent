@@ -182,7 +182,7 @@ class _MusicRowState extends State<MusicRow> {
       return _EqualizerBars(animate: widget.isPlaying);
     }
     if (widget.isCued) {
-      return const Icon(
+      return Icon(
         Icons.check_circle_rounded,
         color: AppColors.accent,
         size: 26,

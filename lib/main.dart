@@ -7,6 +7,7 @@ import 'app.dart';
 import 'firebase_options.dart';
 import 'services/background_audio.dart';
 import 'services/route_service.dart';
+import 'services/skin_service.dart';
 import 'utils/date_format.dart';
 
 Future<void> main() async {
@@ -48,10 +49,16 @@ Future<void> main() async {
     hasFirebase = false;
   }
 
+  // Izgled se čita **pre prvog kadra**, da aplikacija ne bljesne
+  // podrazumevanim bojama pa se prebaci na izabrane.
+  final skin = await const SkinService().load();
+  skin.apply();
+
   runApp(
     EventApp(
       audioHandler: audioHandler,
       hasFirebase: hasFirebase,
+      initialSkin: skin,
       // Put do događaja računa samo prava aplikacija — u testu se ekran
       // podiže bez njega, da ne ide na mrežu.
       routeService: OsmRouteService(),

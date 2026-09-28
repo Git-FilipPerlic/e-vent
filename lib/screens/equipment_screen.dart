@@ -215,13 +215,13 @@ class _EquipmentScreenState extends State<EquipmentScreen> {
             child: ListTile(
               title: Text(
                 category.name,
-                style: const TextStyle(color: AppColors.textPrimary),
+                style: TextStyle(color: AppColors.textPrimary),
               ),
               subtitle: Text(
                 category.items.isEmpty
                     ? 'Nema delova'
                     : '${category.items.length} delova',
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: AppColors.textSecondary),
               ),
               // Dodir otvara delove; olovka menja naziv, kanta briše.
               onTap: () => _editItems(category),

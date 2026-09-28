@@ -165,7 +165,7 @@ class _BackPill extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.chevron_left_rounded, color: AppColors.accent),
+              Icon(Icons.chevron_left_rounded, color: AppColors.accent),
               Text(
                 'Plejlista',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -197,7 +197,7 @@ class _GiantPlayButton extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: AppGradients.playButton,
           boxShadow: kAccentShadow,

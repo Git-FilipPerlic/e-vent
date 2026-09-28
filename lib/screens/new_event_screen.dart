@@ -141,8 +141,8 @@ class _NewEventScreenState extends State<NewEventScreen> {
             TextField(
               controller: _title,
               textInputAction: TextInputAction.done,
-              style: const TextStyle(color: AppColors.textPrimary),
-              decoration: const InputDecoration(
+              style: TextStyle(color: AppColors.textPrimary),
+              decoration: InputDecoration(
                 // Konvencija iz specifikacije, u samom polju — kraće nego
                 // objašnjavati je posle.
                 hintText: 'na primer 7 Mia',

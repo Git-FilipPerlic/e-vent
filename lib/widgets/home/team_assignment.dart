@@ -286,7 +286,7 @@ class _AssignPickerState extends State<_AssignPicker> {
                     }),
                     title: Text(
                       member.name,
-                      style: const TextStyle(color: AppColors.textPrimary),
+                      style: TextStyle(color: AppColors.textPrimary),
                     ),
                     subtitle: known.isEmpty
                         ? null

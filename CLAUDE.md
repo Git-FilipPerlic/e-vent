@@ -1243,6 +1243,49 @@ važi 48 dp.
 - Visok kontrast, krupan tekst za ključne informacije (naziv, vreme, adresa)
 - Minimalistički UI: na ekranu samo ono što treba u tom trenutku
 
+### Izgledi (skinovi) — odluka od 28. septembra 2026
+
+Boje aplikacije se biraju **u konzoli**, iz četiri gotove kombinacije:
+
+| Izgled | id | Boja onoga što se dodiruje |
+|---|---|---|
+| Safir (podrazumevani, sadašnji) | `safir` | safirno plava |
+| Grimizna | `grimiz` | tamno crvena |
+| Tirkiz | `tirkiz` | duboko zeleno-plava |
+| Bledo siva | `siva` | prigušena čelično siva |
+
+**Izgled je lična stvar, ne podatak firme.** Bira ga svako za svoj telefon i
+pamti se **na telefonu** (`SharedPreferences`, `app_skin`), ne u bazi — zato ga
+menja i onaj bez ijedne dozvole, kao i svoje ime i ikonicu.
+
+**Boje koje nose značenje se ne menjaju ni u jednom izgledu**: zelena za
+spremno, žuta za pažnju, crvena za problem, i jarke boje ikonica članova. Kad
+bi se menjale, ista boja bi na dva telefona značila dve stvari. Menja se ono
+što je ukus: boja onoga što se dodiruje, podloge, okviri, tekst i topli
+akcenti (breskva i cimet).
+
+Šta to menja u kodu:
+
+- boje u `AppColors` su **promenljive**, ne `const`; postavlja ih
+  `AppSkin.apply()`. Pravilo ostaje isto — **paleta stoji na jednom mestu i
+  nijedan widget ne zna nijednu hex vrednost.**
+- zato ni jedan widget koji koristi boju ne može biti `const`. Tamo gde je
+  `const` stajao uz boju, uklonjen je; prevodilac to i sam brani.
+- gradijenti i senka u boji izgleda su **geteri**, jer se računaju iz boja.
+  Svetlija i tamnija nijansa velikog dugmeta se izvode iz same boje
+  (`AppSkin.lighten` / `darken`), pa dugme prati izgled.
+- izgled se čita **pre prvog kadra** (u `main`), da aplikacija ne bljesne
+  podrazumevanim bojama pa se prebaci.
+- promena izgleda **ne pravi ništa iznova**: prerisa se cela aplikacija, ali
+  muzika nastavlja da svira i otvoren događaj ostaje otvoren. Jedino što
+  zaostane su crteži koji se prerisavaju sami po sebi (talas) — oni uzmu nove
+  boje pri prvom pomeraju.
+
+**Grimizna ima jedno ograničenje koje treba znati:** boja onoga što se
+dodiruje tu je blizu crvene za greške. Zato je crvena za greške ostala
+svetlija i toplija od grimizne, a ako se u praksi ipak mešaju, menja se
+grimizna — ne crvena, jer crvena znači problem u celoj aplikaciji.
+
 ### Paleta (koristiti tačno ove vrednosti)
 
 Vizuelni pravac (od 25. septembra 2026): **svetao, nežan, „Apple" osećaj.**

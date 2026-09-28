@@ -27,6 +27,8 @@ class LoginScreen extends StatefulWidget {
     this.onOpenTeam,
     this.onEditBase,
     this.baseAddress,
+    this.skin = AppSkin.safir,
+    this.onSkin,
   });
 
   /// Otvara spisak opreme firme. `null` kad korisnik nema dozvolu.
@@ -41,6 +43,13 @@ class LoginScreen extends StatefulWidget {
 
   /// Adresa magacina, da se vidi šta je upisano. `null` dok nije uneta.
   final String? baseAddress;
+
+  /// Izabran izgled aplikacije i način da se promeni.
+  ///
+  /// Izgled je lična stvar — bira ga svako za svoj telefon, i zato stoji
+  /// ovde, uz ime i ikonicu, a ne među podacima firme.
+  final AppSkin skin;
+  final ValueChanged<AppSkin>? onSkin;
 
   final AuthService auth;
 
@@ -224,6 +233,38 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
 
+        if (widget.onSkin != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Izgled',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textSecondary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Boje aplikacije na ovom telefonu. Zelena, žuta i crvena se ne '
+            'menjaju — one nose značenje, pa moraju da znače isto svima.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              for (final skin in AppSkin.all)
+                _SkinButton(
+                  skin: skin,
+                  selected: skin.id == widget.skin.id,
+                  onTap: () => widget.onSkin!(skin),
+                ),
+            ],
+          ),
+        ],
+
         if (widget.onOpenEquipment != null) ...[
           const SizedBox(height: AppSpacing.lg),
           Text(
@@ -380,8 +421,8 @@ class _LoginScreenState extends State<LoginScreen> {
           controller: _name,
           autofocus: true,
           textInputAction: TextInputAction.next,
-          style: const TextStyle(color: AppColors.textPrimary),
-          decoration: const InputDecoration(
+          style: TextStyle(color: AppColors.textPrimary),
+          decoration: InputDecoration(
             labelText: 'Ime',
             labelStyle: TextStyle(color: AppColors.textSecondary),
             filled: true,
@@ -396,8 +437,8 @@ class _LoginScreenState extends State<LoginScreen> {
           keyboardType: TextInputType.number,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _submit(),
-          style: const TextStyle(color: AppColors.textPrimary),
-          decoration: const InputDecoration(
+          style: TextStyle(color: AppColors.textPrimary),
+          decoration: InputDecoration(
             labelText: 'PIN',
             labelStyle: TextStyle(color: AppColors.textSecondary),
             filled: true,
@@ -498,6 +539,91 @@ class _AvatarPicker extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Jedan izgled kao dugme: tri kružića sa njegovim bojama i naziv.
+///
+/// Boje se pokazuju, ne opisuju — reč „grimizna" ne kaže kako to izgleda na
+/// ekranu, a tri kružića kažu.
+class _SkinButton extends StatelessWidget {
+  const _SkinButton({
+    required this.skin,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AppSkin skin;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: kMinTouchTarget),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.accentDeep : AppColors.surface,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: selected ? AppColors.accent : AppColors.border,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _Dot(color: skin.accent),
+              _Dot(color: skin.peachStrong),
+              _Dot(color: skin.backgroundBottom),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                skin.name,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+              if (selected) ...[
+                const SizedBox(width: AppSpacing.xs),
+                Icon(Icons.check_rounded, size: 18, color: AppColors.accent),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Dot extends StatelessWidget {
+  const _Dot({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 14,
+      height: 14,
+      margin: const EdgeInsets.only(right: 3),
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.border),
       ),
     );
   }

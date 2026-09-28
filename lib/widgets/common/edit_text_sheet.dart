@@ -110,10 +110,10 @@ class _EditTextSheetState extends State<_EditTextSheet> {
               inputFormatters: widget.keyboardType == TextInputType.phone
                   ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ()-]'))]
                   : null,
-              style: const TextStyle(color: AppColors.textPrimary),
+              style: TextStyle(color: AppColors.textPrimary),
               decoration: InputDecoration(
                 hintText: widget.hint,
-                hintStyle: const TextStyle(color: AppColors.textSecondary),
+                hintStyle: TextStyle(color: AppColors.textSecondary),
                 filled: true,
                 fillColor: AppColors.surfaceAlt,
                 border: const OutlineInputBorder(),

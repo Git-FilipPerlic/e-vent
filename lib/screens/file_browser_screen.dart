@@ -187,7 +187,7 @@ class _FileBrowserScreenState extends State<FileBrowserScreen> {
               Text(
                 error,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: AppColors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.md),
               FilledButton(
@@ -201,7 +201,7 @@ class _FileBrowserScreenState extends State<FileBrowserScreen> {
     }
 
     if (_entries.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.all(AppSpacing.xl),
           child: Text(
@@ -248,7 +248,7 @@ class _FileBrowserScreenState extends State<FileBrowserScreen> {
         _path!.replaceFirst(FileBrowser.internalStorage, 'Memorija telefona'),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+        style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
       ),
     );
   }
@@ -293,7 +293,7 @@ class _FileBrowserScreenState extends State<FileBrowserScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.folder_off_rounded,
               size: 48,
               color: AppColors.textSecondary,
@@ -308,7 +308,7 @@ class _FileBrowserScreenState extends State<FileBrowserScreen> {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            const Text(
+            Text(
               'Od Androida 11 aplikacija sme da čita foldere tek kad joj '
               'odobriš "Pristup svim fajlovima". Dugme ispod otvara to '
               'podešavanje — uključi prekidač i vrati se nazad.',
@@ -363,7 +363,7 @@ class _EntryRow extends StatelessWidget {
         child: Container(
           height: kMinTouchTarget,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: AppColors.border)),
           ),
           child: Row(
@@ -393,7 +393,7 @@ class _EntryRow extends StatelessWidget {
                 ),
               ),
               if (entry.isFolder)
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
                   color: AppColors.textSecondary,
                   size: 20,

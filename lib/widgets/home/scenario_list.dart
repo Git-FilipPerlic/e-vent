@@ -116,8 +116,8 @@ class _ScenarioListState extends State<ScenarioList> {
                       autofocus: true,
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _submit(),
-                      style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: AppColors.textPrimary),
+                      decoration: InputDecoration(
                         hintText: 'Nova tačka programa',
                         hintStyle: TextStyle(color: AppColors.textSecondary),
                         filled: true,

@@ -2224,6 +2224,32 @@ i pripada.
 
 ---
 
+## 28. septembar 2026 — izgledi (skinovi) u konzoli
+
+- Zahtev korisnika: da u konzoli može da bira kombinacije boja — grimizna,
+  tirkiz i bledo siva — i da svako sebi izabere ono što mu godi.
+- Urađeno:
+  - `AppSkin` u `app_theme.dart`: četiri izgleda (Safir kao podrazumevani,
+    Grimizna, Tirkiz, Bledo siva) i `apply()`, koji postavlja boje.
+  - Boje u `AppColors` su promenljive; gradijenti i senka u boji izgleda su
+    geteri. Uklonjen `const` na 26 mesta gde je stajao uz boju.
+  - `SkinService` pamti izbor na telefonu (`app_skin`); čita se u `main`
+    pre prvog kadra.
+  - U konzoli, ispod imena i ikonice, stoji red dugmića sa po tri kružića
+    (boja dodira, topli akcent, podloga) i nazivom izgleda.
+  - Zelena, žuta, crvena i boje ikonica članova ostaju iste u svim
+    izgledima — one nose značenje.
+- Provereno: `flutter analyze` bez greške, 401 test prolazi; nov
+  `test/skin_test.dart` (8 testova) pokriva izbor, pamćenje, to da tema
+  prati izgled i da se boje sa značenjem ne menjaju.
+- Otvoreni problemi: u grimiznoj je boja dodira blizu crvene za greške;
+  ako se u praksi mešaju, menja se grimizna, ne crvena. Talas uzme nove boje
+  pri prvom pomeraju, jer se prerisava sam po sebi.
+- Sledeće: proba na telefonu — kako grimizna i siva izgledaju u mraku, na
+  nastupu.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

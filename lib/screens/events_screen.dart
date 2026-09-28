@@ -361,7 +361,7 @@ class _EventRow extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.accent),
+              Icon(Icons.chevron_right_rounded, color: AppColors.accent),
             ],
           ),
         ),

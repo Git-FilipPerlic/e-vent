@@ -71,7 +71,7 @@ class VehiclePicker extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.local_shipping_rounded,
                 color: AppColors.textSecondary,
                 size: 20,
@@ -104,7 +104,7 @@ class VehiclePicker extends StatelessWidget {
                 ),
               ),
               if (canEdit)
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
                   color: AppColors.accent,
                 ),
@@ -183,7 +183,7 @@ class _VehicleSheetState extends State<_VehicleSheet> {
               ),
             ),
             if (widget.vehicles.isEmpty)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: AppSpacing.md,
                   vertical: AppSpacing.sm,
@@ -216,7 +216,7 @@ class _VehicleSheetState extends State<_VehicleSheet> {
                       ),
                     ),
                     trailing: isSelected
-                        ? const Icon(
+                        ? Icon(
                             Icons.check_rounded,
                             color: AppColors.accent,
                           )
@@ -233,8 +233,8 @@ class _VehicleSheetState extends State<_VehicleSheet> {
             if (!_isAdding)
               ListTile(
                 minTileHeight: kMinTouchTarget,
-                leading: const Icon(Icons.add_rounded, color: AppColors.accent),
-                title: const Text(
+                leading: Icon(Icons.add_rounded, color: AppColors.accent),
+                title: Text(
                   'Dodaj vozilo',
                   style: TextStyle(color: AppColors.accent),
                 ),
@@ -251,8 +251,8 @@ class _VehicleSheetState extends State<_VehicleSheet> {
                         autofocus: true,
                         textInputAction: TextInputAction.done,
                         onSubmitted: (_) => _submitNewVehicle(),
-                        style: const TextStyle(color: AppColors.textPrimary),
-                        decoration: const InputDecoration(
+                        style: TextStyle(color: AppColors.textPrimary),
+                        decoration: InputDecoration(
                           hintText: 'Naziv vozila',
                           hintStyle: TextStyle(color: AppColors.textSecondary),
                           filled: true,
