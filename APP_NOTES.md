@@ -2250,6 +2250,27 @@ i pripada.
 
 ---
 
+## 28. septembar 2026 — premeštanje stavki scenarija
+
+- Zahtev korisnika: kad se jedna tačka preskoči, da ne mora da se briše sve
+  i piše ispočetka, nego da se samo promeni redosled prevlačenjem.
+- Urađeno:
+  - `ScenarioList` sada dobija jedan spisak (`ScenarioPoint`: tekst i da li
+    je dodata), a ne dva odvojena. Tačke iz baze i dodate se mogu mešati.
+  - Svaka tačka ima **ručicu levo** (48 dp); premešta se samo za nju. Dug
+    pritisak po celom redu bi se otimao sa skrolovanjem i prevlačenjem
+    između stranica.
+  - Brisanje i dalje važi samo za dodate tačke.
+  - Pri povlačenju nadole ostaje složen redosled, osim ako su se tačke u
+    bazi promenile — tada se vraća redosled iz baze, a dodate idu na kraj.
+- Provereno: `flutter analyze` bez greške, 403 testa prolaze; dodati testovi
+  za ručice i za prevlačenje.
+- Otvoreni problemi: **redosled i dodate tačke se ne čuvaju** — važe dok je
+  događaj otvoren, isto kao i dodate tačke do sada. Ekipa ih ne vidi.
+- Sledeće: proba na telefonu; odluka da li se scenario čuva u događaju.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

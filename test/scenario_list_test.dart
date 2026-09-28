@@ -6,29 +6,34 @@ import 'package:flutter_test/flutter_test.dart';
 Widget _wrap(Widget child) {
   return MaterialApp(
     theme: AppTheme.dark,
-    home: Scaffold(body: child),
+    home: Scaffold(body: SingleChildScrollView(child: child)),
   );
 }
 
-const List<String> _fromDatabase = [
-  'Doček gostiju',
-  'Igre za decu',
-  'Završni plesni program',
+const List<ScenarioPoint> _fromDatabase = [
+  ScenarioPoint('Doček gostiju'),
+  ScenarioPoint('Igre za decu'),
+  ScenarioPoint('Završni plesni program'),
 ];
+
+ScenarioList _list(
+  List<ScenarioPoint> points, {
+  ValueChanged<String>? onAdd,
+  ValueChanged<int>? onRemove,
+  void Function(int from, int to)? onReorder,
+}) {
+  return ScenarioList(
+    points: points,
+    onAdd: onAdd ?? (_) {},
+    onRemove: onRemove ?? (_) {},
+    onReorder: onReorder ?? (_, _) {},
+  );
+}
 
 void main() {
   testWidgets('prikazuje tačke iz baze, numerisane redom',
       (WidgetTester tester) async {
-    await tester.pumpWidget(
-      _wrap(
-        ScenarioList(
-          items: _fromDatabase,
-          addedItems: const [],
-          onAdd: (_) {},
-          onRemoveAdded: (_) {},
-        ),
-      ),
-    );
+    await tester.pumpWidget(_wrap(_list(_fromDatabase)));
 
     expect(find.text('Doček gostiju'), findsOneWidget);
     expect(find.text('1.'), findsOneWidget);
@@ -40,12 +45,7 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(
       _wrap(
-        ScenarioList(
-          items: _fromDatabase,
-          addedItems: const ['Bis'],
-          onAdd: (_) {},
-          onRemoveAdded: (_) {},
-        ),
+        _list(const [..._fromDatabase, ScenarioPoint('Bis', isAdded: true)]),
       ),
     );
 
@@ -58,11 +58,13 @@ void main() {
     int? removedIndex;
     await tester.pumpWidget(
       _wrap(
-        ScenarioList(
-          items: _fromDatabase,
-          addedItems: const ['Bis'],
-          onAdd: (_) {},
-          onRemoveAdded: (index) => removedIndex = index,
+        _list(
+          const [
+            ScenarioPoint('Doček gostiju'),
+            ScenarioPoint('Bis', isAdded: true),
+            ScenarioPoint('Igre za decu'),
+          ],
+          onRemove: (index) => removedIndex = index,
         ),
       ),
     );
@@ -73,21 +75,53 @@ void main() {
     await tester.tap(find.byIcon(Icons.close_rounded));
     await tester.pump();
 
-    expect(removedIndex, 0);
+    // Broj je mesto u celom spisku, ne među dodatim.
+    expect(removedIndex, 1);
+  });
+
+  testWidgets('svaka tačka ima ručicu za premeštanje',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        _list(const [..._fromDatabase, ScenarioPoint('Bis', isAdded: true)]),
+      ),
+    );
+
+    expect(find.byIcon(Icons.drag_indicator_rounded), findsNWidgets(4));
+  });
+
+  testWidgets('prevlačenje za ručicu javlja novo mesto tačke',
+      (WidgetTester tester) async {
+    int? from;
+    int? to;
+    await tester.pumpWidget(
+      _wrap(
+        _list(
+          _fromDatabase,
+          onReorder: (f, t) {
+            from = f;
+            to = t;
+          },
+        ),
+      ),
+    );
+
+    // Prva tačka se spušta ispod poslednje.
+    final handle = find.byIcon(Icons.drag_indicator_rounded).first;
+    final gesture = await tester.startGesture(tester.getCenter(handle));
+    await tester.pump(const Duration(milliseconds: 100));
+    await gesture.moveBy(const Offset(0, 200));
+    await tester.pump(const Duration(milliseconds: 500));
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(from, 0);
+    expect(to, 2);
   });
 
   testWidgets('prazan scenario ima svoje objašnjenje',
       (WidgetTester tester) async {
-    await tester.pumpWidget(
-      _wrap(
-        ScenarioList(
-          items: const [],
-          addedItems: const [],
-          onAdd: (_) {},
-          onRemoveAdded: (_) {},
-        ),
-      ),
-    );
+    await tester.pumpWidget(_wrap(_list(const [])));
 
     expect(find.text('Scenario nije unet'), findsOneWidget);
     expect(find.text('Dodaj tačku'), findsOneWidget);
@@ -97,14 +131,7 @@ void main() {
       (WidgetTester tester) async {
     String? added;
     await tester.pumpWidget(
-      _wrap(
-        ScenarioList(
-          items: _fromDatabase,
-          addedItems: const [],
-          onAdd: (text) => added = text,
-          onRemoveAdded: (_) {},
-        ),
-      ),
+      _wrap(_list(_fromDatabase, onAdd: (text) => added = text)),
     );
 
     await tester.tap(find.text('Dodaj tačku'));
@@ -122,14 +149,7 @@ void main() {
   testWidgets('prazna tačka se ne prihvata', (WidgetTester tester) async {
     var calls = 0;
     await tester.pumpWidget(
-      _wrap(
-        ScenarioList(
-          items: _fromDatabase,
-          addedItems: const [],
-          onAdd: (_) => calls++,
-          onRemoveAdded: (_) {},
-        ),
-      ),
+      _wrap(_list(_fromDatabase, onAdd: (_) => calls++)),
     );
 
     await tester.tap(find.text('Dodaj tačku'));

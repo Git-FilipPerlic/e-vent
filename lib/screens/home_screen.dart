@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../models/checklist.dart';
@@ -97,9 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isForecastLoading = false;
   String? _forecastError;
 
-  /// Tačke scenarija koje je korisnik sam dodao. Za sada žive samo dok traje
-  /// ekran — trajno čuvanje ide uz bazu.
-  final List<String> _addedScenario = [];
+  /// Scenario redom kojim se izvodi: tačke iz baze i one koje je korisnik
+  /// sam dodao, pomešane onako kako ih je poređao. Dodate tačke i redosled
+  /// za sada žive samo dok traje ekran — trajno čuvanje ide uz bazu.
+  List<ScenarioPoint> _scenario = [];
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -255,6 +257,23 @@ class _HomeScreenState extends State<HomeScreen> {
     await _saveEdited(event.copyWith(assignedTo: picked), previous: event);
   }
 
+  /// Scenario posle ponovnog učitavanja. Ako se tačke iz baze nisu
+  /// promenile, ostaje redosled koji je korisnik složio; ako jesu, tačke iz
+  /// baze idu njihovim redom, a dodate za njima.
+  List<ScenarioPoint> _mergeScenario(List<String> fromDatabase) {
+    final added = _scenario.where((p) => p.isAdded).toList();
+    final current = [
+      for (final p in _scenario)
+        if (!p.isAdded) p.text,
+    ]..sort();
+    final incoming = [...fromDatabase]..sort();
+    if (listEquals(current, incoming)) return _scenario;
+    return [
+      for (final text in fromDatabase) ScenarioPoint(text),
+      ...added,
+    ];
+  }
+
   Future<void> _loadEvent() async {
     setState(() {
       _isLoading = true;
@@ -273,6 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final event = results[0] as Event;
       setState(() {
         _event = event;
+        _scenario = _mergeScenario(event.scenario);
         _vehicles = results[1] as List<Vehicle>;
         _catalog = results[2] as List<ChecklistSection>;
         _isLoading = false;
@@ -606,11 +626,14 @@ class _HomeScreenState extends State<HomeScreen> {
             eventStart: _event?.eventDate,
           ),
           ScenarioList(
-            items: _event?.scenario ?? const [],
-            addedItems: _addedScenario,
-            onAdd: (text) => setState(() => _addedScenario.add(text)),
-            onRemoveAdded: (index) =>
-                setState(() => _addedScenario.removeAt(index)),
+            points: _scenario,
+            onAdd: (text) => setState(
+              () => _scenario.add(ScenarioPoint(text, isAdded: true)),
+            ),
+            onRemove: (index) => setState(() => _scenario.removeAt(index)),
+            onReorder: (from, to) => setState(
+              () => _scenario.insert(to, _scenario.removeAt(from)),
+            ),
           ),
         ],
       ),
