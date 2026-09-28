@@ -204,31 +204,6 @@ class MusicPlayerController extends ChangeNotifier {
   VolumeStep get volume => _volume;
 
   /// Prebacuje na sledeći stepenik jačine: L → E → F → L.
-  /// Vučenje zvuka prstom po talasu — „scratch".
-  ///
-  /// Pravog scratch-a nema bez sviranja unazad, a plejer to ne ume. Ovo je
-  /// ono što se od njega može dobiti: zvuk **skače za prstom** i menja
-  /// brzinu po tome koliko se brzo vuče. Unazad se čuje kao premotavanje uz
-  /// isprekidan zvuk, a ne kao prava ploča vrćena rukom.
-  ///
-  /// [speed] je odnos prema normalnoj brzini; nula i niže znači da se vuče
-  /// unazad, pa se zvuk spušta na najnižu brzinu i samo skače.
-  Future<void> scratchTo(Duration position, double speed) async {
-    if (!isReady || sounding == null) return;
-
-    _position = position;
-    _isFadingOut = false;
-    _updateProgress();
-    await playback.seek(position);
-    await playback.setSpeedNow(speed <= 0 ? 0.25 : speed);
-  }
-
-  /// Prst je podignut: brzina se vraća na zadatu.
-  Future<void> endScratch() async {
-    if (!isReady) return;
-    await playback.endScratch();
-  }
-
   /// Sledeća brzina ploče, u krug. Zvuk do nje klizi, ne skače.
   Future<void> cycleRecordSpeed() async {
     _recordSpeed = _recordSpeed.next;

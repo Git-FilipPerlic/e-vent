@@ -51,20 +51,6 @@ class FakePlayback implements AudioPlayback {
   Future<void> setRecordSpeed(double value) async {
     _recordSpeed = value;
   }
-
-  /// Poslednja brzina tražena u toku vučenja zvuka prstom.
-  double? lastScratchSpeed;
-  int scratchEndCalls = 0;
-
-  @override
-  Future<void> setSpeedNow(double value) async {
-    lastScratchSpeed = value;
-  }
-
-  @override
-  Future<void> endScratch() async {
-    scratchEndCalls++;
-  }
   int pauseCalls = 0;
   Duration? lastSeek;
   bool? lastFadeIn;

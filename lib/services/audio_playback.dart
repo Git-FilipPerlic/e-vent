@@ -77,14 +77,6 @@ abstract interface class AudioPlayback {
   /// Trenutna brzina ploče.
   double get recordSpeed;
 
-  /// Brzina **odmah**, bez klizanja — za vučenje zvuka prstom (scratch),
-  /// gde svako klizanje kasni za prstom.
-  Future<void> setSpeedNow(double value);
-
-  /// Vraća brzinu na zadatu, uz kratko klizanje. Zove se kad se prst
-  /// podigne sa talasa.
-  Future<void> endScratch();
-
   /// Preklapa zvuk sa numere koja svira na unapred učitanu: prva se spušta,
   /// druga se penje, obe sviraju u isto vreme.
   ///
@@ -252,18 +244,6 @@ class JustAudioPlayback implements AudioPlayback {
     });
     return done.future;
   }
-
-  @override
-  Future<void> setSpeedNow(double value) async {
-    _speedTimer?.cancel();
-    _speedTimer = null;
-    final target = value.clamp(0.05, 3.0);
-    _speedNow = target;
-    await _applySpeed(_active, target);
-  }
-
-  @override
-  Future<void> endScratch() => _glideSpeed(_recordSpeed, recordStartGlide);
 
   /// Brzina i visina tona idu zajedno — to je ono što zvuči kao ploča.
   Future<void> _applySpeed(AudioPlayer player, double value) async {

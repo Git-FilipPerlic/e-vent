@@ -1,9 +1,7 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import '../models/track.dart';
@@ -115,24 +113,6 @@ class _WaveScreenState extends State<WaveScreen>
   /// se tu i odlučuje da li prethodna numera izlazi pretapanjem.
   late bool _fade = widget.fade;
 
-  /// Da li prevlačenje vuče i zvuk, ne samo sliku.
-  ///
-  /// Stoji kao prekidač, a ne kao stalno ponašanje: dok se talas samo
-  /// razgleda, zvuk ne sme da skoče za prstom.
-  bool _scratch = false;
-
-  /// Kad je poslednji put zvuk pomeren za prstom — da se ne šalje
-  /// premotavanje na svaki kadar.
-  ///
-  /// Meri se **vremenom kadra**, ne satom: sat u testu stoji, a i u
-  /// aplikaciji je vreme kadra ono po čemu se pokret ionako odmerava.
-  Duration _lastScratch = Duration.zero;
-  double _lastScratchOffset = 0;
-  bool _scratching = false;
-
-  /// Najkraći razmak između dva premotavanja u toku vučenja.
-  static const Duration _scratchStep = Duration(milliseconds: 70);
-
   /// Beleške koje je ekipa ostavila na ovoj pesmi.
   List<TrackNote> _trackNotes = const [];
 
@@ -165,8 +145,8 @@ class _WaveScreenState extends State<WaveScreen>
       builder: (context) => _NoteSheet(
         note: note,
         // Svoju belešku svako sme da skloni; tuđu ne dira.
-        canRemove:
-            widget.authorName != null && widget.authorName == note.authorName,
+        canRemove: widget.authorName != null &&
+            widget.authorName == note.authorName,
       ),
     );
     if (removed != true || !mounted) return;
@@ -282,7 +262,6 @@ class _WaveScreenState extends State<WaveScreen>
   @override
   void initState() {
     super.initState();
-    _scroll.addListener(_onScroll);
     _loadWave();
     _loadNotes();
   }
@@ -304,7 +283,6 @@ class _WaveScreenState extends State<WaveScreen>
 
   @override
   void dispose() {
-    _scroll.removeListener(_onScroll);
     _hold.dispose();
     _scroll.dispose();
     super.dispose();
@@ -319,70 +297,6 @@ class _WaveScreenState extends State<WaveScreen>
     if (!_isSounding || total == null || total == Duration.zero) return;
     final f = widget.controller.position.inMilliseconds / total.inMilliseconds;
     _scroll.jumpTo(f.clamp(0.0, 1.0) * _contentHeight);
-  }
-
-  /// Dok je `Scratch` uključen, zvuk ide za prstom.
-  ///
-  /// Brzina se računa iz toga koliko je prst prešao za proteklo vreme: brže
-  /// vučenje znači viši ton, sporije niži — kao kad se ploča gura rukom.
-  /// Unazad plejer ne ume da svira, pa se tamo čuje isprekidano premotavanje.
-  void _onScroll() {
-    if (!_scratch || !_isSounding || !_scroll.hasClients) return;
-
-    final total = _duration;
-    if (total == null || _contentHeight <= 0) return;
-
-    final now = SchedulerBinding.instance.currentSystemFrameTimeStamp;
-    final elapsed = now - _lastScratch;
-    if (elapsed < _scratchStep) return;
-
-    final offset = _scroll.offset;
-    final moved = offset - _lastScratchOffset;
-    _lastScratch = now;
-    _lastScratchOffset = offset;
-    if (!_scratching) {
-      _scratching = true;
-      return;
-    }
-
-    // Koliko sekundi pesme je prst prešao u sekundi stvarnog vremena.
-    final songSeconds = (moved / _contentHeight) * total.inMilliseconds / 1000;
-    final realSeconds = elapsed.inMilliseconds / 1000;
-    final ratio = realSeconds <= 0 ? 1.0 : songSeconds / realSeconds;
-
-    unawaited(
-      widget.controller.scratchTo(
-        Duration(milliseconds: (total.inMilliseconds * _fraction).round()),
-        ratio.abs().clamp(0.25, 2.5),
-      ),
-    );
-  }
-
-  /// Prst je podignut sa talasa: brzina se vraća na normalnu.
-  void _endScratch() {
-    if (!_scratching) return;
-    _scratching = false;
-    unawaited(widget.controller.endScratch());
-  }
-
-  void _slideHint() => ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      const SnackBar(content: Text('Prevuci prekidač — dodir ga ne menja')),
-    );
-
-  /// Uključuje i isključuje vučenje zvuka.
-  ///
-  /// Pri gašenju se brzina odmah vraća na normalnu — inače bi zvuk ostao
-  /// usporen zato što je prekidač zatekao prst u pokretu.
-  void _setScratch(bool value) {
-    setState(() => _scratch = value);
-    if (!value) {
-      _endScratch();
-    } else {
-      _lastScratchOffset = _scroll.hasClients ? _scroll.offset : 0;
-      _lastScratch = SchedulerBinding.instance.currentSystemFrameTimeStamp;
-    }
   }
 
   void _toggleZoom() {
@@ -500,52 +414,44 @@ class _WaveScreenState extends State<WaveScreen>
                           (instance) => instance.onDoubleTap = _toggleZoom,
                         ),
                   },
-                  child: NotificationListener<ScrollNotification>(
-                    // Prst se podigao (i zamah se istrošio) — brzina se
-                    // vraća na normalnu.
-                    onNotification: (notification) {
-                      if (notification is ScrollEndNotification) _endScratch();
-                      return false;
-                    },
-                    child: SingleChildScrollView(
-                      controller: _scroll,
-                      child: SizedBox(
-                        width: width,
-                        height: _contentHeight + _viewport,
-                        child: Stack(
-                          children: [
-                            AnimatedBuilder(
-                              animation: _scroll,
-                              builder: (context, _) => CustomPaint(
-                                size: Size(width, _contentHeight + _viewport),
-                                painter: _WavePainter(
-                                  amplitudes: _amplitudes,
-                                  top: half,
-                                  height: _contentHeight,
-                                  playheadY: half + _fraction * _contentHeight,
-                                  notes: _noteFractions,
-                                ),
+                  child: SingleChildScrollView(
+                    controller: _scroll,
+                    child: SizedBox(
+                      width: width,
+                      height: _contentHeight + _viewport,
+                      child: Stack(
+                        children: [
+                          AnimatedBuilder(
+                            animation: _scroll,
+                            builder: (context, _) => CustomPaint(
+                              size: Size(width, _contentHeight + _viewport),
+                              painter: _WavePainter(
+                                amplitudes: _amplitudes,
+                                top: half,
+                                height: _contentHeight,
+                                playheadY: half + _fraction * _contentHeight,
+                                notes: _noteFractions,
                               ),
                             ),
-                            // Ikonica onoga ko je ostavio belešku stoji uz levu
-                            // ivicu, na visini svog mesta u pesmi.
-                            for (final note in _trackNotes)
-                              if (_fractionOf(note) != null)
-                                Positioned(
-                                  left: AppSpacing.sm,
-                                  top:
-                                      half +
-                                      _fractionOf(note)! * _contentHeight -
-                                      16,
-                                  child: GestureDetector(
-                                    onTap: () => _openNote(note),
-                                    child: TeamAvatarDot(
-                                      avatarId: note.authorAvatarId,
-                                    ),
+                          ),
+                          // Ikonica onoga ko je ostavio belešku stoji uz levu
+                          // ivicu, na visini svog mesta u pesmi.
+                          for (final note in _trackNotes)
+                            if (_fractionOf(note) != null)
+                              Positioned(
+                                left: AppSpacing.sm,
+                                top:
+                                    half +
+                                    _fractionOf(note)! * _contentHeight -
+                                    16,
+                                child: GestureDetector(
+                                  onTap: () => _openNote(note),
+                                  child: TeamAvatarDot(
+                                    avatarId: note.authorAvatarId,
                                   ),
                                 ),
-                          ],
-                        ),
+                              ),
+                        ],
                       ),
                     ),
                   ),
@@ -619,51 +525,32 @@ class _WaveScreenState extends State<WaveScreen>
               Positioned(
                 right: AppSpacing.md,
                 top: MediaQuery.of(context).padding.top + AppSpacing.sm,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Fade',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: _fade
-                                ? AppColors.accent
-                                : AppColors.textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        SlideSwitch(
-                          value: _fade,
-                          onChanged: (value) => setState(() => _fade = value),
-                          label: 'Pretapanje',
-                          icon: Icons.waves_rounded,
-                          onTapWithoutSlide: _slideHint,
-                        ),
-                      ],
+                    Text(
+                      'Fade',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: _fade
+                            ? AppColors.accent
+                            : AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Row(
-                      children: [
-                        Text(
-                          'Scratch',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: _scratch
-                                ? AppColors.accent
-                                : AppColors.textSecondary,
-                            fontWeight: FontWeight.w600,
+                    const SizedBox(width: AppSpacing.sm),
+                    SlideSwitch(
+                      value: _fade,
+                      onChanged: (value) => setState(() => _fade = value),
+                      label: 'Pretapanje',
+                      icon: Icons.waves_rounded,
+                      onTapWithoutSlide: () => ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Prevuci prekidač — dodir ga ne menja',
+                            ),
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.sm),
-                        SlideSwitch(
-                          value: _scratch,
-                          onChanged: _setScratch,
-                          label: 'Vučenje zvuka',
-                          icon: Icons.album_rounded,
-                          onTapWithoutSlide: _slideHint,
-                        ),
-                      ],
                     ),
                   ],
                 ),

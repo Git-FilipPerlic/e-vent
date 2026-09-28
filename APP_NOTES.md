@@ -2137,32 +2137,20 @@ i pripada.
   preglednije — traži proveru šta tačno očekuje
 - Sledeće: to razjasniti
 
-## 28. septembar 2026 — vučenje zvuka prstom po talasu (scratch)
+## 28. septembar 2026 — scratch odbačen i uklonjen
 
-- Urađeno:
-  - Na ekranu sa talasom stoji nov prekidač **Scratch**, ispod `Fade` u
-    istom uglu. Dok je uključen i numera svira, prevlačenje po talasu
-    premotava zvuk tamo gde je prst, a brzina i visina tona idu po tome
-    koliko se brzo vuče (kao ploča koja se gura rukom).
-  - `AudioPlayback` je dobio `setSpeedNow` (brzina odmah, bez klizanja) i
-    `endScratch` (vraćanje na zadatu brzinu kad se prst podigne).
-  - `MusicPlayerController.scratchTo(position, speed)` premotava i menja
-    brzinu; `endScratch()` vraća normalnu.
-  - Zvuk se pomera najviše svakih 70 ms, a brzina je ograničena na
-    0,25–2,5. Vreme se meri **vremenom kadra**, ne satom — sat u testu stoji.
-- Provereno: `flutter analyze` bez greške, ceo paket testova prolazi (394).
-  Nov fajl `test/scratch_test.dart` (8 testova): premotavanje i brzina,
-  vučenje unazad, ništa se ne dira dok numera ne svira, prekidač se menja
-  samo prevlačenjem, i isključen prekidač ne dira zvuk.
-- Otvoreni problemi:
-  - **Pravog scratch-a nema** — `just_audio` ne svira unazad, pa se vučenje
-    nagore čuje kao isprekidano premotavanje uz najniži ton. Ako to ne bude
-    dovoljno, jedini put je zaseban plejer koji sam čita uzorke (velik posao
-    i nov paket).
-  - Kako to zvuči preko Bluetooth-a na mikseti treba proveriti na nastupu:
-    kašnjenje od 100–200 ms se na vučenju prstom oseti više nego inače.
-- Sledeće: proba na telefonu (release APK), pa odluka da li vučenje ostaje
-  takvo ili se odustaje.
+- Urađeno: uklonjeno sve što je bilo napravljeno za scratch — prekidač na
+  ekranu sa talasom, `setSpeedNow` i `endScratch` u plejeru, `scratchTo` u
+  kontroleru i `test/scratch_test.dart`. Vraćeno kroz `git revert` dva
+  commita (469ce34, 86c3613).
+- Zašto: korisnik je probao i rekao da mu „sve to sa skrečom deluje
+  pogrešno“. Razlog je u samom plejeru: `just_audio` ne svira unazad, pa se
+  vučenje u kontra smeru čulo kao isprekidano premotavanje. Uz to je na
+  nezumiranom talasu jedan pokret prsta vredeo desetak sekundi pesme, pa je
+  brzina stalno stajala na gornjoj granici.
+- Provereno: `flutter analyze` bez greške, ceo paket testova prolazi.
+- Sledeće: **ne vraćati scratch bez novog dogovora.** Ako se ikad vrati, ide
+  preko plejera koji sam čita uzorke zvuka — to je nov paket i velik posao.
 
 ---
 

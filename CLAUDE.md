@@ -327,9 +327,13 @@ dugmetom.
 
    Brzina se **pamti preko numera**: sledeća pesma kreće istom brzinom, kao
    što se ni platter na gramofonu ne ubrza sam kad se promeni ploča.
-   **Vučenje zvuka prstom** (scratch) je urađeno 28. septembra 2026, ali ne
-   ovde nego na ekranu sa talasom, kao prekidač `Scratch` — opis stoji u
-   delu o talasu.
+   **Scratch se ne pravi** (odluka korisnika, 28. septembra 2026). Urađen je
+   pa probanjem odbačen: prevlačenje po talasu je vuklo zvuk za prstom, ali
+   `just_audio` ne ume da svira unazad, pa je kontra smer zvučao kao
+   isprekidano premotavanje, a ne kao ploča vrćena rukom. Korisnikova reč:
+   „sve to sa skrečom mi deluje pogrešno“. Kod je uklonjen i **ne
+   vraća se bez novog dogovora**; pravi scratch bi tražio zaseban plejer
+   koji sam čita uzorke zvuka.
 
 8. **Red u spisku je 44 dp** (od 26. septembra 2026; ranije 60) — svesno
    ispod minimalne dodirne mete od 48 dp, zbog gustine spiska na nastupu.
@@ -425,28 +429,6 @@ pokretima. Uz to plejer radi bez sistemskih traka, kao druga brana.
 izgledala kao blok boje — sve je bilo na vrhu, pa se od talasa ništa nije
 videlo. Uz razmak između crtica i blagu krivu (amplituda na 1,6) razlika
 između tihog i glasnog se vidi.
-
-**Prevlačenje može da vuče i zvuk — prekidač `Scratch`** (od 28. septembra
-2026). Dok je isključen, prevlačenje po talasu samo razgleda pesmu, kao do
-sada. Dok je uključen, zvuk **ide za prstom**: numera se premotava tamo gde
-je prst, a brzina i visina tona idu po tome koliko se brzo vuče — sporo
-vučenje spušta ton, brzo ga diže, kao kad se ploča gura rukom.
-
-Tri stvari su svesno ograničene, jer plejer nije pravljen za ovo:
-
-- **Pravog scratch-a nema**, jer `just_audio` ne ume da svira unazad.
-  Vučenje nagore se čuje kao isprekidano premotavanje uz najniži ton, ne kao
-  ploča vrćena rukom. Bolje to nego tišina, koja na nastupu deluje kao kvar.
-- **Zvuk se pomera najviše petnaest puta u sekundi** (svakih 70 ms). Na svaki
-  kadar bi plejer dobijao premotavanje koje ne može da isprati, pa bi zvuk
-  zapinjao umesto da klizi.
-- **Brzina je ograničena na 0,25–2,5.** Van tog opsega zvuk prestaje da se
-  prepoznaje kao muzika.
-
-Prekidač stoji **ispod `Fade`, u istom uglu**, i menja se prevlačenjem kao i
-svi ostali — usred programa okrznut prst ne sme da uključi vučenje zvuka.
-Gašenje prekidača odmah vraća normalnu brzinu, da zvuk ne ostane usporen ako
-je prekidač zatekao prst u pokretu.
 
 **Beleška nosi i trajanje po kom je računata.** Trajanje iz oznaka u fajlu i
 ono što plejer izmeri nisu uvek isti broj — kod VBR zapisa razlika ume da bude
@@ -678,7 +660,6 @@ Radi se odozgo nadole. Gotovo je ono što je označeno.
 | MUSIC-025 | Veliko dugme kao kvadrat preko četiri petine ekrana | gotovo |
 | MUSIC-026 | Spisak numera se pamti između pokretanja | gotovo |
 | MUSIC-027 | Skidanje numere sa spiska (dug pritisak) i praznjenje spiska | gotovo |
-| MUSIC-028 | Vučenje zvuka prstom po talasu (`Scratch`) | gotovo |
 
 **Napomene uz pojedine stavke:**
 
