@@ -2039,6 +2039,22 @@ i pripada.
 - Sledeće: upisati adresu magacina na telefonu pa proveriti brojku na pravom
   događaju
 
+## 28. septembar 2026 — ista numera preko sebe
+
+- Urađeno:
+  - **Dodir na numeru koja svira pušta je još jednom, preko nje same.** Dok
+    prva ide na petnaestoj sekundi, uvod se vrati i dve se preklope — DJ
+    potez koji je korisnik tražio. Ranije taj dodir nije radio ništa
+  - izvedeno postojećim mehanizmom: u red ulazi kopija numere, priprema se u
+    drugom plejeru i pretapanje pređe na nju. Bez `Fade` prelaz je odmah,
+    dakle numera kreće iz početka
+  - **premotavanje sa talasa se ne udvaja** — kad se pušta sa zadatog mesta,
+    numera se samo pomeri; i pauzirana numera na dodir i dalje samo nastavlja
+- Provereno: `flutter analyze` bez primedbi, **366 testova prolazi** (4 nova:
+  udvajanje uz pretapanje, bez pretapanja, premotavanje i pauza)
+- Otvoreni problemi: nema. Nije jos instalirano na telefon
+- Sledeće: provera na telefonu — kako zvuči kad se uvod vrati preko refrena
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

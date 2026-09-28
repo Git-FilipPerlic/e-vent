@@ -578,17 +578,33 @@ class MusicPlayerController extends ChangeNotifier {
     final useFade = fade ?? _fade;
 
     if (sounding?.id == track.id) {
+      // Premotavanje sa talasa: ista numera se samo pomera, ne udvaja.
       if (from != null) {
         await playback.seek(from);
         _position = from;
         _isFadingOut = false;
         _updateProgress();
+        notifyListeners();
+        return;
       }
+
       // Pauzirana numera na dodir samo nastavlja, ne kreće iz početka.
       if (!_isPlaying) {
         await playback.play(fadeIn: useFade, over: _fadeLength.duration);
+        notifyListeners();
+        return;
       }
-      notifyListeners();
+
+      // Numera koja svira se pušta **još jednom, preko sebe** (odluka od
+      // 28. septembra 2026). To je DJ potez: dok prva ide na petnaestoj
+      // sekundi, uvod se vrati preko nje i dve se preklope. Zato se u red
+      // ubacuje njena kopija, pa se na nju pređe pretapanjem — bez `Fade`
+      // prelaz je odmah, dakle numera kreće iz početka.
+      final slot = _nextSlot;
+      _queue.insert(slot, track);
+      await _select(slot);
+      if (!isReady) return;
+      await _switchTo(slot, crossfade: useFade);
       return;
     }
 

@@ -212,8 +212,14 @@ dugmetom.
    septembra 2026; ranije dodir nikada nije puštao zvuk). Korisnici su se
    žalili da nije intuitivno da za slušanje muzike ima toliko koraka.
    - **God mode isključen:** dodir odmah pušta numeru, uz pretapanje ako je
-     Fade uključen. Dodir na numeru koja već svira ne radi ništa (ne vraća
-     je na početak); pauzirana numera na dodir nastavlja.
+     Fade uključen. Pauzirana numera na dodir nastavlja.
+   - **Dodir na numeru koja svira pušta je još jednom, preko sebe**
+     (odluka od 28. septembra 2026). To je DJ potez: dok prva ide na
+     petnaestoj sekundi, uvod se vrati preko nje i dve se preklope. U red
+     ulazi njena kopija, pa se na nju pređe pretapanjem; bez `Fade`
+     prelaz je odmah, dakle numera kreće iz početka.
+   - **Premotavanje sa talasa nije udvajanje**: kad se numera pušta sa
+     zadatog mesta, ona se samo pomeri, bez druge kopije.
    - **God mode uključen:** dodir samo bira numeru (breskva red + kvačica) i
      sprema je u pozadini. Pušta se sa **Ekrana 2**: ogromno okruglo dugme i
      veliki prekidač Fade in, koji važi samo za to jedno puštanje.

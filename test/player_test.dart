@@ -26,6 +26,72 @@ Future<MusicPlayerController> _controllerWith(
 }
 
 void main() {
+  group('ista numera preko sebe', () {
+    // DJ potez: prva ide na petnaestoj sekundi, uvod se vrati preko nje i
+    // dve se preklope.
+    test('dodir na numeru koja svira pušta je ponovo, uz pretapanje', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      controller.setFade(true);
+      await controller.play();
+      final before = controller.queue.length;
+
+      await controller.playNow(_tracks[0]);
+
+      expect(playback.crossfadeCalls, 1);
+      // Kopija ulazi odmah iza one koja svira.
+      expect(controller.queue.length, before + 1);
+      expect(controller.sounding?.id, 'trk-001');
+      controller.dispose();
+    });
+
+    test('bez pretapanja numera kreće iz početka', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+
+      await controller.playNow(_tracks[0]);
+
+      expect(playback.crossfadeCalls, 0);
+      expect(playback.loadedPath, '/muzika/uvodna-spica.mp3');
+      expect(controller.sounding?.id, 'trk-001');
+      controller.dispose();
+    });
+
+    // Premotavanje sa talasa nije udvajanje — ista numera se samo pomera.
+    test('puštanje sa zadatog mesta ne udvaja numeru', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      controller.setFade(true);
+      await controller.play();
+      final before = controller.queue.length;
+
+      await controller.playNow(
+        _tracks[0],
+        from: const Duration(seconds: 30),
+      );
+
+      expect(playback.crossfadeCalls, 0);
+      expect(playback.lastSeek, const Duration(seconds: 30));
+      expect(controller.queue.length, before);
+      controller.dispose();
+    });
+
+    test('pauzirana numera na dodir nastavlja, ne udvaja se', () async {
+      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
+      final controller = await _controllerWith(playback);
+      await controller.play();
+      await controller.toggle();
+      final before = controller.queue.length;
+
+      await controller.playNow(_tracks[0]);
+
+      expect(controller.queue.length, before);
+      expect(playback.crossfadeCalls, 0);
+      controller.dispose();
+    });
+  });
+
   group('zaustavljanje ploče', () {
     // Ono što je traženo: kad se plejer isključi, zvuk se uspori i spusti u
     // visini tona, kao ploča kojoj je stao platter.
