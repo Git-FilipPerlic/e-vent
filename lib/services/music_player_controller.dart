@@ -28,7 +28,8 @@ enum VolumeStep {
   final double value;
 
   /// Sledeći stepenik u krug: L → E → F → L.
-  VolumeStep get next => VolumeStep.values[(index + 1) % VolumeStep.values.length];
+  VolumeStep get next =>
+      VolumeStep.values[(index + 1) % VolumeStep.values.length];
 }
 
 /// Koliko traje **ulazak iz tišine**, kad je `Fade` uključen.
@@ -137,8 +138,9 @@ class MusicPlayerController extends ChangeNotifier {
 
   /// Talasni oblik izabrane numere; `null` dok se ne izvuče iz fajla.
   /// Stoji van widget stabla, kao i napredak — prsten ga čita direktno.
-  final ValueNotifier<List<double>?> waveform =
-      ValueNotifier<List<double>?>(null);
+  final ValueNotifier<List<double>?> waveform = ValueNotifier<List<double>?>(
+    null,
+  );
 
   final List<Track> _queue = [];
 
@@ -236,6 +238,19 @@ class MusicPlayerController extends ChangeNotifier {
     return _waveforms.amplitudes(path, onProgress: onProgress);
   }
 
+  /// Sprema talase za spisak numera, u pozadini.
+  ///
+  /// Prvo otvaranje talasa je inače čekanje od nekoliko sekundi po pesmi.
+  /// Priprema staje kad neki ekran zatraži svoj talas, pa ono što korisnik
+  /// gleda nikad ne čeka na pripremu.
+  Future<void> prepareWaveforms(List<Track> tracks) {
+    final paths = [
+      for (final track in tracks)
+        if (track.path != null) track.path!,
+    ];
+    return _waveforms.prepareAll(paths);
+  }
+
   /// Pauza i nastavak **numere koja svira** — dugme u kartici „Sada svira".
   ///
   /// Za razliku od [toggle], ne gleda koja je numera izabrana: u God mode-u
@@ -246,15 +261,16 @@ class MusicPlayerController extends ChangeNotifier {
       await playback.pause(fadeOut: _fade, windDown: !_fade);
     } else {
       await playback.play(
-          fadeIn: _fade,
-          over: _fadeLength.duration,
-          // Bez pretapanja zvuk kreće kao ploča koja se zavrti —
-          // suprotno od zaustavljanja na pauzi.
-          windUp: !_fade,
-        );
+        fadeIn: _fade,
+        over: _fadeLength.duration,
+        // Bez pretapanja zvuk kreće kao ploča koja se zavrti —
+        // suprotno od zaustavljanja na pauzi.
+        windUp: !_fade,
+      );
     }
     notifyListeners();
   }
+
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -707,12 +723,12 @@ class MusicPlayerController extends ChangeNotifier {
     if (hasNext) {
       await _switchTo(_selectedIndex + 1, crossfade: false);
       await playback.play(
-          fadeIn: _fade,
-          over: _fadeLength.duration,
-          // Bez pretapanja zvuk kreće kao ploča koja se zavrti —
-          // suprotno od zaustavljanja na pauzi.
-          windUp: !_fade,
-        );
+        fadeIn: _fade,
+        over: _fadeLength.duration,
+        // Bez pretapanja zvuk kreće kao ploča koja se zavrti —
+        // suprotno od zaustavljanja na pauzi.
+        windUp: !_fade,
+      );
       return;
     }
     // Kraj reda: numera ostaje, ali se vraća na početak i staje.

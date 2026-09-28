@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:just_waveform/just_waveform.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Izvlači **talasni oblik** numere: niz vrednosti 0..1 koje kažu koliko je
 /// gde glasno.
@@ -9,10 +11,47 @@ import 'package:just_waveform/just_waveform.dart';
 /// To je izričit zahtev iz `CLAUDE.md` — prsten se prerisava 60 puta u sekundi
 /// i ne sme da čeka na obradu zvuka.
 class WaveformService {
-  WaveformService({Directory? cacheDirectory})
-    : _cacheDirectory = cacheDirectory ?? Directory.systemTemp;
+  WaveformService({Directory? cacheDirectory}) : _dir = cacheDirectory;
 
-  final Directory _cacheDirectory;
+  /// Gde stoje izvučeni talasi.
+  ///
+  /// Podrazumevano je **trajan folder aplikacije**, ne privremeni: Android
+  /// privremeni folder briše, pa je svaka numera posle toga opet čekala na
+  /// obradu. Izvučen talas je nekoliko desetina kilobajta, pa ih i stotinu
+  /// staje u par megabajta.
+  Directory? _dir;
+
+  Future<Directory> _directory() async {
+    final known = _dir;
+    if (known != null) return known;
+    try {
+      final dir = Directory(
+        '${(await getApplicationSupportDirectory()).path}/talasi',
+      );
+      if (!await dir.exists()) await dir.create(recursive: true);
+      return _dir = dir;
+    } catch (_) {
+      // Bez trajnog foldera se radi kao ranije — talas se samo ne pamti
+      // između pokretanja.
+      return _dir = Directory.systemTemp;
+    }
+  }
+
+  /// Koliko numera unapred sprema [prepareAll].
+  ///
+  /// Četrdeset je korisnikova mera za nastupnu plejlistu. Više od toga bi
+  /// obrađivalo pesme koje se te večeri neće ni otvoriti.
+  static const int prepareLimit = 40;
+
+  /// Numere koje se upravo obrađuju — da se isti fajl ne obrađuje dvaput kad
+  /// se traži i u pozadini i sa ekrana.
+  final Map<String, Future<List<double>?>> _inFlight = {};
+
+  /// Koliko ekrana trenutno čeka na talas.
+  ///
+  /// Dok je veće od nule, priprema u pozadini staje: ono što korisnik gleda
+  /// ima prednost nad onim što će mu možda trebati.
+  int _waiting = 0;
 
   /// Već izvučeni talasni oblici, po putanji numere.
   final Map<String, List<double>> _cache = {};
@@ -42,6 +81,67 @@ class WaveformService {
     if (cached != null) return cached;
     if (_failed.contains(path)) return null;
 
+    // Ista numera se ne obrađuje dvaput: ekran se pridruži obradi koja već
+    // ide (svoja ili iz pripreme u pozadini).
+    final running = _inFlight[path];
+    if (running != null) {
+      _waiting++;
+      try {
+        return await running;
+      } finally {
+        _waiting--;
+      }
+    }
+
+    final work = _extract(path, samples: samples, onProgress: onProgress);
+    _inFlight[path] = work;
+    _waiting++;
+    try {
+      return await work;
+    } finally {
+      _waiting--;
+      _inFlight.remove(path);
+    }
+  }
+
+  /// Upisuje gotov talas u keš.
+  ///
+  /// Postoji zbog testova i zbog eventualnog spremanja sa strane — obrada je
+  /// jedino što traje, a rezultat je običan niz.
+  void remember(String path, List<double> amplitudes) {
+    _cache[path] = amplitudes;
+  }
+
+  /// Sprema talase za spisak numera, u pozadini.
+  ///
+  /// Bez ovoga se na svaku numeru čeka pri prvom otvaranju talasa, a to je
+  /// nekoliko sekundi po pesmi — usred programa predugo. Ide **jedna po
+  /// jedna** i staje dok neki ekran čeka na svoj talas.
+  Future<void> prepareAll(
+    List<String> paths, {
+    int limit = prepareLimit,
+  }) async {
+    var done = 0;
+    for (final path in paths) {
+      if (done >= limit) return;
+      if (_cache.containsKey(path) || _failed.contains(path)) continue;
+      if (_inFlight.containsKey(path)) continue;
+
+      // Ono što korisnik gleda ima prednost.
+      while (_waiting > 0) {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      }
+
+      done++;
+      await amplitudes(path);
+    }
+  }
+
+  Future<List<double>?> _extract(
+    String path, {
+    int samples = defaultSampleCount,
+    void Function(double progress)? onProgress,
+  }) async {
     // Numera koja stiže kao `content://` adresa se ne može otvoriti kao fajl.
     // Sopstveni pregled fajlova daje prave putanje, pa je ovo redak slučaj.
     if (path.contains('://')) {
@@ -56,21 +156,40 @@ class WaveformService {
     }
 
     try {
+      // Naziv nosi i veličinu fajla: kad se pesma zameni drugom pod istim
+      // imenom, stari talas se ne podmeće.
+      final size = await audio.length();
       final out = File(
-        '${_cacheDirectory.path}/talas-${path.hashCode}.wave',
+        '${(await _directory()).path}/talas-${path.hashCode}-$size.wave',
       );
 
       Waveform? waveform;
+
+      // Već izvučen u nekom od ranijih pokretanja — samo se pročita.
+      if (await out.exists()) {
+        try {
+          waveform = await JustWaveform.parse(out);
+        } catch (_) {
+          // Nedovršen ili pokvaren zapis se odbacuje i izvlači iznova.
+          try {
+            await out.delete();
+          } catch (_) {}
+          waveform = null;
+        }
+      }
+
       // Dvadeset tačaka po sekundi zvuka: taman da se iz zapisa može
       // izvući 2400 vrednosti i za kratke numere, a da obrada ne traje
       // predugo na telefonu.
-      await for (final progress in JustWaveform.extract(
-        audioInFile: audio,
-        waveOutFile: out,
-        zoom: const WaveformZoom.pixelsPerSecond(20),
-      )) {
-        onProgress?.call(progress.progress);
-        if (progress.waveform != null) waveform = progress.waveform;
+      if (waveform == null) {
+        await for (final progress in JustWaveform.extract(
+          audioInFile: audio,
+          waveOutFile: out,
+          zoom: const WaveformZoom.pixelsPerSecond(20),
+        )) {
+          onProgress?.call(progress.progress);
+          if (progress.waveform != null) waveform = progress.waveform;
+        }
       }
 
       if (waveform == null || waveform.length == 0) {

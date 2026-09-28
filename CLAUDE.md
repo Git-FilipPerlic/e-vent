@@ -487,6 +487,23 @@ pravougaonika uzalud.
 ne pušta numeru: pored prekidača Fade i dugmeta za zatvaranje se prst lako
 zadrži, a muzika ne sme da krene od toga.
 
+**Talas se izvuče jednom u životu, ne pri svakom otvaranju** (od 28.
+septembra 2026). Dve stvari to nose:
+
+- **izvučen talas stoji u trajnom folderu aplikacije** i sledeći put se samo
+  pročita. `just_waveform` ga je i ranije upisivao u fajl, ali u privremen
+  folder koji Android briše, i taj fajl se nikad nije čitao nazad — obrada je
+  išla iznova. Naziv nosi i veličinu numere, pa zamenjena pesma ne dobija
+  stari talas.
+- **talasi se spremaju unapred, u pozadini**, za prvih **40 numera** sa
+  spiska (korisnikova mera za nastupnu plejlistu). Priprema **staje dok neki
+  ekran čeka na svoj talas** — ono što se gleda ima prednost nad onim što će
+  možda trebati — i ide jedna po jedna, da telefon ne obrađuje četrdeset
+  pesama odjednom.
+
+Ista numera se nikad ne obrađuje dvaput uporedo: ko je zatraži dok obrada
+ide, pridruži se toj obradi.
+
 **Dok se talas računa, na ekranu piše dokle je stiglo.** Izvlačenje traje
 nekoliko sekundi po numeri, a dotle se crta samo tanka, tiha linija — ranije
 je ta linija bila debela i u boji numere, pa je ličila na kvar. Sama obrada

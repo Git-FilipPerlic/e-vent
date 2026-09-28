@@ -263,6 +263,10 @@ class _MusicScreenState extends State<MusicScreen> {
   /// poslednji fajl ne pročita.
   Future<void> _fillMetadata(List<Track> tracks) async {
     await _metadata.enrichAll(tracks, onBatch: _applyMetadata);
+
+    // Talasi se spremaju posle oznaka, u pozadini: dug pritisak na numeru
+    // tako ne čeka na obradu zvuka. Ide sa strane, ekran ga ne čeka.
+    unawaited(_player.prepareWaveforms(tracks));
   }
 
   /// Ubacuje pročitane numere na svoja mesta — u spisak, u dodate numere i u
@@ -391,7 +395,9 @@ class _MusicScreenState extends State<MusicScreen> {
             remaining: sounding == null || left == null || left.isNegative
                 ? '-0:00'
                 : '-${TrackTile.formatDuration(left)}',
-            onTogglePause: sounding == null ? null : _player.togglePauseSounding,
+            onTogglePause: sounding == null
+                ? null
+                : _player.togglePauseSounding,
             cueTitle: _godMode ? _cueTrack?.displayTitle : null,
           ),
           const SizedBox(height: 10),

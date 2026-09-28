@@ -2178,6 +2178,30 @@ i pripada.
 
 ---
 
+## 28. septembar 2026 — na talas se više ne čeka
+
+- Pritužba korisnika: spisak se sada učita bez čekanja, ali za svaku pesmu
+  mora dug pritisak, pa se onda čeka da se talas nacrta.
+- Urađeno:
+  - Izvučen talas se pamti u **trajnom folderu aplikacije**
+    (`getApplicationSupportDirectory`/talasi) i sledeći put se samo pročita
+    (`JustWaveform.parse`). Ranije je `.wave` fajl završavao u privremenom
+    folderu i nikad se nije čitao nazad, pa se obrada ponavljala.
+  - Naziv fajla nosi i veličinu numere, pa zamenjena pesma ne dobija stari
+    talas; pokvaren zapis se briše i izvlači iznova.
+  - `WaveformService.prepareAll` sprema talase **unapred, u pozadini**, za
+    prvih 40 numera; zove se iz Muzika taba posle čitanja oznaka. Priprema
+    staje dok neki ekran čeka na svoj talas, i ista numera se ne obrađuje
+    dvaput uporedo.
+- Provereno: `flutter analyze` bez greške, 392 testa prolaze; tri nova testa
+  u `test/waveform_test.dart` (granica od 40, preskakanje već obrađenih,
+  neuspela numera se ne pokušava opet).
+- Otvoreni problemi: prvo pokretanje posle ove izmene i dalje obrađuje
+  pesme — čeka se samo taj put, i to u pozadini. Dug pritisak kao jedini
+  put do talasa je ostao; ako zatreba brži ulaz, to je zasebna odluka.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`
