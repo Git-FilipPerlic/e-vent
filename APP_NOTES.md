@@ -2331,6 +2331,27 @@ i pripada.
 
 ---
 
+## 29. septembar 2026 — zauzeti ljudi pri biranju ekipe
+
+- Zahtev korisnika: pri biranju ekipe ne nuditi one koji u tom terminu već
+  rade na drugom događaju. Izabrao je da **ostanu u spisku, ali bledo**.
+- Urađeno:
+  - `lib/utils/team_availability.dart` — `busyMembers()` računa ko se
+    preklapa sa terminom (početak do kraja; bez trajanja 4 h). Događaj koji
+    se menja se ne računa.
+  - „Ko radi" na Home tabu: zauzeti imaju sivo ime, prozirnu ikonicu i
+    natpis „Radi na: 7 Mia, 16:00"; mogu i dalje da se čekiraju.
+  - Nov događaj: zauzeti dugmići su sivi, sa ikonicom zauzetog kalendara, a
+    ispod stoji ko gde radi. Menja se čim se promeni sat.
+  - Ako se spisak događaja ne učita, biranje radi kao ranije, bez provere.
+- Provereno: `flutter analyze` bez greške, 410 testova prolazi; nov
+  `test/team_availability_test.dart` (preklapanje, granica, 4 h, bez datuma,
+  događaj koji se menja) i test da zauzet ostaje u spisku i može da se
+  čekira.
+- Sledeće: proba na telefonu sa dva događaja u isto vreme.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

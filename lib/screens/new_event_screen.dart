@@ -4,6 +4,7 @@ import '../models/event.dart';
 import '../services/event_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_format.dart';
+import '../utils/team_availability.dart';
 import '../widgets/common/event_when_sheet.dart';
 
 /// Nov događaj — „Create and share".
@@ -42,12 +43,25 @@ class _NewEventScreenState extends State<NewEventScreen> {
   final Set<String> _assigned = <String>{};
 
   List<String> _team = const [];
+
+  /// Svi događaji — po njima se vidi ko je u izabranom terminu već zauzet.
+  List<Event> _events = const [];
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     _loadTeam();
+    _loadEvents();
+  }
+
+  /// Bez spiska događaja se samo ne vidi ko je zauzet — pravljenje ide dalje.
+  Future<void> _loadEvents() async {
+    try {
+      final events = await widget.service.loadEvents();
+      if (!mounted) return;
+      setState(() => _events = events);
+    } catch (_) {}
   }
 
   @override
@@ -110,6 +124,11 @@ class _NewEventScreenState extends State<NewEventScreen> {
     final theme = Theme.of(context);
     final start = _when.start;
     final duration = _when.durationMinutes;
+    final busy = busyMembers(
+      events: _events,
+      start: start,
+      durationMinutes: duration,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Nov događaj')),
@@ -196,7 +215,20 @@ class _NewEventScreenState extends State<NewEventScreen> {
                 children: [
                   for (final member in _team)
                     FilterChip(
-                      label: Text(member),
+                      // Zauzet stoji bledo, a gde radi piše ispod dugmića.
+                      label: Text(
+                        member,
+                        style: busy.containsKey(member)
+                            ? TextStyle(color: AppColors.textSecondary)
+                            : null,
+                      ),
+                      avatar: busy.containsKey(member)
+                          ? Icon(
+                              Icons.event_busy_rounded,
+                              size: 18,
+                              color: AppColors.textSecondary,
+                            )
+                          : null,
                       selected: _assigned.contains(member),
                       onSelected: (selected) => setState(() {
                         if (selected) {
@@ -208,6 +240,17 @@ class _NewEventScreenState extends State<NewEventScreen> {
                     ),
                 ],
               ),
+            for (final member in _team)
+              if (busy[member] case final label?)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: Text(
+                    '$member — ${label[0].toLowerCase()}${label.substring(1)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
 
             const SizedBox(height: AppSpacing.xl),
             FilledButton(

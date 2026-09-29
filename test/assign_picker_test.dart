@@ -60,4 +60,46 @@ void main() {
       isTrue,
     );
   });
+
+  testWidgets('zauzeti ostaju u spisku, bledo i sa natpisom gde rade',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showAssignPicker(
+                context,
+                team: const [
+                  TeamMember(id: 'u1', name: 'Filip'),
+                  TeamMember(id: 'u2', name: 'Ana'),
+                ],
+                skills: const [],
+                assignedTo: const [],
+                busy: const {'Ana': 'Radi na: 7 Mia, 16:00'},
+              ),
+              child: const Text('Otvori'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Otvori'));
+    await tester.pumpAndSettle();
+
+    // Nije sklonjena — vidi se i zašto je bleda.
+    expect(find.text('Ana'), findsOneWidget);
+    expect(find.text('Radi na: 7 Mia, 16:00'), findsOneWidget);
+    final name = tester.widget<Text>(find.text('Ana'));
+    expect(name.style?.color, AppColors.textSecondary);
+
+    // I dalje može da se čekira, ako manager zna nešto što aplikacija ne zna.
+    await tester.tap(find.text('Ana'));
+    await tester.pumpAndSettle();
+    final box = tester.widget<CheckboxListTile>(
+      find.widgetWithText(CheckboxListTile, 'Ana'),
+    );
+    expect(box.value, isTrue);
+  });
 }

@@ -113,6 +113,7 @@ Future<List<String>?> showAssignPicker(
   required List<TeamMember> team,
   required List<Skill> skills,
   required List<String> assignedTo,
+  Map<String, String> busy = const {},
 }) {
   return showModalBottomSheet<List<String>>(
     context: context,
@@ -120,7 +121,12 @@ Future<List<String>?> showAssignPicker(
     showDragHandle: true,
     isScrollControlled: true,
     builder: (context) =>
-        _AssignPicker(team: team, skills: skills, assignedTo: assignedTo),
+        _AssignPicker(
+          team: team,
+          skills: skills,
+          assignedTo: assignedTo,
+          busy: busy,
+        ),
   );
 }
 
@@ -129,11 +135,17 @@ class _AssignPicker extends StatefulWidget {
     required this.team,
     required this.skills,
     required this.assignedTo,
+    required this.busy,
   });
 
   final List<TeamMember> team;
   final List<Skill> skills;
   final List<String> assignedTo;
+
+  /// Ko je u tom terminu već na drugom događaju: ime → natpis.
+  /// Takvi stoje bledo, ali se i dalje mogu čekirati — manager ponekad zna
+  /// nešto što aplikacija ne zna (na primer da se raniji nastup skraćuje).
+  final Map<String, String> busy;
 
   @override
   State<_AssignPicker> createState() => _AssignPickerState();
@@ -276,6 +288,11 @@ class _AssignPickerState extends State<_AssignPicker> {
                     for (final skill in widget.skills)
                       if (member.knows(skill.id)) skill.name,
                   ];
+                  final busyLabel = widget.busy[member.name];
+                  final subtitle = [
+                    ?busyLabel,
+                    if (known.isNotEmpty) known.join(' · '),
+                  ];
                   return CheckboxListTile(
                     value: _selected.contains(member.name),
                     onChanged: (value) => setState(() {
@@ -285,23 +302,34 @@ class _AssignPickerState extends State<_AssignPicker> {
                         _selected.remove(member.name);
                       }
                     }),
+                    // Zauzet stoji bledo: ime u sivom, ikonica prozirna, a
+                    // uz ime piše gde radi — boja nikad ne stoji sama.
                     title: Text(
                       member.name,
-                      style: TextStyle(color: AppColors.textPrimary),
+                      style: TextStyle(
+                        color: busyLabel == null
+                            ? AppColors.textPrimary
+                            : AppColors.textSecondary,
+                      ),
                     ),
-                    subtitle: known.isEmpty
+                    subtitle: subtitle.isEmpty
                         ? null
                         : Text(
-                            known.join(' · '),
-                            maxLines: 1,
+                            subtitle.join('\n'),
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
                           ),
+                    // Natpis o zauzetosti i veštine su dva reda.
+                    isThreeLine: subtitle.length > 1,
                     activeColor: AppColors.accent,
                     controlAffinity: ListTileControlAffinity.leading,
-                    secondary: TeamAvatarDot(avatarId: member.avatarId),
+                    secondary: Opacity(
+                      opacity: busyLabel == null ? 1 : 0.4,
+                      child: TeamAvatarDot(avatarId: member.avatarId),
+                    ),
                   );
                 },
               ),

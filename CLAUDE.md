@@ -1007,6 +1007,18 @@ Uz svako ime stoji i šta ta osoba ume, pa se vidi zašto je u spisku.
 **Filter ne odčekirava nikoga.** Ko je već dodeljen a filter ga sakrio,
 ostaje dodeljen — i to piše iznad spiska, da se ne pomisli da je ispao.
 
+**Zauzeti stoje bledo, ne sklanjaju se** (odluka korisnika, 29. septembra
+2026). Ko u tom terminu već radi na drugom događaju, u „Ko radi" (i pri
+pravljenju novog događaja) ima sivo ime, prozirnu ikonicu i natpis
+„Radi na: 7 Mia, 16:00". Kad nekog nema na spisku, ne zna se da li je
+zauzet ili zaboravljen; ovako se odmah vidi zašto. **I dalje se može
+čekirati** — manager ponekad zna nešto što aplikacija ne zna.
+
+Termin je od početka do kraja nastupa; bez ugovorenog trajanja računa se
+4 sata, isto kao za status događaja. Nastup koji počinje tačno kad se drugi
+završi nije sukob. Događaj bez datuma nikog ne zauzima. Natpis kaže
+„Radi na", a ne „zauzet / zauzeta", jer se iz imena ne zna rod.
+
 #### Spisak feature-a za ekipu
 
 | ID | Šta | Status |

@@ -11,6 +11,7 @@ import '../services/auth_service.dart';
 import '../services/mock_event_service.dart';
 import '../services/weather_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/team_availability.dart';
 import '../widgets/common/edit_text_sheet.dart';
 import '../widgets/common/event_when_sheet.dart';
 import '../widgets/common/error_retry.dart';
@@ -241,6 +242,20 @@ class _HomeScreenState extends State<HomeScreen> {
       team = const [];
       skills = const [];
     }
+
+    // Ko u tom terminu već radi drugde. Ako se događaji ne učitaju, spisak
+    // se otvara bez te provere — dodela ne sme da stane zbog nje.
+    Map<String, String> busy;
+    try {
+      busy = busyMembers(
+        events: await _service.loadEvents(),
+        start: event.eventDate,
+        durationMinutes: event.durationMinutes,
+        exceptEventId: event.id,
+      );
+    } catch (_) {
+      busy = const {};
+    }
     if (!mounted) return;
 
     final picked = await showAssignPicker(
@@ -248,6 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
       team: team,
       skills: skills,
       assignedTo: event.assignedTo,
+      busy: busy,
     );
     if (picked == null) return;
     if (!mounted) return;
