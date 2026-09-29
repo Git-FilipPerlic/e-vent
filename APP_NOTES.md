@@ -2306,6 +2306,31 @@ i pripada.
 
 ---
 
+## 29. septembar 2026 — uklonjeno sve oko brzine i visine tona (pitch)
+
+- Zahtev korisnika: „puno problema je sa ovim pitch. izbriši sve vezano za
+  pitch. i proveri dodatno. odsad nema nikakvog zezanja sa usporavanjem
+  muzike".
+- Uklonjeno:
+  - dugme „brzina ploče" (1.0 / 0.9 / 0.8 / 0.7) iz reda kontrola na Muzika
+    tabu, zajedno sa `RecordSpeed` i `cycleRecordSpeed`
+  - efekat ploče koja staje (pauza bez `Fade`) i ploče koja se zavrti
+    (puštanje bez `Fade`) — `windDown` / `windUp`
+  - u `JustAudioPlayback`: `setRecordSpeed`, klizanje brzine, svi pozivi
+    `setSpeed` i `setPitch`
+- Kako sada radi: bez `Fade` puštanje kreće odmah, a pauza je kratko
+  utišavanje od pola sekunde (samo da nema „klika"). Sa `Fade` sve je kao
+  ranije. Brzina se nigde ne postavlja, pa ostaje normalna.
+- Dodatna provera: pretraga celog `lib/` i `test/` — nema više nijednog
+  pomena brzine zvuka (ostala je samo „brzina" LED efekta, koja nema veze sa
+  muzikom). Nov test pada ako se `setSpeed` ili `setPitch` ikad vrate u
+  `lib/`.
+- Provereno: `flutter analyze` bez greške, 402 testa prolaze (testovi za
+  ploču su obrisani zajedno sa njom).
+- Sledeće: proba na telefonu — pauza i puštanje bez `Fade`.
+
+---
+
 ## TODO (skupljati ovde, rešavati kad dođe red)
 
 - **Firebase paketi i Kotlin Gradle Plugin.** `firebase_auth` i `firebase_core`

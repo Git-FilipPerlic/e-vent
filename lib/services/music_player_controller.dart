@@ -59,34 +59,6 @@ enum FadeLength {
       FadeLength.values[(index + 1) % FadeLength.values.length];
 }
 
-/// Brzina ploče — usporavanje zvuka kao na gramofonu.
-///
-/// Brzina i visina tona idu zajedno, pa numera zvuči kao ploča kojoj je
-/// usporen platter, a ne kao snimak pušten sporije. Do nove brzine se klizi
-/// za pola sekunde, da se čuje kao pokret, a ne kao prekid.
-///
-/// Bira se dodirom, u krug, kao jačina i dužina ulaska iz tišine.
-enum RecordSpeed {
-  normal('1.0', 1.0),
-  slow('0.9', 0.9),
-  slower('0.8', 0.8),
-  slowest('0.7', 0.7);
-
-  const RecordSpeed(this.label, this.value);
-
-  /// Broj koji stoji na dugmetu.
-  final String label;
-
-  final double value;
-
-  /// Da li je zvuk usporen — dugme je tada u boji.
-  bool get isSlowed => this != RecordSpeed.normal;
-
-  /// Sledeći stepenik u krug: 1.0 → 0.9 → 0.8 → 0.7 → 1.0.
-  RecordSpeed get next =>
-      RecordSpeed.values[(index + 1) % RecordSpeed.values.length];
-}
-
 /// Vodi reprodukciju i red čekanja.
 ///
 /// Živi u Muzika tabu, a nastupni ekran ga samo pozajmljuje — zato zvuk ne
@@ -163,8 +135,6 @@ class MusicPlayerController extends ChangeNotifier {
   /// pred publiku, a 4 s je ono što najčešće treba.
   FadeLength _fadeLength = FadeLength.s4;
 
-  RecordSpeed _recordSpeed = RecordSpeed.normal;
-
   /// Da stišavanje pred kraj numere ne krene dvaput za istu numeru.
   bool _isFadingOut = false;
 
@@ -200,18 +170,8 @@ class MusicPlayerController extends ChangeNotifier {
 
   FadeLength get fadeLength => _fadeLength;
 
-  RecordSpeed get recordSpeed => _recordSpeed;
-
   /// Trenutna jačina zvuka.
   VolumeStep get volume => _volume;
-
-  /// Prebacuje na sledeći stepenik jačine: L → E → F → L.
-  /// Sledeća brzina ploče, u krug. Zvuk do nje klizi, ne skače.
-  Future<void> cycleRecordSpeed() async {
-    _recordSpeed = _recordSpeed.next;
-    notifyListeners();
-    await playback.setRecordSpeed(_recordSpeed.value);
-  }
 
   /// Sledeća dužina ulaska iz tišine, u krug.
   void cycleFadeLength() {
@@ -219,6 +179,7 @@ class MusicPlayerController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Prebacuje na sledeći stepenik jačine: L → E → F → L.
   Future<void> cycleVolume() async {
     _volume = _volume.next;
     notifyListeners();
@@ -258,14 +219,11 @@ class MusicPlayerController extends ChangeNotifier {
   Future<void> togglePauseSounding() async {
     if (sounding == null) return;
     if (_isPlaying) {
-      await playback.pause(fadeOut: _fade, windDown: !_fade);
+      await playback.pause(fadeOut: _fade);
     } else {
       await playback.play(
         fadeIn: _fade,
         over: _fadeLength.duration,
-        // Bez pretapanja zvuk kreće kao ploča koja se zavrti —
-        // suprotno od zaustavljanja na pauzi.
-        windUp: !_fade,
       );
     }
     notifyListeners();
@@ -587,7 +545,6 @@ class MusicPlayerController extends ChangeNotifier {
     await playback.play(
       fadeIn: useFade,
       over: _fadeLength.duration,
-      windUp: !useFade,
     );
     notifyListeners();
   }
@@ -663,7 +620,6 @@ class MusicPlayerController extends ChangeNotifier {
     await playback.play(
       fadeIn: useFade,
       over: _fadeLength.duration,
-      windUp: !useFade,
     );
     notifyListeners();
   }
@@ -672,7 +628,7 @@ class MusicPlayerController extends ChangeNotifier {
     if (!isReady) return;
 
     if (_isPlaying && !isAnotherSounding) {
-      await playback.pause(fadeOut: _fade, windDown: !_fade);
+      await playback.pause(fadeOut: _fade);
       return;
     }
     await play();
@@ -725,9 +681,6 @@ class MusicPlayerController extends ChangeNotifier {
       await playback.play(
         fadeIn: _fade,
         over: _fadeLength.duration,
-        // Bez pretapanja zvuk kreće kao ploča koja se zavrti —
-        // suprotno od zaustavljanja na pauzi.
-        windUp: !_fade,
       );
       return;
     }

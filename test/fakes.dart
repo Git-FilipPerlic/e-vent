@@ -41,26 +41,12 @@ class FakePlayback implements AudioPlayback {
     _masterVolume = value;
   }
 
-  /// Brzina ploče koju je kontroler tražio.
-  double _recordSpeed = 1;
 
-  @override
-  double get recordSpeed => _recordSpeed;
-
-  @override
-  Future<void> setRecordSpeed(double value) async {
-    _recordSpeed = value;
-  }
   int pauseCalls = 0;
   Duration? lastSeek;
   bool? lastFadeIn;
   bool? lastFadeOut;
 
-  /// Da li je traženo zaustavljanje ploče (usporavanje pri pauzi).
-  bool? lastWindDown;
-
-  /// Da li je traženo zavrtanje ploče (usporen početak).
-  bool? lastWindUp;
   Duration? lastFadeToSilence;
   String? preloadedPath;
   Duration? lastCrossfade;
@@ -90,23 +76,17 @@ class FakePlayback implements AudioPlayback {
   }
 
   @override
-  Future<void> play({
-    bool fadeIn = false,
-    Duration? over,
-    bool windUp = false,
-  }) async {
+  Future<void> play({bool fadeIn = false, Duration? over}) async {
     lastFadeInOver = over;
     playCalls++;
     lastFadeIn = fadeIn;
-    lastWindUp = windUp;
     _playing.add(true);
   }
 
   @override
-  Future<void> pause({bool fadeOut = false, bool windDown = false}) async {
+  Future<void> pause({bool fadeOut = false}) async {
     pauseCalls++;
     lastFadeOut = fadeOut;
-    lastWindDown = windDown;
     _playing.add(false);
   }
 

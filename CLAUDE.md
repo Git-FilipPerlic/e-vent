@@ -335,23 +335,17 @@ dugmetom.
    pažnju. Zadata jačina važi i za sva pretapanja: preklapanje ide do nje, ne
    do pune jačine, inače bi stišana muzika skakala nazad na 100%.
 
-   **Brzina ploče** stoji u istom redu, kao ikonica ploče sa brojem ispod:
-   **1.0 / 0.9 / 0.8 / 0.7**, dodir je vrti u krug (odluka od 27. septembra
-   2026). Zvuk se usporava **zajedno sa visinom tona**, kao kad se uspori
-   gramofonska ploča — zato se i zove ploča, a ne „brzina reprodukcije".
-   Do nove brzine se **klizi** pola sekunde, da se čuje kao pokret, a ne kao
-   kvar. Ikonica je u boji `warning` dok zvuk nije na normalnoj brzini, jer
-   je to stanje koje se lako zaboravi.
+   **Brzina i visina tona se ne diraju — nikad** (odluka korisnika,
+   29. septembra 2026). Muzika uvek ide normalnom brzinom. Ranije je
+   postojalo dugme „brzina ploče" (1.0 / 0.9 / 0.8 / 0.7), efekat ploče koja
+   staje na pauzi i ploče koja se zavrti pri puštanju; pravili su „puno
+   problema" i sve je uklonjeno. Korisnikova reč: „odsad nema nikakvog
+   zezanja sa usporavanjem muzike". Test `player_test.dart` pada ako se
+   igde u `lib/` pojavi `setSpeed` ili `setPitch`.
 
-   Brzina se **pamti preko numera**: sledeća pesma kreće istom brzinom, kao
-   što se ni platter na gramofonu ne ubrza sam kad se promeni ploča.
-   **Scratch se ne pravi** (odluka korisnika, 28. septembra 2026). Urađen je
-   pa probanjem odbačen: prevlačenje po talasu je vuklo zvuk za prstom, ali
-   `just_audio` ne ume da svira unazad, pa je kontra smer zvučao kao
-   isprekidano premotavanje, a ne kao ploča vrćena rukom. Korisnikova reč:
-   „sve to sa skrečom mi deluje pogrešno“. Kod je uklonjen i **ne
-   vraća se bez novog dogovora**; pravi scratch bi tražio zaseban plejer
-   koji sam čita uzorke zvuka.
+   **Scratch se ne pravi** (odluka korisnika, 28. septembra 2026) — i on je
+   bio igra brzinom zvuka, pa pada pod isto pravilo. **Nijedan efekat
+   zasnovan na brzini ili tonu se ne vraća bez novog dogovora.**
 
 8. **Red u spisku je 44 dp** (od 26. septembra 2026; ranije 60) — svesno
    ispod minimalne dodirne mete od 48 dp, zbog gustine spiska na nastupu.
@@ -610,19 +604,9 @@ Ostalo:
 `Fade` znači sve troje odjednom: ulazak iz tišine, izlazak u tišinu i
 **preklapanje** kad se pređe sa numere koja svira na izabranu.
 
-**Bez `Fade` pauza zvuči kao ploča koja staje** (odluka od 27. septembra
-2026, pojačano 28.). Umesto kratkog spuštanja jačine, zvuk se za oko sekund **uspori i
-spusti u visini tona**, pa utihne — kao gramofon kome je stao platter. To je
-efekat, ne podešavanje: sam se vrati na normalnu brzinu, pa sledeće puštanje
-kreće kako treba. Brzina pada na **8%** za **1,2 sekunde** — na dvadeset
-posto se pad jedva čuo.
-
-**Isto važi i obrnuto:** bez `Fade` puštanje **zavrti ploču** — zvuk kreće
-usporen i u niskom tonu, pa se za 0,7 sekundi digne do normalne brzine.
-
-Sa uključenim `Fade` pauza ostaje ono što je bila — mirno povlačenje pred
-publikom, šest sekundi, bez efekta. Tako izvođač bira šta hoće samim
-prekidačem koji već ima.
+**Pauza i puštanje rade samo jačinom**, nikad brzinom (od 29. septembra
+2026 — efekat ploče koja staje i koja se zavrti je uklonjen). Bez `Fade`
+puštanje kreće odmah, punom zadatom jačinom, a pauza je kratko utišavanje.
 
 **Izlazak u tišinu na pauzu traje 3 sekunde** (skraćeno sa šest 27. septembra
 2026, jer je šest bilo predugo čekanje).

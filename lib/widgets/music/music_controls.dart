@@ -14,9 +14,8 @@ import '../common/slide_switch.dart';
 ///    koliko sekundi traje ulazak iz tišine (1 / 4 / 8)
 /// 2. **God mode** — prekidač sa zvezdicama. Isključen: dodir na numeru je
 ///    odmah pušta. Uključen: dodir samo bira, a pušta se sa Ekrana 2
-/// 3. **Ploča** — usporavanje zvuka kao na gramofonu (1.0 / 0.9 / 0.8 / 0.7)
-/// 4. **Jačina** — slovo L / E / F, dodir vrti u krug (puno, pola, tiho)
-/// 5. **Ekran 2** — ogromno dugme za puštanje; radi samo u God mode-u
+/// 3. **Jačina** — slovo L / E / F, dodir vrti u krug (puno, pola, tiho)
+/// 4. **Ekran 2** — ogromno dugme za puštanje; radi samo u God mode-u
 ///
 /// Oba prekidača se menjaju **samo prevlačenjem** (`SlideSwitch`), da ih
 /// okrznut prst ne prebaci usred programa.
@@ -31,8 +30,6 @@ class MusicControls extends StatelessWidget {
     required this.onGodModeChanged,
     required this.volume,
     required this.onCycleVolume,
-    required this.recordSpeed,
-    required this.onCycleRecordSpeed,
     required this.cueEnabled,
     required this.onOpenCue,
     required this.onTapWithoutSlide,
@@ -48,10 +45,6 @@ class MusicControls extends StatelessWidget {
   final ValueChanged<bool> onGodModeChanged;
   final VolumeStep volume;
   final VoidCallback onCycleVolume;
-
-  /// Brzina ploče — usporavanje zvuka kao na gramofonu.
-  final RecordSpeed recordSpeed;
-  final VoidCallback onCycleRecordSpeed;
 
   /// Ekran 2 je dostupan samo u God mode-u, kad je numera izabrana.
   final bool cueEnabled;
@@ -70,9 +63,9 @@ class MusicControls extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: height,
-      // Šest kontrola na uskom telefonu sa uvećanim fontom ne staju u red.
+      // Kontrole na uskom telefonu sa uvećanim fontom ne staju u red.
       // Umesto da se nešto preliva ili seče, ceo red se srazmerno smanji —
-      // svih šest ostaje vidljivo i na mestu na kom ih je prst naučio.
+      // sve ostaju vidljive i na mestu na kom ih je prst naučio.
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: Row(
@@ -99,7 +92,6 @@ class MusicControls extends StatelessWidget {
               onTapWithoutSlide: onTapWithoutSlide,
             ),
             const SizedBox(width: AppSpacing.sm),
-            _RecordButton(speed: recordSpeed, onTap: onCycleRecordSpeed),
             _VolumeButton(volume: volume, onTap: onCycleVolume),
             _CueButton(enabled: cueEnabled, onTap: onOpenCue),
           ],
@@ -190,50 +182,6 @@ class _VolumeButton extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 color: reduced ? AppColors.warning : AppColors.accent,
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Brzina ploče: dodir je vrti u krug (1.0 → 0.9 → 0.8 → 0.7). Ikonica
-/// ploče je u boji dok je zvuk usporen, da se na prvi pogled vidi da numera
-/// ne ide normalnom brzinom.
-class _RecordButton extends StatelessWidget {
-  const _RecordButton({required this.speed, required this.onTap});
-
-  final RecordSpeed speed;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = speed.isSlowed ? AppColors.warning : AppColors.textSecondary;
-    return Semantics(
-      button: true,
-      label: 'Brzina ploče: ${speed.label}',
-      excludeSemantics: true,
-      child: InkResponse(
-        onTap: onTap,
-        radius: 28,
-        child: SizedBox(
-          width: 44,
-          height: MusicControls.height,
-          // Ikonica i broj jedno ispod drugog na uvećanom fontu prerastu
-          // visinu reda, pa se skupe umesto da se preliju.
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.album_rounded, size: 20, color: color),
-                Text(
-                  speed.label,
-                  style: Theme.of(context).textTheme.labelSmall
-                      ?.copyWith(color: color, fontWeight: FontWeight.w700),
-                ),
-              ],
             ),
           ),
         ),

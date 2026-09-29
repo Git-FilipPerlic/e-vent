@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:event_app/models/track.dart';
 import 'package:event_app/services/audio_playback.dart';
 import 'package:event_app/services/music_player_controller.dart';
@@ -113,55 +115,22 @@ void main() {
     });
   });
 
-  group('zaustavljanje ploče', () {
-    // Ono što je traženo: kad se plejer isključi, zvuk se uspori i spusti u
-    // visini tona, kao ploča kojoj je stao platter.
-    test('pauza bez pretapanja zaustavlja ploču', () async {
+  // Brzina i visina tona se ne diraju nigde u aplikaciji (odluka korisnika
+  // od 29. septembra 2026): pauza i puštanje rade samo jačinom.
+  group('pauza bez efekata brzine', () {
+    test('bez pretapanja pauza je samo kratko utišavanje', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
       await controller.play();
 
       await controller.toggle();
 
-      expect(playback.lastWindDown, isTrue);
+      expect(playback.lastFadeOut, isFalse);
+      expect(JustAudioPlayback.shortPauseFade.inMilliseconds, lessThan(1000));
       controller.dispose();
     });
 
-    // Suprotno od zaustavljanja: bez pretapanja zvuk kreće usporen pa se
-    // digne, kao ploča koja se zavrti.
-    test('puštanje bez pretapanja zavrti ploču', () async {
-      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
-      final controller = await _controllerWith(playback);
-
-      await controller.play();
-
-      expect(playback.lastWindUp, isTrue);
-      controller.dispose();
-    });
-
-    test('uz pretapanje nema zavrtanja — zvuk ulazi iz tišine', () async {
-      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
-      final controller = await _controllerWith(playback);
-      controller.setFade(true);
-
-      await controller.play();
-
-      expect(playback.lastWindUp, isFalse);
-      controller.dispose();
-    });
-
-    test('ploča staje dovoljno duboko da se čuje', () {
-      // Na dvadeset posto se pad jedva čuje; ovde treba da zvuči kao platter
-      // koji staje.
-      expect(JustAudioPlayback.recordStopSpeed, lessThan(0.1));
-      expect(
-        JustAudioPlayback.recordStopGlide.inMilliseconds,
-        greaterThanOrEqualTo(1000),
-      );
-    });
-
-    // Sa uključenim `Fade` pauza je povlačenje pred publikom — šest sekundi
-    // mirnog izlaska, bez efekta.
+    // Sa uključenim `Fade` pauza je povlačenje pred publikom.
     test('uz pretapanje pauza ostaje mirno povlačenje', () async {
       final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
       final controller = await _controllerWith(playback);
@@ -171,39 +140,19 @@ void main() {
       await controller.toggle();
 
       expect(playback.lastFadeOut, isTrue);
-      expect(playback.lastWindDown, isFalse);
-      controller.dispose();
-    });
-  });
-
-  group('brzina ploče', () {
-    test('dodir vrti brzinu u krug i javlja je plejeru', () async {
-      final playback = FakePlayback(trackDuration: const Duration(seconds: 60));
-      final controller = await _controllerWith(playback);
-
-      expect(controller.recordSpeed, RecordSpeed.normal);
-      expect(playback.recordSpeed, 1.0);
-
-      await controller.cycleRecordSpeed();
-      expect(controller.recordSpeed, RecordSpeed.slow);
-      expect(playback.recordSpeed, 0.9);
-
-      await controller.cycleRecordSpeed();
-      await controller.cycleRecordSpeed();
-      expect(controller.recordSpeed, RecordSpeed.slowest);
-      expect(playback.recordSpeed, 0.7);
-
-      // Krug se zatvara na normalnoj brzini.
-      await controller.cycleRecordSpeed();
-      expect(controller.recordSpeed, RecordSpeed.normal);
-      expect(playback.recordSpeed, 1.0);
       controller.dispose();
     });
 
-    test('usporena ploča se prepoznaje po stanju, ne po broju', () {
-      expect(RecordSpeed.normal.isSlowed, isFalse);
-      expect(RecordSpeed.slow.isSlowed, isTrue);
-      expect(RecordSpeed.slowest.isSlowed, isTrue);
+    test('nijedan deo aplikacije ne menja brzinu ni visinu tona', () {
+      final offenders = <String>[];
+      for (final file in Directory('lib').listSync(recursive: true)) {
+        if (file is! File || !file.path.endsWith('.dart')) continue;
+        final code = file.readAsStringSync();
+        if (RegExp(r'\.(setSpeed|setPitch)\(').hasMatch(code)) {
+          offenders.add(file.path);
+        }
+      }
+      expect(offenders, isEmpty);
     });
   });
 

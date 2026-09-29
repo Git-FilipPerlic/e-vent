@@ -410,8 +410,6 @@ class _MusicScreenState extends State<MusicScreen> {
             onGodModeChanged: _setGodMode,
             volume: _player.volume,
             onCycleVolume: _player.cycleVolume,
-            recordSpeed: _player.recordSpeed,
-            onCycleRecordSpeed: _player.cycleRecordSpeed,
             cueEnabled: _godMode && _cueTrack != null,
             onOpenCue: _openCue,
             onTapWithoutSlide: () =>

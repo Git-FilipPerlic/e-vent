@@ -27,18 +27,13 @@ abstract interface class AudioPlayback {
   /// [over] skraćuje ili produžava taj ulazak; `null` znači uobičajenih
   /// deset sekundi.
   ///
-  /// Uz `windUp` zvuk **kreće usporen pa se digne** do normalne brzine,
-  /// kao ploča koja se zavrti. Suprotno od zaustavljanja na pauzi.
-  Future<void> play({bool fadeIn = false, Duration? over, bool windUp = false});
+  /// Zvuk uvek ide **normalnom brzinom i visinom tona** — brzina se u ovoj
+  /// aplikaciji ne dira (odluka korisnika od 29. septembra 2026).
+  Future<void> play({bool fadeIn = false, Duration? over});
 
   /// Pauzira. Uz `fadeOut` zvuk se spusti do tišine pa stane — da prekid
   /// ne bude sečen usred takta.
-  ///
-  /// Uz `windDown` zvuk se pritom i **uspori i spusti u visini tona**, kao
-  /// ploča kojoj je stao platter. To je efekat, ne podešavanje: traje oko
-  /// sekund i sam se vrati na normalnu brzinu, da sledeće puštanje krene
-  /// kako treba.
-  Future<void> pause({bool fadeOut = false, bool windDown = false});
+  Future<void> pause({bool fadeOut = false});
 
   /// Spušta zvuk do tišine za zadato vreme, bez pauziranja.
   /// Koristi se pred kraj numere.
@@ -66,16 +61,6 @@ abstract interface class AudioPlayback {
   double get masterVolume;
 
   Future<void> setMasterVolume(double value);
-
-  /// Brzina ploče: 1.0 je normalna, manje usporava zvuk.
-  ///
-  /// **Menja i visinu tona zajedno sa brzinom**, kao kad se gramofonska
-  /// ploča uspori — zato se ne zove „brzina reprodukcije". Do nove vrednosti
-  /// se **klizi**, ne skače: ploča se ne zaustavlja u jednom kadru.
-  Future<void> setRecordSpeed(double value);
-
-  /// Trenutna brzina ploče.
-  double get recordSpeed;
 
   /// Preklapa zvuk sa numere koja svira na unapred učitanu: prva se spušta,
   /// druga se penje, obe sviraju u isto vreme.
@@ -142,24 +127,6 @@ class JustAudioPlayback implements AudioPlayback {
     }
   }
 
-  /// Brzina ploče, 1.0 = normalna. Pamti se da bi je i numera koja se
-  /// učita kasnije nasledila — na gramofonu se platter ne ubrza sam kad se
-  /// promeni ploča.
-  double _recordSpeed = 1;
-
-  /// Brzina koja je stvarno na plejeru u ovom trenutku — u toku
-  /// zaustavljanja ploče se razlikuje od zadate.
-  double _speedNow = 1;
-
-  Timer? _speedTimer;
-
-  @override
-  double get recordSpeed => _recordSpeed;
-
-  /// Koliko traje klizanje do nove brzine. Kratko koliko treba da se čuje
-  /// kao usporavanje ploče, a ne kao kvar u zvuku.
-  static const Duration recordGlide = Duration(milliseconds: 600);
-
   /// Dokle se spusti numera **koja izlazi** u preklopu: do 20%, ne do
   /// tišine (odluka od 27. septembra 2026).
   ///
@@ -177,30 +144,6 @@ class JustAudioPlayback implements AudioPlayback {
   /// završi. Sa 20% na nulu odjednom bi se čuo „klik".
   static const Duration crossfadeTail = Duration(milliseconds: 250);
 
-  /// Koliko traje zaustavljanje ploče na pauzi.
-  ///
-  /// Duže nego što deluje potrebno, namerno: kratak pad se čuje kao
-  /// greška u zvuku, a ovoliko se čuje kao potez (produženo 28.
-  /// septembra 2026, na zahtev da bude izraženije).
-  static const Duration recordStopGlide = Duration(milliseconds: 1200);
-
-  /// Koliko traje zavrtanje ploče pri puštanju, kad `Fade` nije uključen.
-  static const Duration recordStartGlide = Duration(milliseconds: 700);
-
-  /// Dokle se spusti brzina pri zaustavljanju.
-  ///
-  /// Nije nula: plejer na nuli ne svira ništa, pa bi se poslednji deo
-  /// zvuka izgubio. Spušteno sa 0,2 na 0,08 (28. septembra 2026) — na
-  /// dvadeset posto se pad jedva čuje, a ovde treba da zvuči kao ploča
-  /// kojoj je stao platter.
-  static const double recordStopSpeed = 0.08;
-
-  @override
-  Future<void> setRecordSpeed(double value) async {
-    _recordSpeed = value.clamp(0.25, 2.0);
-    await _glideSpeed(_recordSpeed, recordGlide);
-  }
-
   /// Gasi numeru koja je izašla iz preklopa — sa poda na tišinu, pa stop.
   Future<void> _tailOut(AudioPlayer player) async {
     final steps =
@@ -214,41 +157,6 @@ class JustAudioPlayback implements AudioPlayback {
       await player.setVolume(start * (1 - step / steps));
     }
     await player.stop();
-  }
-
-  /// Vodi brzinu (i visinu tona sa njom) od trenutne do zadate.
-  Future<void> _glideSpeed(double target, Duration over) {
-    _speedTimer?.cancel();
-
-    final start = _speedNow;
-    _speedNow = target;
-    if ((target - start).abs() < 0.001 || over == Duration.zero) {
-      return _applySpeed(_active, target);
-    }
-
-    final steps = (over.inMilliseconds / _fadeStep.inMilliseconds).round().clamp(
-      1,
-      1000,
-    );
-    var step = 0;
-    final done = Completer<void>();
-    _speedTimer = Timer.periodic(_fadeStep, (timer) {
-      step++;
-      final t = (step / steps).clamp(0.0, 1.0);
-      _applySpeed(_active, start + (target - start) * t);
-      if (t >= 1) {
-        timer.cancel();
-        _speedTimer = null;
-        if (!done.isCompleted) done.complete();
-      }
-    });
-    return done.future;
-  }
-
-  /// Brzina i visina tona idu zajedno — to je ono što zvuči kao ploča.
-  Future<void> _applySpeed(AudioPlayer player, double value) async {
-    await player.setSpeed(value);
-    await player.setPitch(value);
   }
 
   @override
@@ -360,11 +268,7 @@ class JustAudioPlayback implements AudioPlayback {
     _hasPreloaded = false;
     await _idle.stop();
     await _active.setVolume(_masterVolume);
-    final loaded = await _open(_active, path);
-    // Nova numera nasleđuje brzinu ploče: platter se ne ubrzava sam.
-    _speedNow = _recordSpeed;
-    await _applySpeed(_active, _recordSpeed);
-    return loaded;
+    return _open(_active, path);
   }
 
   @override
@@ -383,7 +287,6 @@ class JustAudioPlayback implements AudioPlayback {
     final incoming = _idle;
 
     await incoming.setVolume(0);
-    await _applySpeed(incoming, _recordSpeed);
     unawaited(incoming.play());
 
     // Uloge se menjaju odmah: vreme i prsten od ovog trenutka prate novu
@@ -456,24 +359,11 @@ class JustAudioPlayback implements AudioPlayback {
   Future<void> fadeToSilence(Duration over) => _fade(target: 0, over: over);
 
   @override
-  Future<void> play({
-    bool fadeIn = false,
-    Duration? over,
-    bool windUp = false,
-  }) async {
+  Future<void> play({bool fadeIn = false, Duration? over}) async {
     _fadeTimer?.cancel();
 
     if (!fadeIn) {
       await _active.setVolume(_masterVolume);
-      if (windUp) {
-        // Ploča se zavrti: zvuk kreće usporen i u niskom tonu, pa se digne
-        // do normalne brzine. Suprotno od zaustavljanja na pauzi.
-        await _applySpeed(_active, recordStopSpeed);
-        _speedNow = recordStopSpeed;
-        await _active.play();
-        unawaited(_glideSpeed(_recordSpeed, recordStartGlide));
-        return;
-      }
       await _active.play();
       return;
     }
@@ -484,28 +374,15 @@ class JustAudioPlayback implements AudioPlayback {
   }
 
   @override
-  Future<void> pause({bool fadeOut = false, bool windDown = false}) async {
+  Future<void> pause({bool fadeOut = false}) async {
     if (_active.playing) {
-      if (windDown) {
-        // Ploča staje: brzina i jačina se spuštaju zajedno, pa se u istom
-        // trenutku i utiša i uspori. Zvuk se tako „izduva", kao na gramofonu.
-        final glide = _glideSpeed(recordStopSpeed, recordStopGlide);
-        await _fade(target: 0, over: recordStopGlide);
-        await glide;
-      } else {
-        await _fade(
-          target: 0,
-          over: fadeOut ? pauseFadeDuration : shortPauseFade,
-        );
-      }
+      await _fade(
+        target: 0,
+        over: fadeOut ? pauseFadeDuration : shortPauseFade,
+      );
     }
     _cancelFades();
-    _speedTimer?.cancel();
-    _speedTimer = null;
     await _active.pause();
-    // Sledeće puštanje kreće normalnom brzinom, ma kako pauza izgledala.
-    _speedNow = _recordSpeed;
-    await _applySpeed(_active, _recordSpeed);
     // Ako je pauza pala usred pretapanja, zvuk bi pri nastavku ostao tih —
     // zato se jačina vraća na zadatu.
     await _active.setVolume(_masterVolume);
@@ -531,7 +408,6 @@ class JustAudioPlayback implements AudioPlayback {
 
   @override
   Future<void> dispose() async {
-    _speedTimer?.cancel();
     _cancelFades();
     for (final binding in _bindings) {
       await binding.cancel();
