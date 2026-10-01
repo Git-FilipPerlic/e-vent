@@ -104,6 +104,11 @@ abstract final class AppColors {
   /// dodira; kod Žute je crn, jer bi žuti krug koji se puni dok prst stoji
   /// na žutom talasu nestao.
   static Color waveAhead = Color(0xFF2F5BEA);
+
+  /// Da li je podloga tamna. Aplikacija je inače svetla; tamni su Neon
+  /// zelena, Roze crna i Žuto crna (crna podloga). Po ovome tema bira tamnu šemu —
+  /// podrazumevan tekst postaje svetao — i statusna traka svetle ikonice.
+  static bool isDark = false;
 }
 
 /// Jedan **izgled** aplikacije: skup boja koje se biraju u konzoli.
@@ -136,6 +141,7 @@ class AppSkin {
     this.onPeachLabel,
     this.onPeachMuted,
     this.waveAhead,
+    this.dark = false,
   });
 
   /// Kako se izgled zove u bazi i u pamćenju telefona — bez naših slova.
@@ -173,6 +179,9 @@ class AppSkin {
 
   /// Deo talasa koji tek dolazi. `null` znači [accent].
   final Color? waveAhead;
+
+  /// Tamna podloga (svetao tekst, svetle ikonice u statusnoj traci).
+  final bool dark;
 
   /// Sadašnji izgled: topla bela i safirno plava. Podrazumevani.
   static const AppSkin safir = AppSkin(
@@ -234,8 +243,160 @@ class AppSkin {
     waveAhead: Color(0xFF1C1C1E),
   );
 
+  /// Neon roze: fluorescentno roze na beloj podlozi, uz crno (predlog
+  /// korisnika, 1. oktobra 2026). Id je ostao `neon` iz prve probe, da
+  /// telefon koji ga je već izabrao ne padne na Safir.
+  ///
+  /// Neon je po prirodi svetao, pa kao **tekst** na beloj podlozi ne može da
+  /// prođe 4,5:1 — ovde je ≈3,6:1 na beloj i bar 3:1 na najtamnijoj sivoj
+  /// podlozi. To je svesna cena „neon" izgleda: 3:1 je prag za ikonice,
+  /// okvire i krupan tekst, a sitan tekst u boji dodira (vreme u spisku,
+  /// natpis na dugmetu sa okvirom) se čita lošije nego u ostalim izgledima.
+  /// Zato je podloga čisto bela i svetlo siva, a ne bledo roze: svaka
+  /// nijansa ispod bele bi neon još više ugasila.
+  ///
+  /// Na neon dugmetu tekst je crn (≈5,9:1). Tamne kartice su crne sa neon
+  /// oznakama, talas je crn, a krug koji se puni dok prst stoji je neon.
+  static const AppSkin neon = AppSkin(
+    id: 'neon',
+    name: 'Neon roze',
+    accent: Color(0xFFFF0FA6),
+    accentDeep: Color(0xFFFFD1EE),
+    background: Color(0xFFF7F7F7),
+    backgroundTop: Color(0xFFFAFAFA),
+    backgroundBottom: Color(0xFFF0F0F0),
+    surface: Color(0xFFFFFFFF),
+    surfaceAlt: Color(0xFFF2F2F2),
+    border: Color(0xFF111111),
+    textPrimary: Color(0xFF000000),
+    textSecondary: Color(0xFF3D3D3D),
+    peach: Color(0xFF111111),
+    peachStrong: Color(0xFF4A0A33),
+    peachWave: Color(0xFFFFB8E6),
+    cinnamon: Color(0xFF111111),
+    switchOff: Color(0xFF111111),
+    onAccent: Color(0xFF000000),
+    onPeach: Color(0xFFFFFFFF),
+    onPeachLabel: Color(0xFFFF0FA6),
+    onPeachMuted: Color(0xFFA8A8AC),
+    waveAhead: Color(0xFF111111),
+  );
+
+  /// Neon zelena (1. oktobra 2026): **prvi tamni izgled** — crna
+  /// podloga, bledo sivi detalji i pravi neon zeleni `#39FF14` (na
+  /// izričit zahtev korisnika).
+  ///
+  /// Na crnom neon tek pokazuje šta je: kao tekst je ≈15:1, pa se ovde
+  /// čita sve što je u boji dodira — za razliku od prve probe na beloj,
+  /// gde je isti neon bio ≈1,4:1. Na zelenom dugmetu tekst je crn.
+  ///
+  /// Talas: ono što dolazi je srednje sivo, a ne bledo sivo — neon krug koji
+  /// se puni dok prst stoji ne bi se video preko svetlog.
+  ///
+  /// Pažnja: zelena inače znači „spremno" (`AppColors.success`); ta boja se
+  /// ne menja.
+  static const AppSkin zelena = AppSkin(
+    id: 'zelena',
+    name: 'Neon zelena',
+    dark: true,
+    accent: Color(0xFF39FF14),
+    accentDeep: Color(0xFF1A4D10),
+    background: Color(0xFF000000),
+    backgroundTop: Color(0xFF0A0A0A),
+    backgroundBottom: Color(0xFF000000),
+    surface: Color(0xFF141414),
+    surfaceAlt: Color(0xFF1F1F1F),
+    border: Color(0xFF8A8A8E),
+    textPrimary: Color(0xFFF2F2F2),
+    textSecondary: Color(0xFFB0B0B4),
+    peach: Color(0xFF262626),
+    peachStrong: Color(0xFF3A3A3C),
+    peachWave: Color(0xFF2C2C2E),
+    cinnamon: Color(0xFF39FF14),
+    switchOff: Color(0xFF3A3A3C),
+    onAccent: Color(0xFF000000),
+    onPeach: Color(0xFFF2F2F2),
+    onPeachLabel: Color(0xFF39FF14),
+    onPeachMuted: Color(0xFFB0B0B4),
+    waveAhead: Color(0xFF6E6E73),
+  );
+
+  /// Roze crna: isti raspored kao Neon zelena, ali **mekši** — nežna roze
+  /// `#F07AAE` na ugljeno sivoj umesto čisto crne podloge (1. oktobra 2026).
+  ///
+  /// Istorija: `#FF13F0` je bila magenta (previše plava), pa `#FF2290`,
+  /// koja je „čupala oči" uz čistu crnu. Ublaženo po pravilu za tamne
+  /// ekrane: jarka, zasićena boja na čistoj crnoj treperi i zamara oko, pa
+  /// je roze svetlija i manje zasićena, a crna je postala ugljeno siva
+  /// (`#141416`). I tekst je za nijansu prigušeniji od čisto belog.
+  ///
+  /// I dalje se sve čita: roze na kartici ≈5,4:1, tamni tekst na roze
+  /// dugmetu ≈6,7:1. Krug koji se puni dok prst stoji je od srednje sivog
+  /// talasa odvojen ≈2:1; odvaja ga i njegova tamna staza (`accentDeep`).
+  static const AppSkin rozeCrna = AppSkin(
+    id: 'rozecrna',
+    name: 'Roze crna',
+    dark: true,
+    accent: Color(0xFFF07AAE),
+    accentDeep: Color(0xFF4A2236),
+    background: Color(0xFF141416),
+    backgroundTop: Color(0xFF18181B),
+    backgroundBottom: Color(0xFF141416),
+    surface: Color(0xFF1E1E21),
+    surfaceAlt: Color(0xFF28282C),
+    border: Color(0xFF6E6E73),
+    textPrimary: Color(0xFFE8E6E8),
+    textSecondary: Color(0xFFA8A6AA),
+    peach: Color(0xFF2C2C30),
+    peachStrong: Color(0xFF3E3E43),
+    peachWave: Color(0xFF3A3A3E),
+    cinnamon: Color(0xFFF07AAE),
+    switchOff: Color(0xFF3A3A3E),
+    onAccent: Color(0xFF1A1A1C),
+    onPeach: Color(0xFFE8E6E8),
+    onPeachLabel: Color(0xFFF07AAE),
+    onPeachMuted: Color(0xFFA8A6AA),
+    waveAhead: Color(0xFF6E6E73),
+  );
+
+  /// Žuto crna: isti raspored kao Neon zelena, sa žutom iz svetle Žute
+  /// (`#FFC800`) na crnoj podlozi (1. oktobra 2026). Na crnom žuta drži
+  /// ≈13:1.
+  static const AppSkin zutoCrna = AppSkin(
+    id: 'zutocrna',
+    name: 'Žuto crna',
+    dark: true,
+    accent: Color(0xFFFFC800),
+    accentDeep: Color(0xFF4D3D00),
+    background: Color(0xFF000000),
+    backgroundTop: Color(0xFF0A0A0A),
+    backgroundBottom: Color(0xFF000000),
+    surface: Color(0xFF141414),
+    surfaceAlt: Color(0xFF1F1F1F),
+    border: Color(0xFF8A8A8E),
+    textPrimary: Color(0xFFF2F2F2),
+    textSecondary: Color(0xFFB0B0B4),
+    peach: Color(0xFF262626),
+    peachStrong: Color(0xFF3A3A3C),
+    peachWave: Color(0xFF2C2C2E),
+    cinnamon: Color(0xFFFFC800),
+    switchOff: Color(0xFF3A3A3C),
+    onAccent: Color(0xFF000000),
+    onPeach: Color(0xFFF2F2F2),
+    onPeachLabel: Color(0xFFFFC800),
+    onPeachMuted: Color(0xFFB0B0B4),
+    waveAhead: Color(0xFF6E6E73),
+  );
+
   /// Svi izgledi, redom kojim stoje u konzoli.
-  static const List<AppSkin> all = [safir, zuta];
+  static const List<AppSkin> all = [
+    safir,
+    zuta,
+    neon,
+    zelena,
+    rozeCrna,
+    zutoCrna,
+  ];
 
   /// Izgled po id-u; nepoznat ili prazan daje podrazumevani.
   static AppSkin byId(String? id) {
@@ -270,6 +431,23 @@ class AppSkin {
     AppColors.onPeachLabel = onPeachLabel ?? cinnamon;
     AppColors.onPeachMuted = onPeachMuted ?? textSecondary;
     AppColors.waveAhead = waveAhead ?? accent;
+    AppColors.isDark = dark;
+    // Ekrani bez gornje trake (spisak događaja, stranice događaja) uzimaju
+    // ovo, ne temu — inače bi na crnoj podlozi ikonice sata i baterije
+    // ostale crne i nestale.
+    // Donja sistemska traka (dugmad za nazad i početni ekran) ide u boju
+    // podloge — inače na crnoj podlozi ostane svetlo siva pruga.
+    SystemChrome.setSystemUIOverlayStyle(
+      (dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
+          .copyWith(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: background,
+            systemNavigationBarIconBrightness: dark
+                ? Brightness.light
+                : Brightness.dark,
+            systemNavigationBarContrastEnforced: false,
+          ),
+    );
   }
 
   /// Svetlija nijansa iste boje — za gradijent na velikom dugmetu.
@@ -377,6 +555,7 @@ abstract final class AppTheme {
   static ThemeData get dark => light;
 
   static ThemeData get light {
+    final brightness = AppColors.isDark ? Brightness.dark : Brightness.light;
     final scheme = ColorScheme.light(
       primary: AppColors.accent,
       onPrimary: AppColors.onAccent,
@@ -396,12 +575,12 @@ abstract final class AppTheme {
       outlineVariant: AppColors.border,
       error: AppColors.danger,
       onError: AppColors.onAccent,
-    );
+    ).copyWith(brightness: brightness);
 
     const pill = StadiumBorder();
 
     return ThemeData(
-      brightness: Brightness.light,
+      brightness: brightness,
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColors.background,
       // Dodirne mete nikad manje od 48 dp.
@@ -417,8 +596,11 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
         elevation: 0,
-        // Tamne ikonice u statusnoj traci — na svetloj podlozi bele se ne vide.
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        // Tamne ikonice u statusnoj traci — na svetloj podlozi bele se ne
+        // vide. Na tamnoj (Neon zelena) obrnuto.
+        systemOverlayStyle: AppColors.isDark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
         titleTextStyle: TextStyle(
           color: AppColors.textPrimary,
           fontSize: 22,

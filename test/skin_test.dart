@@ -25,13 +25,16 @@ void main() {
       // ne sme da ostane na nepostojećem izgledu, nego pada na podrazumevani.
       expect(AppSkin.byId('grimiz').id, 'safir');
       expect(AppSkin.byId('tirkiz').id, 'safir');
+      expect(AppSkin.byId('punk').id, 'safir');
+      expect(AppSkin.byId('crna').id, 'safir');
+      expect(AppSkin.byId('crvena').id, 'safir');
       expect(AppSkin.byId('siva').id, 'safir');
     });
 
     test('svaki izgled ima svoj id i naziv', () {
       final ids = AppSkin.all.map((s) => s.id).toSet();
       expect(ids.length, AppSkin.all.length);
-      expect(AppSkin.all.length, 2);
+      expect(AppSkin.all.length, 6);
       expect(AppSkin.all.first.id, 'safir');
       for (final skin in AppSkin.all) {
         expect(skin.name, isNotEmpty);
@@ -50,10 +53,12 @@ void main() {
       expect(AppTheme.light.colorScheme.primary, AppSkin.zuta.accent);
     });
 
-    // Bela je dovoljno tamna na safiru — na žutoj podlozi bi skoro
-    // nestala, pa taj izgled nosi crnu.
-    test('tekst na accent podlozi je crn samo kod žutog izgleda', () {
+    // Bela je dovoljno tamna na safiru — na žutoj i na neonima bi skoro
+    // nestala, pa ti izgledi nose crnu.
+    test('tekst na accent podlozi je crn samo na svetlim bojama dodira', () {
       expect(AppSkin.safir.onAccent, const Color(0xFFFFFFFF));
+      expect(AppSkin.neon.onAccent, isNot(const Color(0xFFFFFFFF)));
+      expect(AppSkin.zelena.onAccent, isNot(const Color(0xFFFFFFFF)));
       expect(AppSkin.zuta.onAccent, isNot(const Color(0xFFFFFFFF)));
 
       AppSkin.zuta.apply();
@@ -109,6 +114,106 @@ void main() {
         expect(AppColors.danger, danger);
       }
     });
+  });
+
+  // Svaki izgled mora da bude čitljiv: tekst na dugmetu i tekst na tamnoj
+  // kartici bar 4,5:1 (WCAG AA), a boja dodira na beloj bar 3:1, jer
+  // ikonice i dugmad sa okvirom stoje direktno na belom. Žuta je izuzetak
+  // za ovo poslednje — žuto na belom se slabo vidi, pa ona nosi crne
+  // okvire i ikonice tamo gde je to bitno.
+  group('kontrast', () {
+    double contrast(Color a, Color b) {
+      final la = a.computeLuminance();
+      final lb = b.computeLuminance();
+      final hi = la > lb ? la : lb;
+      final lo = la > lb ? lb : la;
+      return (hi + 0.05) / (lo + 0.05);
+    }
+
+    for (final skin in AppSkin.all) {
+      test('${skin.name}: tekst na dugmetu i na tamnoj kartici se čita', () {
+        skin.apply();
+        expect(contrast(skin.accent, skin.onAccent), greaterThanOrEqualTo(4.5));
+        expect(
+          contrast(AppColors.peach, AppColors.onPeach),
+          greaterThanOrEqualTo(4.5),
+        );
+        expect(
+          contrast(AppColors.peach, AppColors.onPeachLabel),
+          greaterThanOrEqualTo(4.5),
+        );
+      });
+    }
+
+    // Tamni izgledi (crna podloga): boja dodira se čita kao tekst na svakoj
+    // tamnoj podlozi, a tekst i pomoćni tekst su svetli.
+    for (final z in [AppSkin.zelena, AppSkin.rozeCrna, AppSkin.zutoCrna]) {
+      test('${z.name}: na crnoj podlozi se sve čita', () {
+        expect(z.dark, isTrue);
+        for (final bg in [z.background, z.surface, z.surfaceAlt, z.peach]) {
+          expect(contrast(z.accent, bg), greaterThanOrEqualTo(4.5));
+          expect(contrast(z.textPrimary, bg), greaterThanOrEqualTo(7));
+          expect(contrast(z.textSecondary, bg), greaterThanOrEqualTo(4.5));
+        }
+        // Talas mora da se vidi na crnom.
+        expect(
+          contrast(z.waveAhead!, z.backgroundTop),
+          greaterThanOrEqualTo(3),
+        );
+      });
+    }
+
+    // Krug koji se puni dok prst stoji je u boji dodira, preko talasa. Kod
+    // Roze crne je slabije odvojen od srednje sivog talasa (≈2:1) — svesno,
+    // da raspored ostane isti kao kod Neon zelene; odvaja ga tamna staza.
+    for (final z in [AppSkin.zelena, AppSkin.zutoCrna]) {
+      test('${z.name}: krug se vidi preko talasa', () {
+        expect(contrast(z.accent, z.waveAhead!), greaterThanOrEqualTo(3));
+      });
+    }
+  });
+
+  group('tamna podloga', () {
+    // Na tamnom izgledu tema mora da bude tamna — inače podrazumevan tekst
+    // ostaje crn na crnoj podlozi.
+    test('tema prati izgled', () {
+      AppSkin.zelena.apply();
+      expect(AppTheme.light.brightness, Brightness.dark);
+      expect(AppTheme.light.colorScheme.brightness, Brightness.dark);
+
+      AppSkin.safir.apply();
+      expect(AppTheme.light.brightness, Brightness.light);
+    });
+  });
+
+  group('neon', () {
+    double contrast(Color a, Color b) {
+      final la = a.computeLuminance();
+      final lb = b.computeLuminance();
+      final hi = la > lb ? la : lb;
+      final lo = la > lb ? lb : la;
+      return (hi + 0.05) / (lo + 0.05);
+    }
+
+    // Neon ne može da prođe 4,5:1 kao tekst — svesna cena izgleda. Ali
+    // prag za ikonice, okvire i krupan tekst (3:1) mora da drži na svakoj
+    // podlozi, inače se dugme sa okvirom ne vidi.
+    for (final n in [AppSkin.neon]) {
+      test('${n.name}: vidi se bar kao ikonica na svakoj podlozi', () {
+        for (final bg in [
+          n.surface,
+          n.surfaceAlt,
+          n.background,
+          n.backgroundTop,
+          n.backgroundBottom,
+        ]) {
+          expect(contrast(n.accent, bg), greaterThanOrEqualTo(3));
+        }
+        // Krug koji se puni dok prst stoji je u boji dodira, preko crnog
+        // talasa.
+        expect(contrast(n.accent, n.waveAhead!), greaterThanOrEqualTo(3));
+      });
+    }
   });
 
   group('pamćenje izgleda', () {

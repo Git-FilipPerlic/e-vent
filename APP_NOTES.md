@@ -2414,6 +2414,43 @@ i pripada.
   crnom sivom `#1C1C1E`. Tekst na toj podlozi sad ide kroz nove boje
   `onPeach` / `onPeachLabel` / `onPeachMuted` (kod Safira iste kao ranije).
   422 testa prolazi.
+- **Žuta: crn talas** — deo koji dolazi je crn, pređeni svetlo siv, da se
+  žuti krug koji se puni dok prst stoji vidi (`AppColors.waveAhead`).
+  Objavljeno kao **0.1.3** (GitHub pre-release `v0.1.3-proba`, build 2100).
+- **Punk izgled** (crno + jarko roze, `#E30F73`, crn tekst na roze). Dodata
+  grupa testova „kontrast" koja za svaki izgled proverava 4,5:1 na dugmetu
+  i na tamnoj kartici. 427 testova prolazi. Na telefonu (debug), nije još
+  u APK-u za slanje.
+- **Punk, druga proba:** bledo roze umesto bele (pozadina, kartice, polja),
+  ciklama potamnjena na `#C10D62` da se čita na roze, tekst na dugmetu beo.
+  Ako se ne dopadne, vraća se prva verzija (bela, `#E30F73`, crn tekst) —
+  vrednosti su u komentaru uz `AppSkin.punk`.
+- **Neon** (zaseban izgled, da se uporedi sa Punkom): fluorescentno roze
+  `#FF0FA6` na beloj, crn tekst na dugmetu. Kao tekst je ≈3,6:1 — ispod
+  4,5, svesno; test traži bar 3:1 na svakoj podlozi. 429 testova prolazi.
+- **Pet probnih izgleda:** Safir, Žuta, Neon roze, **Neon zelena** i
+  **Crvena**; Punk obrisan. Neon zelena: boja dodira `#009E35` (najjarča
+  zelena sa 3:1 na beloj), pravi neon `#39FF14` samo na crnim karticama.
+  Crvena `#D7192A`, beo tekst na dugmetu. Obe se sudaraju sa `success` /
+  `danger` — korisnik upozoren. 431 test prolazi.
+- **Crvena → Crna** (crno-bela; kartice i talas svetlo sivi da crno dugme i
+  krug ne nestanu). **Neon zelena → `#39FF14`** na zahtev korisnika, iako je
+  na beloj ≈1,4:1; test za nju proverava samo dugme i krug. 431 test.
+- **Ispravka nesporazuma:** Crvena se vraća, ali kao crno-siva tema sa
+  crvenim karticama, okvirima i talasom (crna dugmad). Crna obrisana.
+  **Neon zelena je sad tamna** — crna podloga, bledo sivi detalji, neon
+  zelena; dodato `AppSkin.dark`, tamna šema teme i boja sistemskih traka.
+  Provereno snimkom ekrana na telefonu (obe teme). 432 testa prolaze.
+- **Šest tema:** Crvena obrisana; dodate tamne **Roze crna** (`#FF13F0`) i
+  **Žuto crna** (`#FFC800`), isti raspored kao Neon zelena. Testovi za
+  tamne teme proveravaju čitljivost na svakoj tamnoj podlozi i da se talas
+  vidi na crnom. Provereno snimkom ekrana. 436 testova prolazi.
+- **Roze crna: `#FF13F0` → `#FF2290`** — prva je bila magenta i korisniku
+  delovala previše plavo. Tamne kartice u toj temi potamnjene na `#1F1F1F`
+  da roze tekst na njima ostane ≥4,5:1.
+- **Roze crna ublažena:** `#FF2290` je „čupala oči" uz čistu crnu. Sad je
+  nežna roze `#F07AAE` na ugljeno sivoj `#141416`, tekst prigušeno beo,
+  okviri mekši. Neon zelena i Žuto crna ostale na čistoj crnoj.
 - Provereno: `flutter analyze` bez greške, 420 testova prolazi (novi:
   `test/meeting_test.dart`, sastanak u spisku iz `events_screen_test.dart`,
   ime se menja iz `team_screen_test.dart`, žuti izgled iz `skin_test.dart`).

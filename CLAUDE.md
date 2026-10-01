@@ -1291,6 +1291,10 @@ Boje aplikacije se biraju **u konzoli**, iz gotovih kombinacija:
 |---|---|---|
 | Safir (podrazumevani, sadašnji) | `safir` | safirno plava |
 | Žuta — **probna, 1. oktobar 2026** | `zuta` | jako kontrastna žuta |
+| Neon roze — **probna, 1. oktobar 2026** | `neon` | fluorescentno roze na beloj |
+| Neon zelena — **probna, 1. oktobar 2026** | `zelena` | neon zeleni `#39FF14` na **crnoj podlozi** (jedini tamni) |
+| Roze crna — **probna, 1. oktobar 2026** | `rozecrna` | nežna roze `#F07AAE` na ugljeno sivoj podlozi |
+| Žuto crna — **probna, 1. oktobar 2026** | `zutocrna` | žuta `#FFC800` na crnoj podlozi |
 
 **Grimizna, Tirkiz i Bledo siva su uklonjene 1. oktobra 2026**, na zahtev korisnika —
 manje izgleda u konzoli, da ne pravi gužvu uz novu žutu. `AppSkin.byId` na
@@ -1321,6 +1325,49 @@ drugačije. **Pravilo: tekst na `peach` podlozi nikad ne ide u
 `textPrimary`/`cinnamon`/`textSecondary` direktno**, nego kroz `onPeach*` —
 inače u žutom izgledu nestane. Ako korisnik potvrdi da izgled ostaje, ovaj
 red prestaje da bude „probni".
+
+Probni izgledi su posle više krugova (1. oktobra 2026):
+Safir, Žuta, Neon roze, Neon zelena, Roze crna i Žuto crna (šest). Usput
+probani i obrisani: Punk (ciklama na bledo roze podlozi), Crna i Crvena. Korisnik će obrisati one koji mu se ne
+dopadnu.
+
+**Neon roze**: fluorescentno roze `#FF0FA6`
+na čisto beloj i svetlo sivoj podlozi, crn tekst na neon dugmetu. **Svesno
+ispod 4,5:1 kao tekst** (≈3,6:1 na beloj) — neon to po prirodi ne može.
+Drži 3:1, prag za ikonice, okvire i krupan tekst; sitan tekst u boji dodira
+se čita lošije nego u ostalim izgledima. Zato podloga nije roze: svaka
+nijansa ispod bele bi neon još više ugasila.
+
+**Neon zelena — jedini tamni izgled** (izuzetak od pravila „aplikacija je
+svetla", na izričit zahtev korisnika): crna podloga, bledo sivi detalji,
+neon `#39FF14`. Na crnom neon drži ≈15:1, pa se čita sve što je u boji
+dodira. Kako je izvedeno:
+
+- `AppSkin.dark` / `AppColors.isDark` — tema tada gradi tamnu šemu
+  (`Brightness.dark`), pa je podrazumevan tekst svetao; statusna traka i
+  donja sistemska traka dobijaju svetle ikonice i boju podloge
+  (`AppSkin.apply` ih postavlja, jer ekrani bez gornje trake ne uzimaju
+  stil iz teme)
+- talas koji dolazi je srednje siv, ne bledo siv — neon krug koji se puni
+  dok prst stoji preko svetlog se ne bi video
+- zelena se i dalje sudara sa `success` („spremno")
+
+**Roze crna** i **Žuto crna** su isti raspored kao Neon zelena — crna
+podloga, bledo sivi detalji — samo sa roze, odnosno žutom `#FFC800`. Roze crna je posle dve probe
+(`#FF13F0` previše plava, `#FF2290` „čupa oči") **ublažena**: nežna roze
+`#F07AAE` na ugljeno sivoj (`#141416`) umesto čisto crne — jarka zasićena
+boja na čistoj crnoj zamara oko. Krug koji se puni dok prst stoji je od
+srednje sivog talasa odvojen ≈2:1: raspored je namerno ostao isti, a krug
+odvaja njegova tamna staza.
+
+**Svaki izgled mora da prođe kontrast** — `test/skin_test.dart` (grupa
+„kontrast") proverava za svaki izgled tekst na dugmetu i na tamnoj kartici
+(bar 4,5:1). Nov izgled koji to ne prolazi ne ulazi u `AppSkin.all`.
+
+**Nov izgled stiže samo sa novim APK-om.** Boje su ugrađene u aplikaciju,
+ne stoje u bazi, pa ih drugi telefoni ne dobijaju sami. A i kad instaliraju
+novu verziju, izgled se ne menja sam — svako ga bira za svoj telefon u
+konzoli.
 
 **Izgled je lična stvar, ne podatak firme.** Bira ga svako za svoj telefon i
 pamti se **na telefonu** (`SharedPreferences`, `app_skin`), ne u bazi — zato ga
