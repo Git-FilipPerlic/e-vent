@@ -92,8 +92,8 @@ class NowPlayingCard extends StatelessWidget {
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: hasTrack
-                          ? AppColors.textPrimary
-                          : AppColors.textSecondary,
+                          ? AppColors.onPeach
+                          : AppColors.onPeachMuted,
                     ),
                   ),
                 ),
@@ -133,13 +133,13 @@ class NowPlayingCard extends StatelessWidget {
 
   TextStyle? _labelStyle(ThemeData theme) =>
       theme.textTheme.labelMedium?.copyWith(
-        color: AppColors.cinnamon,
+        color: AppColors.onPeachLabel,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.6,
       );
 
   TextStyle? _timeStyle(ThemeData theme) => theme.textTheme.bodySmall?.copyWith(
-    color: AppColors.cinnamon,
+    color: AppColors.onPeachLabel,
     fontFeatures: const [FontFeature.tabularFigures()],
   );
 }
@@ -170,7 +170,7 @@ class _PauseButton extends StatelessWidget {
             child: Icon(
               showPause ? Icons.pause_rounded : Icons.play_arrow_rounded,
               size: 26,
-              color: enabled ? AppColors.onAccent : AppColors.textSecondary,
+              color: enabled ? AppColors.onAccent : AppColors.onPeachMuted,
             ),
           ),
         ),

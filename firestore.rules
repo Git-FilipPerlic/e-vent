@@ -75,6 +75,16 @@ service cloud.firestore {
       allow create, update, delete: if isGlavni();
     }
 
+    // --- Sastanci firme ------------------------------------------------------
+    //
+    // Termin i adresa, bez ostalog — vidi ih cela ekipa, bez obzira na
+    // dodelu (za razliku od događaja). Pravi i briše ih samo onaj ko vodi
+    // ekipu (dogovoreno 1. oktobra 2026).
+    match /meetings/{meetingId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isGlavni();
+    }
+
     // --- Beleške na pesmama ------------------------------------------------
     //
     // „Omiljeni deo", „ovde ulazi vatra" — ostavlja ih svako iz ekipe, a vidi

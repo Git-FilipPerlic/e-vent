@@ -33,6 +33,27 @@ void main() {
   });
 
   group('izmena člana', () {
+    // Dok se ko ne prijavi, vuče se deo mejla pre „@" — manager ga tu
+    // zameni pravim imenom, bez čekanja da se čovek sam javi u konzoli.
+    testWidgets('ime se menja i pamti', (WidgetTester tester) async {
+      final service = MockEventService();
+      await tester.pumpWidget(_wrap(TeamScreen(service: service)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Marko'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'Mare');
+      await tester.tap(find.text('Sačuvaj'));
+      await tester.pumpAndSettle();
+
+      final loading = service.loadTeam();
+      await tester.pump(const Duration(seconds: 1));
+      final team = await loading;
+      expect(team.any((m) => m.name == 'Mare'), isTrue);
+      expect(team.any((m) => m.name == 'Marko'), isFalse);
+    });
+
     testWidgets('bodovi se dodaju i pamte', (WidgetTester tester) async {
       final service = MockEventService();
       await tester.pumpWidget(_wrap(TeamScreen(service: service)));

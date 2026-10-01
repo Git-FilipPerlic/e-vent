@@ -25,6 +25,7 @@ class LoginScreen extends StatefulWidget {
     this.hasLogo = false,
     this.onOpenEquipment,
     this.onOpenTeam,
+    this.onOpenMeetings,
     this.onEditBase,
     this.baseAddress,
     this.skin = AppSkin.safir,
@@ -36,6 +37,9 @@ class LoginScreen extends StatefulWidget {
 
   /// Otvara ekipu — ko šta ume i koliko je odradio. `null` bez dozvole.
   final VoidCallback? onOpenTeam;
+
+  /// Otvara sastanke firme. `null` bez dozvole — pravi ih samo glavni.
+  final VoidCallback? onOpenMeetings;
 
   /// Menja adresu magacina — odatle se računa put do događaja.
   /// `null` bez dozvole.
@@ -312,6 +316,31 @@ class _LoginScreenState extends State<LoginScreen> {
             onPressed: widget.onOpenTeam,
             icon: const Icon(Icons.groups_rounded, size: 20),
             label: const Text('Uredi ekipu'),
+          ),
+        ],
+
+        if (widget.onOpenMeetings != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Sastanci firme',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: AppColors.textSecondary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Termin i adresa, ništa drugo. Vidi ih cela ekipa, u spisku '
+            'događaja, drugom bojom.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            onPressed: widget.onOpenMeetings,
+            icon: const Icon(Icons.event_available_rounded, size: 20),
+            label: const Text('Uredi sastanke'),
           ),
         ],
 

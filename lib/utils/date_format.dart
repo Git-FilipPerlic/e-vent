@@ -59,3 +59,20 @@ abstract final class AppDate {
     return rest == 0 ? '${hours}h' : '${hours}h$rest';
   }
 }
+
+/// Sistemski birači (datum, sat) se crtaju sa **ograničenim uvećanjem
+/// teksta**.
+///
+/// Oni imaju svoje čvrste mere; pri uvećanju preko ~1,15 njihovi elementi
+/// izlaze jedan preko drugog. Ostatak aplikacije poštuje sistemsko
+/// podešavanje u celosti — ovo je izuzetak samo za tuđe, gotove ekrane, i
+/// prosleđuje se kao `builder` i za `showDatePicker` i za `showTimePicker`.
+Widget readableDatePicker(BuildContext context, Widget? child) {
+  final media = MediaQuery.of(context);
+  return MediaQuery(
+    data: media.copyWith(
+      textScaler: media.textScaler.clamp(maxScaleFactor: 1.15),
+    ),
+    child: child ?? const SizedBox.shrink(),
+  );
+}

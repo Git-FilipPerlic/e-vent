@@ -103,7 +103,9 @@ void main() {
   });
 
   group('čuvanje člana', () {
-    test('veštine i bodovi se pamte, ime se ne dira', () async {
+    // Od 1. oktobra 2026 manager tu postavlja i ime — dok se ko ne prijavi,
+    // vuče se deo mejla pre „@", a manager ga odavde zameni pravim.
+    test('veštine, bodovi i ime se pamte', () async {
       final service = MockEventService();
       final ana = (await service.loadTeam()).firstWhere((m) => m.name == 'Ana');
 
@@ -115,8 +117,7 @@ void main() {
       expect(saved.skillIds, ['skill-003']);
       expect(saved.exp, 150);
       expect(saved.level, 2);
-      // Ime ostaje ono koje čovek sam postavlja u konzoli.
-      expect(saved.name, 'Ana');
+      expect(saved.name, 'Neko drugi');
     });
   });
 }

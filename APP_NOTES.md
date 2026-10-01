@@ -2367,6 +2367,60 @@ i pripada.
 - Sledeće: proba na telefonu — unaprediti nekog, pa da se on odjavi i
   prijavi.
 
+## 1. oktobar 2026 — ime člana iz konzole, sastanci firme, probni žuti izgled
+
+- **Manager postavlja ime člana** (ekran Ekipa). Dok se ko ne prijavi, vuče
+  se deo mejla pre „@", pa se u „Ko radi" vodio pod tim dok se sam ne javi u
+  konzoli. Sad polje „Ime" stoji u istoj listi gde i uloga, veštine i
+  bodovi, i čuva se istim dugmetom. `toManagerMap()` sad nosi i ime;
+  pravila baze se nisu morala menjati — `glavni` je već smeo da piše ceo
+  tuđ profil.
+
+- **Sastanci firme** (nov feature, dogovoreno u ovom razgovoru). Glavni iz
+  konzole zakazuje sastanak — samo termin i adresa, ništa drugo — i vidi ga
+  cela ekipa, u spisku događaja, drugom bojom (breskva, bez dodira). Nije
+  vezan za `assignedTo`: ne gleda se ko je kome dodeljen, nego ga vidi svako
+  prijavljen.
+  - `lib/models/meeting.dart` — `CompanyMeeting` (id, datum i sat, adresa)
+  - `EventService`: `loadMeetings`/`watchMeetings`/`createMeeting`/
+    `deleteMeeting`, urađeno u mock i Firestore servisu
+  - `lib/utils/agenda_grouping.dart` — spaja događaje i sastanke u isti
+    spisak, istom podelom po danu (`groupForDate`, izvučeno iz
+    `event_grouping.dart` da ga oba koriste)
+  - `lib/screens/meetings_screen.dart` — konzola: spisak, „Nov sastanak"
+    (datum, sat, adresa), brisanje. Dugme „Uredi sastanke" u konzoli, pored
+    Ekipe i Opreme
+  - `firestore.rules` — kolekcija `meetings`: čita ko je prijavljen, piše
+    samo `glavni`. **Objavljeno** (`firebase deploy --only firestore:rules`)
+  - Sistemski birač datuma/sata iz `event_when_sheet.dart` je izvučen u
+    `readableDatePicker` (`lib/utils/date_format.dart`), da ga koristi i
+    novi ekran — isto ograničenje uvećanja teksta (1,15) kao svuda drugde
+    gde se taj birač koristi
+
+- **Probni izgled „Žuta"** (predlog korisnika, nije još potvrđen kao
+  trajna odluka — čeka da se vidi na telefonu). Jako kontrastna žuta
+  (`#FFC800`) za sve što se dodiruje, sve ostalo isto kao Safir (bela/bledo
+  siva). Jedini izgled gde `onAccent` nije belo: na žutoj podlozi bela skoro
+  nestane, pa dugmad i ikonice na njoj nose crnu (`#141414`). Zato je
+  `AppColors.onAccent` prešao iz `const` u promenljivo, a `AppSkin` dobio
+  polje `onAccent` (podrazumevano belo, da se četiri postojeća izgleda ne
+  diraju). Ako se korisniku svidi, treba dopisati u tabelu izgleda u
+  `CLAUDE.md` — za sada je samo u kodu, za probu.
+- **Posle probe na telefonu** (isti dan): korisnik je tražio više crne i
+  manje izgleda. Ostali su samo **Safir i Žuta** — Grimizna, Tirkiz i Bledo
+  siva su obrisani (stari zapamćen id pada na Safir). U Žutoj: tekst čisto
+  crn, okviri kartica i staza prekidača tamno ugljeni, a roza-breskva
+  (kartica „Sada svira", izabran red, sastanak, značka) zamenjena skoro
+  crnom sivom `#1C1C1E`. Tekst na toj podlozi sad ide kroz nove boje
+  `onPeach` / `onPeachLabel` / `onPeachMuted` (kod Safira iste kao ranije).
+  422 testa prolazi.
+- Provereno: `flutter analyze` bez greške, 420 testova prolazi (novi:
+  `test/meeting_test.dart`, sastanak u spisku iz `events_screen_test.dart`,
+  ime se menja iz `team_screen_test.dart`, žuti izgled iz `skin_test.dart`).
+- Sledeće: korisnik gleda žuti izgled na telefonu i kaže da li ostaje;
+  proba sastanka na telefonu (napraviti jedan iz konzole, videti ga u
+  spisku).
+
 ---
 
 ## TODO (skupljati ovde, rešavati kad dođe red)

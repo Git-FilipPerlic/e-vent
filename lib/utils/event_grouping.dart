@@ -40,7 +40,7 @@ List<EventGroupSection> groupEvents(
   final grouped = <EventGroup, List<Event>>{};
 
   for (final event in events) {
-    grouped.putIfAbsent(_groupFor(event, now), () => []).add(event);
+    grouped.putIfAbsent(groupForDate(event.eventDate, now), () => []).add(event);
   }
 
   // Prošli se čitaju unazad — juče je zanimljivije od prošle godine.
@@ -54,8 +54,11 @@ List<EventGroupSection> groupEvents(
   ];
 }
 
-EventGroup _groupFor(Event event, DateTime now) {
-  final date = event.eventDate;
+/// Kojoj vremenskoj grupi pripada ovaj datum.
+///
+/// Javna je zato što grupe deli i spisak sastanaka firme sa spiskom
+/// događaja — oboje se gledaju po istom datumu, pa i pripadaju istoj grupi.
+EventGroup groupForDate(DateTime? date, DateTime now) {
   if (date == null) return EventGroup.bezDatuma;
 
   final days = _dayDifference(date, now);

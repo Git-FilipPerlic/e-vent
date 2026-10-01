@@ -19,13 +19,19 @@ void main() {
     test('nepoznat ili prazan izgled daje podrazumevani', () {
       expect(AppSkin.byId(null).id, 'safir');
       expect(AppSkin.byId('nema-ovoga').id, 'safir');
-      expect(AppSkin.byId('grimiz').id, 'grimiz');
+      expect(AppSkin.byId('zuta').id, 'zuta');
+      // Grimizna, Tirkiz i Bledo siva su uklonjene 1. oktobra 2026 (manje
+      // izgleda u konzoli); ko ih je imao zapamćene sa starije instalacije
+      // ne sme da ostane na nepostojećem izgledu, nego pada na podrazumevani.
+      expect(AppSkin.byId('grimiz').id, 'safir');
+      expect(AppSkin.byId('tirkiz').id, 'safir');
+      expect(AppSkin.byId('siva').id, 'safir');
     });
 
     test('svaki izgled ima svoj id i naziv', () {
       final ids = AppSkin.all.map((s) => s.id).toSet();
       expect(ids.length, AppSkin.all.length);
-      expect(AppSkin.all.length, 4);
+      expect(AppSkin.all.length, 2);
       expect(AppSkin.all.first.id, 'safir');
       for (final skin in AppSkin.all) {
         expect(skin.name, isNotEmpty);
@@ -35,13 +41,58 @@ void main() {
     test('izbor izgleda menja boje cele aplikacije', () {
       final safir = AppColors.accent;
 
-      AppSkin.grimiz.apply();
-      expect(AppColors.accent, AppSkin.grimiz.accent);
+      AppSkin.zuta.apply();
+      expect(AppColors.accent, AppSkin.zuta.accent);
       expect(AppColors.accent, isNot(safir));
-      expect(AppColors.background, AppSkin.grimiz.background);
+      expect(AppColors.border, AppSkin.zuta.border);
 
       // Tema se gradi iz tih boja, pa je i ona nova.
-      expect(AppTheme.light.colorScheme.primary, AppSkin.grimiz.accent);
+      expect(AppTheme.light.colorScheme.primary, AppSkin.zuta.accent);
+    });
+
+    // Bela je dovoljno tamna na safiru — na žutoj podlozi bi skoro
+    // nestala, pa taj izgled nosi crnu.
+    test('tekst na accent podlozi je crn samo kod žutog izgleda', () {
+      expect(AppSkin.safir.onAccent, const Color(0xFFFFFFFF));
+      expect(AppSkin.zuta.onAccent, isNot(const Color(0xFFFFFFFF)));
+
+      AppSkin.zuta.apply();
+      expect(AppColors.onAccent, AppSkin.zuta.onAccent);
+      expect(AppTheme.light.colorScheme.onPrimary, AppSkin.zuta.onAccent);
+    });
+
+    // Korisnikova ispravka od 1. oktobra 2026: „više crne boje" na žutom
+    // izgledu — čist crn tekst, i okvir kartica i staza prekidača tamno
+    // ugljene, ne bledo peščane kao kod ostalih izgleda.
+    test('žuti izgled nosi više crne nego ostali', () {
+      expect(AppSkin.zuta.textPrimary, const Color(0xFF000000));
+      expect(AppSkin.zuta.border, isNot(AppSkin.safir.border));
+      expect(AppSkin.zuta.switchOff, isNot(AppSkin.safir.switchOff));
+    });
+
+    // Žuti krug koji se puni dok prst stoji iznad talasa mora da se vidi —
+    // zato je talas kod Žute crn, a ne u boji dodira.
+    test('talas prati izgled, a kod Žute je taman', () {
+      AppSkin.safir.apply();
+      expect(AppColors.waveAhead, AppSkin.safir.accent);
+
+      AppSkin.zuta.apply();
+      expect(AppColors.waveAhead, isNot(AppColors.accent));
+      expect(AppColors.waveAhead.computeLuminance(), lessThan(0.05));
+    });
+
+    // Roza-breskva je kod žutog izgleda skoro crna, pa tekst na njoj mora
+    // da bude svetao — inače bi crn tekst na crnoj kartici nestao.
+    test('tekst na breskvi prati njenu boju', () {
+      AppSkin.safir.apply();
+      expect(AppColors.onPeach, AppSkin.safir.textPrimary);
+      expect(AppColors.onPeachLabel, AppSkin.safir.cinnamon);
+      expect(AppColors.onPeachMuted, AppSkin.safir.textSecondary);
+
+      AppSkin.zuta.apply();
+      expect(AppColors.peach.computeLuminance(), lessThan(0.05));
+      expect(AppColors.onPeach.computeLuminance(), greaterThan(0.5));
+      expect(AppColors.onPeachLabel.computeLuminance(), greaterThan(0.5));
     });
 
     // Zelena, žuta i crvena nose značenje: kad bi se menjale sa izgledom,
@@ -68,8 +119,8 @@ void main() {
 
       expect((await service.load()).id, 'safir');
 
-      await service.save(AppSkin.tirkiz);
-      expect((await service.load()).id, 'tirkiz');
+      await service.save(AppSkin.zuta);
+      expect((await service.load()).id, 'zuta');
     });
 
     test('pokvaren zapis ne obara aplikaciju', () async {
@@ -103,10 +154,10 @@ void main() {
         expect(find.text(skin.name), findsOneWidget);
       }
 
-      await tester.tap(find.text('Grimizna'));
+      await tester.tap(find.text('Žuta'));
       await tester.pumpAndSettle();
 
-      expect(chosen?.id, 'grimiz');
+      expect(chosen?.id, 'zuta');
     });
 
     // Neprijavljenom se konzola i ne otvara, a bez načina da se izgled

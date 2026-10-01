@@ -219,7 +219,7 @@ class _MemberCard extends StatelessWidget {
                       child: Text(
                         'vodi ekipu',
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: AppColors.cinnamon,
+                          color: AppColors.onPeachLabel,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -308,6 +308,9 @@ class _MemberSheet extends StatefulWidget {
 }
 
 class _MemberSheetState extends State<_MemberSheet> {
+  late final TextEditingController _name = TextEditingController(
+    text: widget.member.name,
+  );
   late List<String> _skillIds = [...widget.member.skillIds];
   late int _exp = widget.member.exp;
   late String _role = widget.member.role;
@@ -315,8 +318,20 @@ class _MemberSheetState extends State<_MemberSheet> {
   /// Koliko se bodova dodaje jednim dodirom.
   static const List<int> _steps = [10, 25, 50];
 
-  TeamMember get _edited =>
-      widget.member.copyWith(skillIds: _skillIds, exp: _exp, role: _role);
+  TeamMember get _edited => widget.member.copyWith(
+    // Prazno ime bi značilo da se čovek ne vidi nigde u spisku — zato se
+    // tad zadrži ono koje je već stajalo.
+    name: _name.text.trim().isEmpty ? widget.member.name : _name.text.trim(),
+    skillIds: _skillIds,
+    exp: _exp,
+    role: _role,
+  );
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
 
   void _toggle(String skillId) {
     setState(() {
@@ -354,7 +369,19 @@ class _MemberSheetState extends State<_MemberSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(widget.member.name, style: theme.textTheme.titleLarge),
+              // Dok se izvođač sam ne prijavi i ne svrati u konzolu, ovde
+              // stoji ono što je aplikacija sama ponudila — deo mejla pre
+              // „@". Manager ga odavde zameni pravim imenom, da se čovek
+              // u „Ko radi" i u Ekipi ne vodi pod tim.
+              TextField(
+                controller: _name,
+                textCapitalization: TextCapitalization.words,
+                style: theme.textTheme.titleLarge,
+                decoration: const InputDecoration(
+                  labelText: 'Ime',
+                  border: OutlineInputBorder(),
+                ),
+              ),
               const SizedBox(height: AppSpacing.md),
               ExpBar(member: _edited),
               const SizedBox(height: AppSpacing.sm),

@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/checklist.dart';
 import '../models/company_settings.dart';
 import '../models/event.dart';
+import '../models/meeting.dart';
 import '../models/team.dart';
 import '../models/vehicle.dart';
 import 'event_service.dart';
@@ -18,6 +19,7 @@ import 'event_service.dart';
 /// Kolekcije:
 ///
 /// * `events/{id}` — događaji
+/// * `meetings/{id}` — sastanci firme (termin i adresa, bez ostalog)
 /// * `vehicles/{id}` — vozila
 /// * `checklistTemplates/{id}` — kategorije opreme sa delovima
 /// * `users/{id}` — ekipa; iz nje se bira kome se događaj dodeljuje
@@ -267,8 +269,8 @@ class FirestoreEventService implements EventService {
 
   @override
   Future<void> saveMemberSkills(TeamMember member) async {
-    // `merge` namerno: ime i ikonica stoje u istom dokumentu, a njih ovaj
-    // ekran ne dira.
+    // `merge` namerno: ikonica stoji u istom dokumentu, a nju ovaj ekran
+    // ne dira — nju bira čovek sam.
     await _users.doc(member.id).set(member.toManagerMap(), SetOptions(merge: true));
   }
 
@@ -321,4 +323,49 @@ class FirestoreEventService implements EventService {
     names.sort();
     return names;
   }
+
+  CollectionReference<Map<String, dynamic>> get _meetings =>
+      _db.collection('meetings');
+
+  @override
+  Future<List<CompanyMeeting>> loadMeetings() async {
+    final snapshot = await _meetings.get();
+    final meetings = [
+      for (final doc in snapshot.docs)
+        CompanyMeeting.fromMap({...doc.data(), 'id': doc.id}),
+    ];
+    meetings.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    return meetings;
+  }
+
+  @override
+  Stream<List<CompanyMeeting>> watchMeetings() {
+    return _meetings.snapshots().map((snapshot) {
+      final meetings = [
+        for (final doc in snapshot.docs)
+          CompanyMeeting.fromMap({...doc.data(), 'id': doc.id}),
+      ];
+      meetings.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+      return meetings;
+    });
+  }
+
+  @override
+  Future<CompanyMeeting> createMeeting({
+    required DateTime dateTime,
+    required String address,
+  }) async {
+    final doc = _meetings.doc();
+    final meeting = CompanyMeeting(
+      id: doc.id,
+      dateTime: dateTime,
+      address: address.trim(),
+    );
+    await doc.set(meeting.toMap());
+    return meeting;
+  }
+
+  @override
+  Future<void> deleteMeeting(String meetingId) =>
+      _meetings.doc(meetingId).delete();
 }

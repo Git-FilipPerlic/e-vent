@@ -9,6 +9,7 @@ import 'screens/equipment_screen.dart';
 import 'screens/events_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/meetings_screen.dart';
 import 'screens/team_screen.dart';
 import 'screens/lager_screen.dart';
 import 'screens/led_screen.dart';
@@ -295,6 +296,14 @@ class _RootNavigationState extends State<RootNavigation> {
     );
   }
 
+  /// Sastanci firme. Spisak događaja ih sam vidi uživo (`watchMeetings`),
+  /// pa posle zatvaranja ovog ekrana nema šta da se učitava ponovo.
+  Future<void> _openMeetings() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => MeetingsScreen(service: _events)),
+    );
+  }
+
   /// Otvara prijavu, odnosno konzolu kad je neko već prijavljen.
   ///
   /// Tu su i logotip i odjava — na glavnoj strani su tri ikonice prekrivale
@@ -323,6 +332,9 @@ class _RootNavigationState extends State<RootNavigation> {
               ? _openEquipment
               : null,
           onOpenTeam: _auth.can(AppPermission.editEvent) ? _openTeam : null,
+          onOpenMeetings: _auth.can(AppPermission.editEvent)
+              ? _openMeetings
+              : null,
           onEditBase: _auth.can(AppPermission.editEvent) ? _editBase : null,
           baseAddress: _settings.baseAddress,
           skin: widget.skin,

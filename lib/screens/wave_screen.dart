@@ -648,7 +648,7 @@ class _WavePainter extends CustomPainter {
     }
 
     final past = Paint()..color = AppColors.peachWave;
-    final ahead = Paint()..color = AppColors.accent;
+    final ahead = Paint()..color = AppColors.waveAhead;
 
     final n = values.length;
 

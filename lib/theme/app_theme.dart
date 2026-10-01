@@ -77,11 +77,33 @@ abstract final class AppColors {
   static const Color avatarPurple = Color(0xFF7A3FD1);
   static const Color avatarPink = Color(0xFFD1348A);
 
-  /// Tekst i ikonice na safirnoj podlozi.
-  static const Color onAccent = Color(0xFFFFFFFF);
+  /// Tekst i ikonice na podlozi u boji `accent`.
+  ///
+  /// Bela radi na safirnoj podlozi — dovoljno je tamna. Promenljiva je
+  /// (ne `const`) zato što to prestaje da
+  /// važi kod svetle podloge: žuti izgled ovde stavlja crnu, jer bela na
+  /// žutom skoro da se ne vidi.
+  static Color onAccent = Color(0xFFFFFFFF);
 
   /// Staza isključenog prekidača.
   static Color switchOff = Color(0xFFE3E1DE);
+
+  /// Glavni tekst na podlozi u boji `peach` (kartica „Sada svira", izabran
+  /// red, sastanak u spisku). Kod svetle breskve je to isto što i
+  /// `textPrimary`; žuti izgled ima tamnu podlogu tu, pa i svetao tekst.
+  static Color onPeach = Color(0xFF1D1D1F);
+
+  /// Sitan istaknut tekst na `peach` podlozi (oznake, vreme). Kod svetle
+  /// breskve je to cimet.
+  static Color onPeachLabel = Color(0xFF8F4A22);
+
+  /// Pomoćni tekst na `peach` podlozi (izvođač, trajanje).
+  static Color onPeachMuted = Color(0xFF6E6E73);
+
+  /// Deo talasa (ekran sa talasom) koji tek dolazi. Kod Safira je to boja
+  /// dodira; kod Žute je crn, jer bi žuti krug koji se puni dok prst stoji
+  /// na žutom talasu nestao.
+  static Color waveAhead = Color(0xFF2F5BEA);
 }
 
 /// Jedan **izgled** aplikacije: skup boja koje se biraju u konzoli.
@@ -109,6 +131,11 @@ class AppSkin {
     required this.peachWave,
     required this.cinnamon,
     required this.switchOff,
+    this.onAccent = const Color(0xFFFFFFFF),
+    this.onPeach,
+    this.onPeachLabel,
+    this.onPeachMuted,
+    this.waveAhead,
   });
 
   /// Kako se izgled zove u bazi i u pamćenju telefona — bez naših slova.
@@ -133,6 +160,20 @@ class AppSkin {
   final Color cinnamon;
   final Color switchOff;
 
+  /// Tekst i ikonice na podlozi obojenoj sa [accent]. Belo radi svuda osim
+  /// na svetloj (žutoj) podlozi, pa je jedini izgled koji ga menja.
+  final Color onAccent;
+
+  /// Tekst na `peach` podlozi. `null` znači isto što i [textPrimary],
+  /// [cinnamon] i [textSecondary] — tako je kod svakog izgleda sa svetlom
+  /// breskvom. Menja ih samo izgled kod kog je `peach` taman.
+  final Color? onPeach;
+  final Color? onPeachLabel;
+  final Color? onPeachMuted;
+
+  /// Deo talasa koji tek dolazi. `null` znači [accent].
+  final Color? waveAhead;
+
   /// Sadašnji izgled: topla bela i safirno plava. Podrazumevani.
   static const AppSkin safir = AppSkin(
     id: 'safir',
@@ -154,71 +195,47 @@ class AppSkin {
     switchOff: Color(0xFFE3E1DE),
   );
 
-  /// Grimizna: tamno crveno na toploj beloj, sa ružičastim akcentima.
-  static const AppSkin grimiz = AppSkin(
-    id: 'grimiz',
-    name: 'Grimizna',
-    accent: Color(0xFFA81D3F),
-    accentDeep: Color(0xFFF6DCE3),
-    background: Color(0xFFF7F4F4),
-    backgroundTop: Color(0xFFFAF7F7),
-    backgroundBottom: Color(0xFFF1EBEC),
+  /// Žuta: probni izgled po predlogu korisnika (1. oktobra 2026) — jako
+  /// kontrastna žuta i crna, sve ostalo belo/bledo sivo kao kod Safira.
+  ///
+  /// Jedini izgled kod kog [onAccent] nije belo: žuta podloga je toliko
+  /// svetla da bi beo tekst na njoj skoro nestao, pa dugmad i ikonice na
+  /// njoj nose crnu. Crna nosi i ostatak ekrana (ispravka od 1. oktobra
+  /// 2026, na molbu korisnika za „više crne boje"): tekst je čisto crn, a
+  /// okviri kartica i staza isključenog prekidača su tamno ugljene, ne
+  /// bledo peščane kao kod ostalih izgleda — zato svaka kartica dobije
+  /// vidljiv crn obrub. Roza-breskva je zamenjena skoro crnom sivom
+  /// (`peach` — kartica „Sada svira", izabran red, sastanak u spisku,
+  /// značke): na njoj tekst ide belo, oznake žuto, pomoćni tekst svetlo
+  /// sivo ([onPeach], [onPeachLabel], [onPeachMuted]).
+  static const AppSkin zuta = AppSkin(
+    id: 'zuta',
+    name: 'Žuta',
+    accent: Color(0xFFFFC800),
+    accentDeep: Color(0xFFFFF3C4),
+    background: Color(0xFFF5F4F2),
+    backgroundTop: Color(0xFFF8F7F5),
+    backgroundBottom: Color(0xFFEFEDEA),
     surface: Color(0xFFFFFFFF),
-    surfaceAlt: Color(0xFFF3EDEE),
-    border: Color(0xFFE8DFE1),
-    textPrimary: Color(0xFF1F1A1B),
-    textSecondary: Color(0xFF6E6468),
-    peach: Color(0xFFFDEFF1),
-    peachStrong: Color(0xFFF7CAD3),
-    peachWave: Color(0xFFDE8195),
-    cinnamon: Color(0xFF7C2637),
-    switchOff: Color(0xFFE5DEDF),
-  );
-
-  /// Tirkiz: hladna bela i duboko zeleno-plava, uz iste tople akcente.
-  static const AppSkin tirkiz = AppSkin(
-    id: 'tirkiz',
-    name: 'Tirkiz',
-    accent: Color(0xFF0E7C86),
-    accentDeep: Color(0xFFD2EBEE),
-    background: Color(0xFFF3F6F5),
-    backgroundTop: Color(0xFFF7F9F9),
-    backgroundBottom: Color(0xFFEAEFEE),
-    surface: Color(0xFFFFFFFF),
-    surfaceAlt: Color(0xFFEDF2F1),
-    border: Color(0xFFDDE6E4),
-    textPrimary: Color(0xFF15201F),
-    textSecondary: Color(0xFF5E6C6A),
-    peach: Color(0xFFFFF1E8),
-    peachStrong: Color(0xFFFFD6BF),
-    peachWave: Color(0xFFF2946A),
-    cinnamon: Color(0xFF8A4520),
-    switchOff: Color(0xFFDEE4E3),
-  );
-
-  /// Bledo siva: bez ijedne jarke boje, za onoga kome boje odvlače pažnju.
-  static const AppSkin siva = AppSkin(
-    id: 'siva',
-    name: 'Bledo siva',
-    accent: Color(0xFF4F5B6B),
-    accentDeep: Color(0xFFE1E5EA),
-    background: Color(0xFFF4F4F5),
-    backgroundTop: Color(0xFFF8F8F9),
-    backgroundBottom: Color(0xFFECECEE),
-    surface: Color(0xFFFFFFFF),
-    surfaceAlt: Color(0xFFEFEFF1),
-    border: Color(0xFFE1E1E5),
-    textPrimary: Color(0xFF1C1D1F),
-    textSecondary: Color(0xFF6B6D73),
-    peach: Color(0xFFF2F1EF),
-    peachStrong: Color(0xFFDBD8D3),
-    peachWave: Color(0xFFA8A29A),
-    cinnamon: Color(0xFF55504A),
-    switchOff: Color(0xFFE2E2E4),
+    surfaceAlt: Color(0xFFF1EFEC),
+    border: Color(0xFF2B2B2B),
+    textPrimary: Color(0xFF000000),
+    textSecondary: Color(0xFF454545),
+    peach: Color(0xFF1C1C1E),
+    peachStrong: Color(0xFF3A3A3C),
+    // Pređeni deo talasa: svetlo siv, „odrađeno"; ono što dolazi je crno.
+    peachWave: Color(0xFFB5B5B8),
+    cinnamon: Color(0xFF1C1C1E),
+    switchOff: Color(0xFF2B2B2B),
+    onAccent: Color(0xFF141414),
+    onPeach: Color(0xFFFFFFFF),
+    onPeachLabel: Color(0xFFFFC800),
+    onPeachMuted: Color(0xFFA8A8AC),
+    waveAhead: Color(0xFF1C1C1E),
   );
 
   /// Svi izgledi, redom kojim stoje u konzoli.
-  static const List<AppSkin> all = [safir, grimiz, tirkiz, siva];
+  static const List<AppSkin> all = [safir, zuta];
 
   /// Izgled po id-u; nepoznat ili prazan daje podrazumevani.
   static AppSkin byId(String? id) {
@@ -248,6 +265,11 @@ class AppSkin {
     AppColors.peachWave = peachWave;
     AppColors.cinnamon = cinnamon;
     AppColors.switchOff = switchOff;
+    AppColors.onAccent = onAccent;
+    AppColors.onPeach = onPeach ?? textPrimary;
+    AppColors.onPeachLabel = onPeachLabel ?? cinnamon;
+    AppColors.onPeachMuted = onPeachMuted ?? textSecondary;
+    AppColors.waveAhead = waveAhead ?? accent;
   }
 
   /// Svetlija nijansa iste boje — za gradijent na velikom dugmetu.

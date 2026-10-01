@@ -133,7 +133,9 @@ class _MusicRowState extends State<MusicRow> {
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: widget.isSounding
                                 ? AppColors.accent
-                                : AppColors.textPrimary,
+                                : (widget.isCued
+                                      ? AppColors.onPeach
+                                      : AppColors.textPrimary),
                             fontWeight: widget.isSounding
                                 ? FontWeight.w600
                                 : FontWeight.w500,
@@ -146,7 +148,7 @@ class _MusicRowState extends State<MusicRow> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppColors.textSecondary,
+                            color: _muted,
                           ),
                         ),
                       ],
@@ -156,7 +158,7 @@ class _MusicRowState extends State<MusicRow> {
                   Text(
                     TrackTile.formatDuration(track.duration),
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: _muted,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
@@ -169,6 +171,11 @@ class _MusicRowState extends State<MusicRow> {
       ),
     );
   }
+
+  /// Pomoćni tekst u redu. Na izabranom redu podloga je breskva, a ona
+  /// je kod žutog izgleda tamna — pa i pomoćni tekst mora da prati nju.
+  Color get _muted =>
+      widget.isCued ? AppColors.onPeachMuted : AppColors.textSecondary;
 
   Widget _leading(ThemeData theme) {
     if (widget.editing) {

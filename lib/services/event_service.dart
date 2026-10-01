@@ -1,6 +1,7 @@
 import '../models/checklist.dart';
 import '../models/company_settings.dart';
 import '../models/event.dart';
+import '../models/meeting.dart';
 import '../models/team.dart';
 import '../models/vehicle.dart';
 
@@ -67,8 +68,9 @@ abstract interface class EventService {
   /// kome se događaj dodeljuje, a ovde se vidi ko šta ume.
   Future<List<TeamMember>> loadTeam();
 
-  /// Pamti veštine i bodove jednog člana. **Ime i ulogu ne dira** — njih
-  /// menja sam korisnik, odnosno pravila baze.
+  /// Pamti ime, ulogu, veštine i bodove jednog člana — sve što manager sme
+  /// da menja. Čovek sam sme da promeni i svoje ime i svoju ikonicu, odvojeno
+  /// od ovoga; ikonicu ovaj poziv ne dira.
   Future<void> saveMemberSkills(TeamMember member);
 
   /// Katalog veština koje firma poznaje.
@@ -115,6 +117,23 @@ abstract interface class EventService {
   /// Menja **katalog firme**, pa se izmena vidi na svim događajima koji tu
   /// kategoriju nose — to je i poenta: dodat rekvizit se ne unosi po događaju.
   Future<void> saveCategory(ChecklistSection category);
+
+  /// Sastanci firme — spisak za konzolu, gde ih glavni pravi i briše.
+  Future<List<CompanyMeeting>> loadMeetings();
+
+  /// Isti spisak, uživo — isti razlog kao [watchEvents]: spisak događaja
+  /// stoji u stablu, pa mora sam da primeti nov sastanak.
+  Stream<List<CompanyMeeting>> watchMeetings();
+
+  /// Pravi nov sastanak i vraća ga sa dodeljenim `id`-jem. Pravi ga samo
+  /// glavni — vidi ga posle cela ekipa, bez obzira na dodelu.
+  Future<CompanyMeeting> createMeeting({
+    required DateTime dateTime,
+    required String address,
+  });
+
+  /// Briše sastanak iz konzole.
+  Future<void> deleteMeeting(String meetingId);
 }
 
 /// Traženi događaj ne postoji.

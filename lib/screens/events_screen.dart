@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../models/event.dart';
+import '../models/meeting.dart';
 import '../services/auth_service.dart';
 import '../services/event_service.dart';
 import '../services/mock_event_service.dart';
 import 'new_event_screen.dart';
 import '../theme/app_theme.dart';
+import '../utils/agenda_grouping.dart';
 import '../utils/date_format.dart';
-import '../utils/event_grouping.dart';
 import '../widgets/common/error_retry.dart';
 import '../widgets/home/event_address.dart';
 
@@ -66,6 +67,7 @@ class _EventsScreenState extends State<EventsScreen> {
   late final EventService _service = widget.service ?? MockEventService();
 
   List<Event> _events = const [];
+  List<CompanyMeeting> _meetings = const [];
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -76,6 +78,11 @@ class _EventsScreenState extends State<EventsScreen> {
   /// pri otvaranju — a događaj koji ti je neko upravo dodelio ne bi
   /// stigao dok ne povučeš nadole.
   StreamSubscription<List<Event>>? _eventsSub;
+
+  /// Sastanci firme — isti razlog za praćenje uživo kao kod događaja. Za
+  /// razliku od događaja, ne zavise ni od prijave ni od „Moji/Delegirani":
+  /// vidi ih cela ekipa, pa se ne filtriraju.
+  StreamSubscription<List<CompanyMeeting>>? _meetingsSub;
 
   /// Da li korisnik uopšte delegira događaje — samo njemu treba prekidač.
   bool get _canDelegate => widget.auth?.can(AppPermission.editEvent) ?? false;
@@ -88,6 +95,7 @@ class _EventsScreenState extends State<EventsScreen> {
     widget.auth?.addListener(_onAuthChanged);
     widget.reloadSignal?.addListener(_listen);
     _listen();
+    _watchMeetings();
   }
 
   @override
@@ -95,7 +103,17 @@ class _EventsScreenState extends State<EventsScreen> {
     widget.auth?.removeListener(_onAuthChanged);
     widget.reloadSignal?.removeListener(_listen);
     _eventsSub?.cancel();
+    _meetingsSub?.cancel();
     super.dispose();
+  }
+
+  /// Sastanak je dopuna spisku, ne uslov za njega — greška ovde ostaje
+  /// tiha, da spisak događaja i dalje radi i bez nje.
+  void _watchMeetings() {
+    _meetingsSub = _service.watchMeetings().listen((meetings) {
+      if (!mounted) return;
+      setState(() => _meetings = meetings);
+    }, onError: (_) {});
   }
 
   /// Prijava i odjava menjaju čiji se spisak gleda, pa se učitava ponovo.
@@ -200,7 +218,11 @@ class _EventsScreenState extends State<EventsScreen> {
       return ErrorRetry(message: errorMessage, onRetry: _listen);
     }
 
-    final sections = groupEvents(_events, now: DateTime.now());
+    final sections = groupAgenda(
+      events: _events,
+      meetings: _meetings,
+      now: DateTime.now(),
+    );
 
     return RefreshIndicator(
       onRefresh: _refresh,
@@ -227,8 +249,14 @@ class _EventsScreenState extends State<EventsScreen> {
             _EmptyList(scope: _scope, canDelegate: _canDelegate),
           for (final section in sections) ...[
             _GroupHeader(label: section.group.label),
-            for (final event in section.events)
-              _EventRow(event: event, onTap: () => widget.onOpen(event.id)),
+            for (final entry in section.entries)
+              switch (entry) {
+                EventEntry(:final event) => _EventRow(
+                  event: event,
+                  onTap: () => widget.onOpen(event.id),
+                ),
+                MeetingEntry(:final meeting) => _MeetingRow(meeting: meeting),
+              },
           ],
         ],
       ),
@@ -365,6 +393,77 @@ class _EventRow extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Sastanak firme u spisku: sat, „Sastanak firme" i adresa — i ništa više.
+///
+/// Drugačija boja (breskva, mesto beline) kaže na prvi pogled da ovo nije
+/// događaj. Nije dodirljiv: sve što ima se već vidi u redu, a ekipa i onako
+/// zna gde firma drži sastanke (dogovoreno 1. oktobra 2026).
+class _MeetingRow extends StatelessWidget {
+  const _MeetingRow({required this.meeting});
+
+  final CompanyMeeting meeting;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final address = meeting.address;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        0,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.peach,
+        borderRadius: BorderRadius.circular(kCardRadius),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 64,
+            child: Text(
+              AppDate.time(meeting.dateTime),
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: AppColors.onPeachLabel,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sastanak firme',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: AppColors.onPeach,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (address.isNotEmpty)
+                  Text(
+                    address,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.onPeachLabel,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Icon(Icons.groups_rounded, color: AppColors.onPeachLabel),
+        ],
       ),
     );
   }

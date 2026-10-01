@@ -1,5 +1,6 @@
 import 'package:event_app/models/checklist.dart';
 import 'package:event_app/models/event.dart';
+import 'package:event_app/models/meeting.dart';
 import 'package:event_app/models/company_settings.dart';
 import 'package:event_app/models/team.dart';
 import 'package:event_app/models/vehicle.dart';
@@ -74,6 +75,20 @@ class _FailingService implements EventService {
   @override
   Future<void> saveCategory(ChecklistSection category) =>
       throw UnimplementedError();
+  @override
+  Future<List<CompanyMeeting>> loadMeetings() => throw UnimplementedError();
+  @override
+  // Prazan tok: spisak događaja ne sme da zavisi od sastanaka da bi
+  // pokazao grešku koju ovaj test proverava.
+  Stream<List<CompanyMeeting>> watchMeetings() =>
+      Stream<List<CompanyMeeting>>.value(const []);
+  @override
+  Future<CompanyMeeting> createMeeting({
+    required DateTime dateTime,
+    required String address,
+  }) => throw UnimplementedError();
+  @override
+  Future<void> deleteMeeting(String meetingId) => throw UnimplementedError();
 }
 
 Widget _wrap(Widget child) => MaterialApp(theme: AppTheme.dark, home: child);
@@ -160,6 +175,34 @@ void main() {
 
       expect(find.textContaining('nije učitan'), findsOneWidget);
       expect(find.text('Pokušaj ponovo'), findsOneWidget);
+    });
+
+    // Sastanak firme stoji u istom spisku, u svojoj vremenskoj grupi, ali
+    // se ne dodiruje — sve što ima se već vidi u redu.
+    testWidgets('sastanak firme se vidi u spisku, ali se ne dodiruje', (
+      WidgetTester tester,
+    ) async {
+      final service = MockEventService();
+      final creating = service.createMeeting(
+        dateTime: DateTime.now().add(const Duration(hours: 2)),
+        address: 'Bulevar Oslobođenja 1, Novi Sad',
+      );
+      String? opened;
+
+      await tester.pumpWidget(
+        _wrap(EventsScreen(onOpen: (id) => opened = id, service: service)),
+      );
+      await tester.pump(const Duration(seconds: 1));
+      await creating;
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sastanak firme'), findsOneWidget);
+      expect(find.text('Bulevar Oslobođenja 1, Novi Sad'), findsOneWidget);
+
+      await tester.tap(find.text('Sastanak firme'));
+      await tester.pump();
+      expect(opened, isNull);
     });
   });
 

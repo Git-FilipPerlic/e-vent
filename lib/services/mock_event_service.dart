@@ -3,6 +3,7 @@ import 'dart:async';
 import '../models/checklist.dart';
 import '../models/company_settings.dart';
 import '../models/event.dart';
+import '../models/meeting.dart';
 import '../models/team.dart';
 import '../models/vehicle.dart';
 import 'event_service.dart';
@@ -58,6 +59,51 @@ class MockEventService implements EventService {
     await for (final _ in _changes.stream) {
       yield await loadEvents(assignedTo: assignedTo, createdBy: createdBy);
     }
+  }
+
+  /// Sastanci firme, napravljeni u konzoli.
+  final List<CompanyMeeting> _meetings = [];
+
+  int _nextMeetingNumber = 1;
+
+  @override
+  Future<List<CompanyMeeting>> loadMeetings() async {
+    await Future<void>.delayed(_delay);
+    final meetings = [..._meetings];
+    meetings.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    return meetings;
+  }
+
+  @override
+  Stream<List<CompanyMeeting>> watchMeetings() async* {
+    yield await loadMeetings();
+    await for (final _ in _changes.stream) {
+      yield await loadMeetings();
+    }
+  }
+
+  @override
+  Future<CompanyMeeting> createMeeting({
+    required DateTime dateTime,
+    required String address,
+  }) async {
+    await Future<void>.delayed(_delay);
+    final meeting = CompanyMeeting(
+      id: 'meeting-${_nextMeetingNumber.toString().padLeft(3, '0')}',
+      dateTime: dateTime,
+      address: address.trim(),
+    );
+    _nextMeetingNumber++;
+    _meetings.add(meeting);
+    _changes.add(null);
+    return meeting;
+  }
+
+  @override
+  Future<void> deleteMeeting(String meetingId) async {
+    await Future<void>.delayed(_delay);
+    _meetings.removeWhere((m) => m.id == meetingId);
+    _changes.add(null);
   }
 
   /// Podešavanja firme. U pravoj bazi stoje u `settings/company`.
@@ -117,6 +163,7 @@ class MockEventService implements EventService {
     final index = _members.indexWhere((m) => m.id == member.id);
     if (index < 0) return;
     _members[index] = _members[index].copyWith(
+      name: member.name,
       skillIds: member.skillIds,
       exp: member.exp,
       role: member.role,

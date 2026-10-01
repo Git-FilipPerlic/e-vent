@@ -26,7 +26,10 @@ class Skill {
 ///
 /// **Veštine i bodove upisuje manager**, ne sam član (odluka od 27. septembra
 /// 2026) — inače bi se spisak popunio brzo, ali mu se ne bi verovalo. Isto
-/// važi i za bodove: dodeljuju se ručno, posle odrađenog posla.
+/// važi i za bodove: dodeljuju se ručno, posle odrađenog posla. Od 1.
+/// oktobra 2026 manager tu postavlja i **ulogu** i **ime** — ime inače
+/// podrazumevano stoji kao deo mejla pre „@", dok se čovek sam ne prijavi i
+/// ne promeni ga u konzoli, a dotle bi se u „Ko radi" vodio pod tim.
 class TeamMember {
   const TeamMember({
     required this.id,
@@ -93,12 +96,13 @@ class TeamMember {
     );
   }
 
-  /// Samo ono što manager sme da menja — veštine, bodovi i uloga. Ime,
-  /// ikonica i ostatak profila se ovim ne diraju; njih bira čovek sam.
+  /// Samo ono što manager sme da menja — ime, uloga, veštine i bodovi.
+  /// Ikonica se ne dira; nju bira čovek sam.
   Map<String, dynamic> toManagerMap() => {
+    'name': name,
+    'role': role,
     'skills': skillIds,
     'exp': exp,
-    'role': role,
   };
 
   factory TeamMember.fromMap(Map<String, dynamic> map) {

@@ -912,6 +912,37 @@ Radi se pre ADMIN-007: dodela događaja timu nema smisla dok ne postoji spisak.
 | EVENTS-006 | Vrsta događaja (rođendan, krštenje, svadba, nastup, festival) | gotovo |
 | EVENTS-007 | Spisak se prati uživo (`watchEvents`) | gotovo |
 
+### Sastanci firme (dogovoreno 1. oktobra 2026)
+
+Pored događaja, glavni iz konzole zakazuje i **sastanak firme** — termin
+ekipe koji nema nikakve veze sa konkretnim nastupom. Namerno nosi
+**samo termin i adresu**, ništa drugo:
+
+- bez naziva (uvek piše „Sastanak firme"), bez učesnika, bez opreme
+- adresa je **tekst, ne mapa** — ekipa već zna gde firma drži sastanke, pa
+  mini mapa samo zauzima mesto
+- vidi ga **cela ekipa**, bez obzira na dodelu — za razliku od događaja, koji
+  vidi samo onaj kome je dodeljen ili ko ga je napravio
+- pravi ga i briše **samo glavni**, iz konzole (dugme „Uredi sastanke", pored
+  Ekipe i Opreme firme) — nema ga na spisku događaja ni u Home tabu
+
+Sastanak stoji **u istom spisku događaja**, u istoj vremenskoj grupi (Danas /
+Sutra / Ova nedelja…) kao i događaji tog dana — zato da se ne pravi drugi
+ekran za nešto što je i dalje „šta mi je sledeće u kalendaru". Razlikuje se
+samo bojom (breskva, mesto bele kartice) i time što **nije dodirljiv**: sve
+što ima se već vidi u redu, pa nema šta dalje da se otvori.
+
+Izvedba:
+
+- `CompanyMeeting` (`lib/models/meeting.dart`) — `id`, `dateTime`, `address`
+- `EventService.loadMeetings` / `watchMeetings` / `createMeeting` /
+  `deleteMeeting`
+- `lib/utils/agenda_grouping.dart` spaja događaje i sastanke u jedan spisak
+  pre crtanja; oboje dele isto grupisanje po danu (`groupForDate`, izvučeno
+  iz `event_grouping.dart`)
+- Firestore kolekcija `meetings/{id}`: čita svako prijavljen, piše samo
+  `glavni`
+
 ### Admin konzola i login (dogovoreno 8. septembra 2026)
 
 Aplikacija ima **dva lica istog Home ekrana**:
@@ -1057,14 +1088,18 @@ simbola, pa su oštre u svakoj veličini. Boje za njih su jedine jarke u
 aplikaciji i stoje u `app_theme.dart` kao `avatar*`; koriste se samo za ovo,
 da ostatak palete i dalje nosi značenje.
 
-**Ikonicu i ime bira čovek sam** — veštine, bodove i ulogu upisuje onaj ko
-vodi ekipu. Nepoznat ili prazan zapis daje prvu ikonicu, pa se čovek uvek
-nacrta.
+**Ikonicu bira čovek sam** — veštine, bodove i ulogu upisuje onaj ko vodi
+ekipu. Nepoznat ili prazan zapis daje prvu ikonicu, pa se čovek uvek nacrta.
 
-**Ime pod kojim te ekipa vidi menja se u konzoli.** Podrazumevano stoji deo
-mejla pre `@`, jer se **ljudi pamte po imenu, ne po adresi** — a to ime stoji
-i u „Ko radi", gde bi spisak mejlova bio neupotrebljiv. Svako sme da promeni
-svoje ime; **ulogu ne sme**, to brane i pravila baze.
+**Ime pod kojim te ekipa vidi menja se u konzoli — i sam čovek i manager.**
+Podrazumevano stoji deo mejla pre `@`, jer se **ljudi pamte po imenu, ne po
+adresi** — a to ime stoji i u „Ko radi", gde bi spisak mejlova bio
+neupotrebljiv. Svako sme da promeni svoje ime, iz sopstvene konzole. **Od 1.
+oktobra 2026 to isto polje postoji i na ekranu Ekipa**, pa manager ne mora da
+čeka da se neko sam javi i preimenuje — dok se ko ne prijavi po prvi put,
+vodio bi se pod delom mejla u svakom spisku koji ga pominje. **Ulogu niko ne
+menja sebi** — to brani ekran (prekidač je ugašen kod prijavljenog), ne
+pravila baze: `glavni` sme da piše ceo tuđ profil, pa tako i sopstveni.
 
 **Sistemski birači datuma i sata crtaju se sa ograničenim uvećanjem teksta**
 (do ~1,15) i sat se unosi **brojkama, ne brojčanikom**. Brojčanik se na uskom
@@ -1250,14 +1285,42 @@ važi 48 dp.
 
 ### Izgledi (skinovi) — odluka od 28. septembra 2026
 
-Boje aplikacije se biraju **u konzoli**, iz četiri gotove kombinacije:
+Boje aplikacije se biraju **u konzoli**, iz gotovih kombinacija:
 
 | Izgled | id | Boja onoga što se dodiruje |
 |---|---|---|
 | Safir (podrazumevani, sadašnji) | `safir` | safirno plava |
-| Grimizna | `grimiz` | tamno crvena |
-| Tirkiz | `tirkiz` | duboko zeleno-plava |
-| Bledo siva | `siva` | prigušena čelično siva |
+| Žuta — **probna, 1. oktobar 2026** | `zuta` | jako kontrastna žuta |
+
+**Grimizna, Tirkiz i Bledo siva su uklonjene 1. oktobra 2026**, na zahtev korisnika —
+manje izgleda u konzoli, da ne pravi gužvu uz novu žutu. `AppSkin.byId` na
+njihov stari zapisan id (sa starije instalacije) i dalje pada na `safir`,
+kao i na svaki drugi nepoznat id — ništa posebno nije trebalo da se doda.
+
+**Žuta je predlog korisnika, u kodu samo da se vidi kako izgleda** — nije
+potvrđena kao trajna odluka. Jedini je izgled gde tekst i ikonice na
+podlozi u boji dodira nisu bele nego crne (`AppSkin.onAccent`): bela na
+žutoj gotovo nestane. Zbog nje je `AppColors.onAccent` prešao iz `const` u
+promenljivo, kao i ostale boje teme; Safir i dalje nosi belo (podrazumevana
+vrednost).
+
+Korisnik je zatim (još 1. oktobra) tražio **„više crne boje"** na ovom
+izgledu. Dodato je bez novog polja u `AppSkin`: `textPrimary` je čisto crn
+(`#000000`, ne omekšan kao kod ostalih), a `border` i `switchOff` su tamno
+ugljeni (`#2B2B2B`) umesto bledo peščanih — zato svaka kartica u ovom
+izgledu dobije vidljiv crn obrub, a ne samo senku.
+
+**Roza-breskva je u žutom izgledu zamenjena skoro crnom sivom** (`#1C1C1E`):
+kartica „Sada svira", izabran red u plejlisti, sastanak u spisku događaja i
+značka „vodi ekipu". Skoro crna, a ne čisto crna, da se kartica i dalje
+odvaja od crnog teksta oko nje. Tekst na toj podlozi ide kroz tri nove boje
+— `AppColors.onPeach` (glavni, belo), `onPeachLabel` (oznake i vreme, žuto)
+i `onPeachMuted` (pomoćni, svetlo sivo). Kod Safira su to i dalje
+`textPrimary`, `cinnamon` i `textSecondary`, pa se tamo ništa ne vidi
+drugačije. **Pravilo: tekst na `peach` podlozi nikad ne ide u
+`textPrimary`/`cinnamon`/`textSecondary` direktno**, nego kroz `onPeach*` —
+inače u žutom izgledu nestane. Ako korisnik potvrdi da izgled ostaje, ovaj
+red prestaje da bude „probni".
 
 **Izgled je lična stvar, ne podatak firme.** Bira ga svako za svoj telefon i
 pamti se **na telefonu** (`SharedPreferences`, `app_skin`), ne u bazi — zato ga
@@ -1285,11 +1348,6 @@ akcenti (breskva i cimet).
   muzika nastavlja da svira i otvoren događaj ostaje otvoren. Jedino što
   zaostane su crteži koji se prerisavaju sami po sebi (talas) — oni uzmu nove
   boje pri prvom pomeraju.
-
-**Grimizna ima jedno ograničenje koje treba znati:** boja onoga što se
-dodiruje tu je blizu crvene za greške. Zato je crvena za greške ostala
-svetlija i toplija od grimizne, a ako se u praksi ipak mešaju, menja se
-grimizna — ne crvena, jer crvena znači problem u celoj aplikaciji.
 
 ### Paleta (koristiti tačno ove vrednosti)
 
