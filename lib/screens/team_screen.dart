@@ -14,9 +14,14 @@ import 'skills_screen.dart';
 /// se dodeljuju rukom, posle odrađenog posla (odluka od 27. septembra 2026).
 /// Spisak koji svako sebi popunjava ne znači ništa, a bodovi bi bili šala.
 class TeamScreen extends StatefulWidget {
-  const TeamScreen({super.key, required this.service});
+  const TeamScreen({super.key, required this.service, this.currentUserName});
 
   final EventService service;
+
+  /// Ko je prijavljen. Sebi niko ne menja ulogu: onaj ko sebe skine sa
+  /// „vodi ekipu" istog trena gubi pravo da to vrati, a ako je bio jedini,
+  /// ekipu više niko ne može da vodi.
+  final String? currentUserName;
 
   @override
   State<TeamScreen> createState() => _TeamScreenState();
@@ -73,7 +78,11 @@ class _TeamScreenState extends State<TeamScreen> {
       backgroundColor: AppColors.surface,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (context) => _MemberSheet(member: member, skills: _skills),
+      builder: (context) => _MemberSheet(
+        member: member,
+        skills: _skills,
+        canChangeRole: member.name != widget.currentUserName,
+      ),
     );
     if (changed == null || !mounted) return;
 
@@ -284,10 +293,15 @@ class ExpBar extends StatelessWidget {
 
 /// Izmena jednog člana: kvačice za veštine i bodovi.
 class _MemberSheet extends StatefulWidget {
-  const _MemberSheet({required this.member, required this.skills});
+  const _MemberSheet({
+    required this.member,
+    required this.skills,
+    required this.canChangeRole,
+  });
 
   final TeamMember member;
   final List<Skill> skills;
+  final bool canChangeRole;
 
   @override
   State<_MemberSheet> createState() => _MemberSheetState();
@@ -296,12 +310,13 @@ class _MemberSheet extends StatefulWidget {
 class _MemberSheetState extends State<_MemberSheet> {
   late List<String> _skillIds = [...widget.member.skillIds];
   late int _exp = widget.member.exp;
+  late String _role = widget.member.role;
 
   /// Koliko se bodova dodaje jednim dodirom.
   static const List<int> _steps = [10, 25, 50];
 
   TeamMember get _edited =>
-      widget.member.copyWith(skillIds: _skillIds, exp: _exp);
+      widget.member.copyWith(skillIds: _skillIds, exp: _exp, role: _role);
 
   void _toggle(String skillId) {
     setState(() {
@@ -393,6 +408,23 @@ class _MemberSheetState extends State<_MemberSheet> {
                       ),
                   ],
                 ),
+              // Uloga: vodi ekipu (`glavni`) ili izvođač (`user`). Ko vodi
+              // ekipu, pravi događaje, bira opremu i menja ovaj ekran.
+              const SizedBox(height: AppSpacing.md),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Vodi ekipu'),
+                subtitle: Text(
+                  widget.canChangeRole
+                      ? 'Pravi događaje, bira opremu i uređuje ekipu. '
+                            'Važi od sledeće prijave.'
+                      : 'Svoju ulogu ne možeš da menjaš.',
+                ),
+                value: _role == 'glavni',
+                onChanged: widget.canChangeRole
+                    ? (on) => setState(() => _role = on ? 'glavni' : 'user')
+                    : null,
+              ),
               const SizedBox(height: AppSpacing.lg),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(_edited),

@@ -981,6 +981,12 @@ načina, pa se po njoj ne bi moglo filtrirati.
 popunjava ne znači ništa, a bodovi bi bili šala. To brane i pravila baze:
 čovek sme da promeni svoje ime, ali ne i svoje veštine ni bodove.
 
+**Ulogu (`glavni` / `user`) menja isti taj manager**, prekidačem „Vodi
+ekipu" u listu člana (od 1. oktobra 2026). Svako ko vodi ekipu sme da
+postavi i druge — to je namerno. **Svoju ulogu niko ne menja**, da poslednji
+šef ne bi sebe skinuo i ostavio ekipu bez ikoga ko može da je vrati. Nova
+uloga važi od sledeće prijave tog člana.
+
 **Bodovi se dodeljuju ručno**, posle odrađenog posla — dugmad `+10`, `+25`,
 `+50`, i oduzimanje po 10 za ispravku greške. Ne računaju se sami iz
 odrađenih događaja: manager zna ko je šta stvarno radio, a aplikacija ne.

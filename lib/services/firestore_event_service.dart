@@ -267,9 +267,9 @@ class FirestoreEventService implements EventService {
 
   @override
   Future<void> saveMemberSkills(TeamMember member) async {
-    // `merge` namerno: ime i uloga stoje u istom dokumentu, a njih ovaj
+    // `merge` namerno: ime i ikonica stoje u istom dokumentu, a njih ovaj
     // ekran ne dira.
-    await _users.doc(member.id).set(member.toSkillsMap(), SetOptions(merge: true));
+    await _users.doc(member.id).set(member.toManagerMap(), SetOptions(merge: true));
   }
 
   @override

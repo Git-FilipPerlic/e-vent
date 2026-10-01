@@ -103,7 +103,7 @@ void main() {
   });
 
   group('čuvanje člana', () {
-    test('veštine i bodovi se pamte, ime i uloga se ne diraju', () async {
+    test('veštine i bodovi se pamte, ime se ne dira', () async {
       final service = MockEventService();
       final ana = (await service.loadTeam()).firstWhere((m) => m.name == 'Ana');
 

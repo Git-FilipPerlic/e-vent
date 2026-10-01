@@ -80,6 +80,46 @@ void main() {
       expect(saved.knows('skill-002'), isTrue);
     });
 
+    testWidgets('uloga se menja prekidačem i pamti', (
+      WidgetTester tester,
+    ) async {
+      final service = MockEventService();
+      await tester.pumpWidget(
+        _wrap(TeamScreen(service: service, currentUserName: 'Filip')),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Ana'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(SwitchListTile, 'Vodi ekipu'));
+      await tester.pump();
+      await tester.tap(find.text('Sačuvaj'));
+      await tester.pumpAndSettle();
+
+      final loading = service.loadTeam();
+      await tester.pump(const Duration(seconds: 1));
+      final saved = (await loading).firstWhere((m) => m.name == 'Ana');
+      expect(saved.role, 'glavni');
+    });
+
+    // Ko sebe skine sa „vodi ekipu", ne može to više da vrati.
+    testWidgets('svoju ulogu niko ne menja', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          TeamScreen(service: MockEventService(), currentUserName: 'Filip'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Filip'));
+      await tester.pumpAndSettle();
+
+      final toggle = tester.widget<SwitchListTile>(
+        find.widgetWithText(SwitchListTile, 'Vodi ekipu'),
+      );
+      expect(toggle.onChanged, isNull);
+    });
+
     // Oduzimanje je ispravka greške; na nuli se dugme gasi da se ne ide ispod.
     testWidgets('bodovi ne idu ispod nule', (WidgetTester tester) async {
       await tester.pumpWidget(_wrap(TeamScreen(service: MockEventService())));

@@ -2350,6 +2350,23 @@ i pripada.
   čekira.
 - Sledeće: proba na telefonu sa dva događaja u isto vreme.
 
+## 1. oktobar 2026 — uloga „vodi ekipu" na ekranu Ekipa
+
+- Zahtev korisnika: za fazu testiranja treba više šefova (`glavni`), bez
+  ručnog menjanja polja `role` u Firebase konzoli.
+- Urađeno:
+  - u listu člana na ekranu „Ekipa" stoji prekidač **„Vodi ekipu"**;
+    čuva se zajedno sa veštinama i bodovima (`toManagerMap` sada nosi i
+    `role`)
+  - **svoju ulogu niko ne menja** — prekidač je ugašen kod prijavljenog,
+    da se poslednji šef ne bi slučajno skinuo i zaključao ekipu
+  - nova uloga važi od sledeće prijave tog člana
+  - pravila baze se ne menjaju: `glavni` je već smeo da menja tuđ profil
+- Provereno: `flutter analyze` bez greške, 412 testova prolazi (dva nova:
+  uloga se pamti; svoja uloga se ne menja).
+- Sledeće: proba na telefonu — unaprediti nekog, pa da se on odjavi i
+  prijavi.
+
 ---
 
 ## TODO (skupljati ovde, rešavati kad dođe red)

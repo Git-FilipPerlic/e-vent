@@ -119,6 +119,7 @@ class MockEventService implements EventService {
     _members[index] = _members[index].copyWith(
       skillIds: member.skillIds,
       exp: member.exp,
+      role: member.role,
     );
     _changes.add(null);
   }

@@ -77,6 +77,7 @@ class TeamMember {
 
   TeamMember copyWith({
     String? name,
+    String? role,
     List<String>? skillIds,
     int? exp,
     String? avatarId,
@@ -84,7 +85,7 @@ class TeamMember {
     return TeamMember(
       id: id,
       name: name ?? this.name,
-      role: role,
+      role: role ?? this.role,
       avatarId: avatarId ?? this.avatarId,
       skillIds: skillIds ?? this.skillIds,
       // Bodovi ne idu ispod nule: oduzimanje je ispravka greške, ne kazna.
@@ -92,9 +93,13 @@ class TeamMember {
     );
   }
 
-  /// Samo ono što manager sme da menja — ime, uloga i ostatak profila se
-  /// ovim ne diraju.
-  Map<String, dynamic> toSkillsMap() => {'skills': skillIds, 'exp': exp};
+  /// Samo ono što manager sme da menja — veštine, bodovi i uloga. Ime,
+  /// ikonica i ostatak profila se ovim ne diraju; njih bira čovek sam.
+  Map<String, dynamic> toManagerMap() => {
+    'skills': skillIds,
+    'exp': exp,
+    'role': role,
+  };
 
   factory TeamMember.fromMap(Map<String, dynamic> map) {
     final skills = map['skills'];

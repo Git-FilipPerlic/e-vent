@@ -280,7 +280,12 @@ class _RootNavigationState extends State<RootNavigation> {
   /// se i jedno i drugo dira retko i samo uz prijavu.
   Future<void> _openTeam() async {
     await Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => TeamScreen(service: _events)),
+      MaterialPageRoute(
+        builder: (_) => TeamScreen(
+          service: _events,
+          currentUserName: _auth.currentUser?.name,
+        ),
+      ),
     );
   }
 
